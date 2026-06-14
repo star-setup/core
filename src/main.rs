@@ -1,0 +1,110 @@
+#![warn(clippy::all, clippy::pedantic)]
+
+mod cli;
+mod commands;
+mod config;
+mod interactive;
+mod profiles;
+mod repository;
+mod utils;
+
+use cli::Args;
+use commands::{mono_repo_mode, single_repo_mode};
+use config::{
+  add_config, create_default_config, list_configs, load_config, remove_config, ConfigEntry,
+};
+use interactive::interactive_mode;
+use profiles::{add_profile, list_profiles, remove_profile};
+use std::io::IsTerminal;
+use utils::check_prerequisites;
+
+fn main() {
+  let mut config = load_config();
+  let mut args = match Args::parse_with_config(&config) {
+    Ok(args) => args,
+    Err(e) => {
+      eprintln!("Error: {e}");
+      std::process::exit(1);
+    }
+  };
+
+  if args.config.init_config {
+    if let Err(e) = create_default_config(args.yes) {
+      eprintln!("Error: {e}");
+      std::process::exit(1);
+    }
+    return;
+  }
+  if args.config.list_configs {
+    list_configs(&config);
+    return;
+  }
+  if args.profile.list_profiles {
+    list_profiles(&config);
+    return;
+  }
+
+  if let Some(name) = args.config.config_remove.as_deref() {
+    if let Err(e) = remove_config(&mut config, name, args.yes) {
+      eprintln!("Error: {e}");
+      std::process::exit(1);
+    }
+    return;
+  }
+  if let Some(name) = args.config.config_add.as_deref() {
+    let entry = ConfigEntry {
+      ssh: args.connection.ssh,
+      build_type: args.build.build_type.clone(),
+      build_dir: args.build.build_dir.clone(),
+      mono_dir: args.mono.mono_dir.clone(),
+      no_build: args.build.no_build,
+      clean: args.build.clean,
+      verbose: args.connection.verbose,
+      cmake_flags: args.cmake_flags.clone(),
+    };
+    if let Err(e) = add_config(&mut config, name, entry, args.yes) {
+      eprintln!("Error: {e}");
+      std::process::exit(1);
+    }
+    return;
+  }
+  if let Some(name) = args.profile.profile_remove.as_deref() {
+    if let Err(e) = remove_profile(&mut config, name, args.yes) {
+      eprintln!("Error: {e}");
+      std::process::exit(1);
+    }
+    return;
+  }
+  if let Some(vals) = args.profile.profile_add.as_ref() {
+    if let Err(e) = add_profile(&mut config, vals, args.yes) {
+      eprintln!("Error: {e}");
+      std::process::exit(1);
+    }
+    return;
+  }
+
+  if args.repo.is_none() {
+    if std::io::stdin().is_terminal() {
+      interactive_mode(&mut args);
+    } else {
+      eprintln!("Error: no repository specified");
+      std::process::exit(1);
+    }
+  }
+
+  if let Err(e) = check_prerequisites(args.connection.verbose) {
+    eprintln!("Error: {e}");
+    std::process::exit(1);
+  }
+
+  let result = if args.mono.mono_repo {
+    mono_repo_mode(&args, &config)
+  } else {
+    single_repo_mode(&args)
+  };
+
+  if let Err(e) = result {
+    eprintln!("Error: {e}");
+    std::process::exit(1);
+  }
+}
