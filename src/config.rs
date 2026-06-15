@@ -179,6 +179,7 @@ pub fn remove_config(config: &mut EcosystemConfig, name: &str) -> Result<(), Str
   println!("  Build Directory: {}", e.build_dir);
   println!("  Mono-build Directory: {}", e.mono_dir);
   println!("  No-build flag: {}", e.no_build);
+  println!("  Clean flag: {}", e.clean);
   println!("  Verbose flag: {}", e.verbose);
 
   print!("\nAre you sure you want to remove this config? (y/n): ");
@@ -213,6 +214,7 @@ pub fn list_configs(config: &EcosystemConfig) {
     println!("  Build Directory: {}", e.build_dir);
     println!("  Mono-build Directory: {}", e.mono_dir);
     println!("  No-build flag: {}", e.no_build);
+    println!("  Clean flag: {}", e.clean);
     println!("  Verbose flag: {}", e.verbose);
     if e.cmake_flags.is_empty() {
       println!();
