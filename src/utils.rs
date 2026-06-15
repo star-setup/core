@@ -1,6 +1,7 @@
 //! Utility functions for ecosystem-setup.
 
 use std::process::Command;
+use std::path::Path;
 
 /// Checks if required tools are available on PATH.
 /// Returns Result.
@@ -21,14 +22,14 @@ pub fn check_prerequisites(verbose: bool) -> Result<(), String> {
 
 /// Runs a shell command with optional working directory.
 /// Returns Result.
-pub fn run_command(cmd: &[&str], cwd: Option<&str>, verbose: bool) -> Result<(), String> {
+pub fn run_command(cmd: &[&str], cwd: Option<&Path>, verbose: bool) -> Result<(), String> {
   if cmd.is_empty() { return Err("No command provided".to_string()); }
+
   if verbose {
     println!("Running: {}", cmd.join(" "));
-    if let Some(dir) = cwd {
-      println!("  in directory: {dir}");
-    }
+    if let Some(dir) = cwd { println!("  in directory: {}", dir.display()); }
   }
+
   let mut command = Command::new(cmd[0]);
   command.args(&cmd[1..]);
   if let Some(dir) = cwd { command.current_dir(dir); }

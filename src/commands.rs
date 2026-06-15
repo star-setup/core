@@ -56,7 +56,7 @@ pub fn single_repo_mode(args: &ResolvedArgs) -> Result<(), String> {
     io::stdin().read_line(&mut input).ok();
     if input.trim().eq_ignore_ascii_case("y") {
       println!("Updating {repo_name}\n");
-      run_command(&["git", "pull"], Some(&repo_name), args.connection.verbose)?;
+      run_command(&["git", "pull"], Some(Path::new(&repo_name)), args.connection.verbose)?;
     }
   } else {
     println!("Cloning {repo_name}\n");
@@ -77,13 +77,13 @@ pub fn single_repo_mode(args: &ResolvedArgs) -> Result<(), String> {
   let mut cmake_cmd = vec!["cmake", "..", &build_type];
   let cmake_flags: Vec<&str> = args.cmake_flags.iter().map(String::as_str).collect();
   cmake_cmd.extend(cmake_flags.iter());
-  run_command(&cmake_cmd, Some(build_path.to_str().unwrap()), args.connection.verbose)?;
+  run_command(&cmake_cmd, Some(build_path.as_path()), args.connection.verbose)?;
 
   if !args.build.no_build {
     println!("Building project\n");
     run_command(
       &["cmake", "--build", ".", "--config", &args.build.build_type],
-      Some(build_path.to_str().unwrap()),
+      Some(build_path.as_path()),
       args.connection.verbose
     )?;
   }
@@ -221,13 +221,13 @@ pub fn mono_repo_mode(args: &ResolvedArgs, config: &EcosystemConfig) -> Result<(
   let mut cmake_cmd = vec!["cmake", "-DBUILD_LOCAL=ON", ".."];
   let cmake_flags: Vec<&str> = args.cmake_flags.iter().map(String::as_str).collect();
   cmake_cmd.extend(cmake_flags.iter());
-  run_command(&cmake_cmd, Some(build_path.to_str().unwrap()), args.connection.verbose)?;
+  run_command(&cmake_cmd, Some(build_path.as_path()), args.connection.verbose)?;
 
   if !args.build.no_build {
     println!("Building project\n");
     run_command(
       &["cmake", "--build", ".", "--config", &args.build.build_type],
-      Some(build_path.to_str().unwrap()),
+      Some(build_path.as_path()),
       args.connection.verbose
     )?;
   }

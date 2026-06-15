@@ -33,8 +33,7 @@ pub fn clone_repository(
 
   println!("\n  Cloning {repo_name}");
   let repo_url   = resolve_repo_url(repo_path, use_ssh);
-  let target_str = target_dir.to_str().ok_or("Invalid target directory path")?;
 
-  run_command(&["git", "clone", &repo_url], Some(target_str), verbose)
+  run_command(&["git", "clone", &repo_url], Some(target_dir), verbose)
     .map_err(|e| format!("Failed to clone {repo_path}: {e}"))
 }
