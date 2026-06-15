@@ -1,7 +1,9 @@
 //! Utility functions for ecosystem-setup.
 
-use std::process::Command;
+use std::process::{Stdio, Command};
 use std::path::Path;
+use std::io::Read;
+use std::thread;
 
 /// Checks if required tools are available on PATH.
 /// Returns Result.
@@ -33,13 +35,24 @@ pub fn run_command(cmd: &[&str], cwd: Option<&Path>, verbose: bool) -> Result<()
   let mut command = Command::new(cmd[0]);
   command.args(&cmd[1..]);
   if let Some(dir) = cwd { command.current_dir(dir); }
-  if !verbose {
-    command.stdout(std::process::Stdio::null())
-           .stderr(std::process::Stdio::null());
-  }
-  match command.status() {
-    Ok(status) if status.success() => Ok(()),
-    Ok(status) => Err(format!("Command failed with exit code: {status}")),
-    Err(e)     => Err(format!("Error running command: {e}")),
+
+  command.stderr(Stdio::piped());
+  if !verbose { command.stdout(Stdio::null()); }
+
+  let mut child = command.spawn().map_err(|e| format!("Failed to start command: {e}"))?;
+  let stderr_handle = child.stderr.take();
+  let stderr_thread = thread::spawn(move || {
+    let mut s = String::new();
+    if let Some(mut h) = stderr_handle { h.read_to_string(&mut s).ok(); }
+    s
+  });
+
+  let status = child.wait().map_err(|e| format!("Failed to wait for command: {e}"))?;
+  let stderr = stderr_thread.join().unwrap_or_default();
+  if status.success() { Ok(()) }
+  else {
+    let msg: &str = stderr.trim();
+    if msg.is_empty() { Err(format!("Command failed with exit code: {status}"))        }
+    else {              Err(format!("Command failed with exit code: {status}\n{msg}")) }
   }
 }
