@@ -144,6 +144,7 @@ pub fn mono_repo_mode(args: &ResolvedArgs, config: &EcosystemConfig) -> Result<(
   let test_repo = if repo_input.starts_with("http") || repo_input.starts_with("git@") {
     if repo_input.contains("github.com/") || repo_input.contains("github.com:") {
       let parts: Vec<&str> = repo_input.split('/').collect();
+      if parts.len() < 2 { return Err("Could not parse repository URL".to_string()); }
       let user = parts[parts.len()-2].split(':').next_back().unwrap_or("");
       let repo = parts[parts.len()-1].trim_end_matches(".git");
       format!("{user}/{repo}")
@@ -213,6 +214,12 @@ pub fn mono_repo_mode(args: &ResolvedArgs, config: &EcosystemConfig) -> Result<(
 
   println!("Creating build directory\n");
   let build_path = mono_repo_path.join(&args.build.build_dir);
+
+  if args.build.clean && build_path.exists() {
+    println!("Cleaning build directory\n");
+    fs::remove_dir_all(&build_path).map_err(|e| e.to_string())?;
+  }
+
   fs::create_dir_all(&build_path).map_err(|e| e.to_string())?;
 
   println!("Configuring with CMake in {}\n", build_path.display());
