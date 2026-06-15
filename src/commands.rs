@@ -95,8 +95,13 @@ fn create_mono_repo_cmakelists(
   test_repo: &str,
   repos: &[String]
 ) -> Result<(), String> {
-  let module_names: Vec<&str> = repos.iter()
-    .map(|r| r.split('/').next_back().unwrap_or(r.as_str()))
+  let module_names: Vec<&str> = repos
+    .iter()
+    .map(|r| r
+    .split('/')
+    .next_back()
+    .unwrap_or(r.as_str())
+    .trim_end_matches(".git"))
     .collect();
   let modules_cmake = module_names.join("\n  ");
 
@@ -137,6 +142,7 @@ set_property(DIRECTORY ${{CMAKE_CURRENT_SOURCE_DIR}} PROPERTY VS_STARTUP_PROJECT
 
 pub fn mono_repo_mode(args: &ResolvedArgs, config: &EcosystemConfig) -> Result<(), String> {
   let repo_input = args.repo.as_deref().ok_or("No repository specified")?;
+  let repo_input = repo_input.trim_end_matches('/');
 
   let test_repo = if repo_input.starts_with("http") || repo_input.starts_with("git@") {
     if repo_input.contains("github.com/") || repo_input.contains("github.com:") {

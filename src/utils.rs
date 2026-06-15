@@ -33,11 +33,23 @@ pub fn run_command(cmd: &[&str], cwd: Option<&Path>, verbose: bool) -> Result<()
   }
 
   let mut command = Command::new(cmd[0]);
+
+  if verbose {
+    command.stdout(Stdio::inherit());
+    command.stderr(Stdio::inherit());
+  } else {
+    command.stdout(Stdio::null());
+    command.stderr(Stdio::piped());
+  }
+
   command.args(&cmd[1..]);
   if let Some(dir) = cwd { command.current_dir(dir); }
 
-  command.stderr(Stdio::piped());
-  if !verbose { command.stdout(Stdio::null()); }
+  if verbose {
+    let status = command.status().map_err(|e| format!("Failed to run command: {e}"))?;
+    if status.success() { return Ok(()); }
+    return Err(format!("Command failed with exit code: {status}"));
+  }
 
   let mut child = command.spawn().map_err(|e| format!("Failed to start command: {e}"))?;
   let stderr_handle = child.stderr.take();
