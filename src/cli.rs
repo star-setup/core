@@ -4,6 +4,7 @@ use clap::{Args as ClapArgs, Parser};
 use crate::config::EcosystemConfig;
 
 /// Connection and output flags.
+#[allow(clippy::struct_excessive_bools)]
 #[derive(ClapArgs)]
 pub struct ConnectionFlags {
   /// Use SSH instead of HTTPS for cloning
@@ -22,6 +23,7 @@ pub struct ConnectionFlags {
 }
 
 /// `CMake` build flags.
+#[allow(clippy::struct_excessive_bools)]
 #[derive(ClapArgs)]
 pub struct BuildFlags {
   /// `CMake` build type
@@ -35,7 +37,7 @@ pub struct BuildFlags {
   /// Skip building, only configure
   #[arg(short = 'n', long, conflicts_with = "build")]
   pub no_build: bool,
-  /// Build after configuring (overrides config no_build)
+  /// Build after configuring (overrides config `no_build`)
   #[arg(long, conflicts_with = "no_build")]
   pub build: bool,
 
@@ -69,6 +71,7 @@ pub struct MonoRepoFlags {
 
 /// Config management flags.
 #[derive(ClapArgs)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct ConfigFlags {
   /// Create a default config file in the current directory
   #[arg(long)]

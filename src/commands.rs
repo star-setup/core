@@ -36,7 +36,7 @@ pub fn single_repo_mode(args: &ResolvedArgs) -> Result<(), String> {
   print_mode_header(
     "Single Repository Mode",
     None,
-    Some(&repo_name),
+    Some(repo_name),
     args.connection.ssh,
     None,
     None,
@@ -210,7 +210,7 @@ pub fn mono_repo_mode(args: &ResolvedArgs, config: &EcosystemConfig) -> Result<(
   println!("\n  Finished cloning ({} repositories)\n", repos.len());
 
   println!("Creating mono-repo configuration");
-  create_mono_repo_cmakelists(&mono_repo_path, &test_repo_name, &repos)?;
+  create_mono_repo_cmakelists(&mono_repo_path, test_repo_name, &repos)?;
 
   println!("Creating build directory\n");
   let build_path = mono_repo_path.join(&args.build.build_dir);

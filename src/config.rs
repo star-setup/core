@@ -8,6 +8,7 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 
 /// Represents a single named configuration entry.
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Serialize, Deserialize, Default)]
 pub struct ConfigEntry {
   pub ssh:         bool,
@@ -152,6 +153,7 @@ pub fn add_config(config: &mut EcosystemConfig, name: &str, entry: ConfigEntry) 
   println!("  Build Directory: {}", e.build_dir);
   println!("  Mono-build Directory: {}", e.mono_dir);
   println!("  No-build flag: {}", e.no_build);
+  println!("  Clean flag: {}", e.clean);
   println!("  Verbose flag: {}", e.verbose);
   if !e.cmake_flags.is_empty() {
     if e.cmake_flags.len() == 1 {
