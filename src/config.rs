@@ -37,10 +37,10 @@ impl EcosystemConfig {
 }
 
 pub fn load_config() -> EcosystemConfig {
-  let locations = vec![
-    PathBuf::from(".ecosystem-setup.json"),
-    dirs::home_dir().unwrap_or_default().join(".ecosystem-setup.json"),
-  ];
+  let mut locations = vec![PathBuf::from(".ecosystem-setup.json")];
+  if let Some(home) = dirs::home_dir() {
+      locations.push(home.join(".ecosystem-setup.json"));
+  }
 
   let mut invalid_count = 0;
 
