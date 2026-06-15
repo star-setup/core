@@ -214,7 +214,7 @@ pub fn mono_repo_mode(args: &ResolvedArgs, config: &EcosystemConfig) -> Result<(
   create_mono_repo_cmakelists(&mono_repo_path, &test_repo_name, &repos)?;
 
   println!("Creating build directory\n");
-  let build_path = mono_repo_path.join("build");
+  let build_path = mono_repo_path.join(&args.build.build_dir);
   fs::create_dir_all(&build_path).map_err(|e| e.to_string())?;
 
   println!("Configuring with CMake in {}\n", build_path.display());
