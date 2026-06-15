@@ -77,6 +77,10 @@ pub struct ConfigFlags {
   #[arg(long)]
   pub init_config: bool,
 
+  /// Select a named configuration to use
+  #[arg(long = "config")]
+  pub config_name: Option<String>,
+
   /// Add a new config
   #[arg(long)]
   pub config_add: Option<String>,
@@ -166,9 +170,17 @@ pub struct ResolvedArgs {
 }
 
 impl Args {
-  pub fn parse_with_config(config: &EcosystemConfig) -> ResolvedArgs {
-    let default = config.configs.get("default");
+  pub fn parse_with_config(config: &EcosystemConfig) -> Result<ResolvedArgs, String> {
     let mut args = Args::parse();
+
+    let config_name = args.config.config_name.as_deref().unwrap_or("default");
+    if let Some(name) = &args.config.config_name {
+      if !config.configs.contains_key(name.as_str()) {
+        return Err(format!("Configuration '{name}' not found"));
+      }
+    }
+
+    let default = config.configs.get(config_name);
 
     let ssh_cli = if args.connection.https { Some(false) }
                            else if args.connection.ssh   { Some(true)  }
@@ -198,7 +210,7 @@ impl Args {
     let profile = args.mono.profile.take();
     let mono_repo = args.mono.mono_repo || repos.is_some() || profile.is_some();
 
-    ResolvedArgs {
+    Ok(ResolvedArgs {
       repo:        args.repo,
       cmake_flags: args.cmake_flags,
       connection:  ResolvedConnectionFlags { ssh, verbose },
@@ -222,6 +234,6 @@ impl Args {
       },
       config:  args.config,
       profile: args.profile,
-    }
+    })
   }
 }

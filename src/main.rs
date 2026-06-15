@@ -18,7 +18,10 @@ use cli::{Args};
 
 fn main() {
   let mut config = load_config();
-  let mut args = Args::parse_with_config(&config);
+  let mut args = match Args::parse_with_config(&config) {
+    Ok(args) => args,
+    Err(e) => { eprintln!("Error: {e}"); std::process::exit(1); }
+  };
 
   if args.config.init_config {
     if let Err(e) = create_default_config() {
