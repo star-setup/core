@@ -15,6 +15,7 @@ pub struct ConfigEntry {
   pub build_dir:   String,
   pub mono_dir:    String,
   pub no_build:    bool,
+  pub clean:       bool,
   pub verbose:     bool,
   pub cmake_flags: Vec<String>,
 }
@@ -111,6 +112,7 @@ pub fn create_default_config() -> Result<(), String> {
     build_dir:   "build".to_string(),
     mono_dir:    "build-mono".to_string(),
     no_build:    false,
+    clean:       false,
     verbose:     false,
     cmake_flags: vec![],
   });

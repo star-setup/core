@@ -42,6 +42,7 @@ fn main() {
       build_dir:   args.build.build_dir.clone(),
       mono_dir:    args.mono.mono_dir.clone(),
       no_build:    args.build.no_build,
+      clean:       args.build.clean,
       verbose:     args.connection.verbose,
       cmake_flags: args.cmake_flags.clone(),
     };
