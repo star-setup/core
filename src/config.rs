@@ -99,7 +99,7 @@ pub fn create_default_config() -> Result<(), String> {
     io::stdout().flush().ok();
     let mut input = String::new();
     io::stdin().read_line(&mut input).ok();
-    if input.trim().to_lowercase() != "y" {
+    if !input.trim().eq_ignore_ascii_case("y") {
       println!("Aborted.");
       return Ok(());
     }
@@ -135,7 +135,7 @@ pub fn add_config(config: &mut EcosystemConfig, name: &str, entry: ConfigEntry) 
     io::stdout().flush().ok();
     let mut input = String::new();
     io::stdin().read_line(&mut input).ok();
-    if input.trim().to_lowercase() != "y" {
+    if !input.trim().eq_ignore_ascii_case("y") {
       println!("Aborted.");
       return Ok(());
     }
@@ -185,7 +185,7 @@ pub fn remove_config(config: &mut EcosystemConfig, name: &str) -> Result<(), Str
   io::stdout().flush().ok();
   let mut input = String::new();
   io::stdin().read_line(&mut input).ok();
-  if input.trim().to_lowercase() != "y" {
+  if !input.trim().eq_ignore_ascii_case("y") {
     println!("Aborted.");
     return Ok(());
   }

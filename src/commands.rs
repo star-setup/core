@@ -54,7 +54,7 @@ pub fn single_repo_mode(args: &ResolvedArgs) -> Result<(), String> {
     io::stdout().flush().ok();
     let mut input = String::new();
     io::stdin().read_line(&mut input).ok();
-    if input.trim().to_lowercase() == "y" {
+    if input.trim().eq_ignore_ascii_case("y") {
       println!("Updating {repo_name}\n");
       run_command(&["git", "pull"], Some(&repo_name), args.connection.verbose)?;
     }

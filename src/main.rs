@@ -29,13 +29,13 @@ fn main() {
   if args.config.list_configs   { list_configs(&config); return; }
   if args.profile.list_profiles { list_profiles(&config); return; }
 
-  if let Some(name) = &args.config.config_remove.clone() {
+  if let Some(name) = args.config.config_remove.as_deref() {
     if let Err(e) = remove_config(&mut config, name) {
       eprintln!("Error: {e}"); std::process::exit(1);
     }
     return;
   }
-  if let Some(name) = &args.config.config_add.clone() {
+  if let Some(name) = args.config.config_add.as_deref() {
     let entry = ConfigEntry {
       ssh:         args.connection.ssh,
       build_type:  args.build.build_type.clone(),
@@ -50,13 +50,13 @@ fn main() {
     }
     return;
   }
-  if let Some(name) = &args.profile.profile_remove.clone() {
+  if let Some(name) = args.profile.profile_remove.as_deref()  {
     if let Err(e) = remove_profile(&mut config, name) {
       eprintln!("Error: {e}"); std::process::exit(1);
     }
     return;
   }
-  if let Some(vals) = &args.profile.profile_add.clone() {
+  if let Some(vals) = args.profile.profile_add.as_ref() {
     if let Err(e) = add_profile(&mut config, vals) {
       eprintln!("Error: {e}"); std::process::exit(1);
     }

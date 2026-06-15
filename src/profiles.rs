@@ -19,7 +19,7 @@ pub fn add_profile(config: &mut EcosystemConfig, args: &[String]) -> Result<(), 
     io::stdout().flush().ok();
     let mut input = String::new();
     io::stdin().read_line(&mut input).ok();
-    if input.trim().to_lowercase() != "y" {
+    if !input.trim().eq_ignore_ascii_case("y") {
       println!("Aborted.");
       return Ok(());
     }
@@ -54,7 +54,7 @@ pub fn remove_profile(config: &mut EcosystemConfig, name: &str) -> Result<(), St
   io::stdout().flush().ok();
   let mut input = String::new();
   io::stdin().read_line(&mut input).ok();
-  if input.trim().to_lowercase() != "y" {
+  if !input.trim().eq_ignore_ascii_case("y") {
     println!("Aborted.");
     return Ok(());
   }
