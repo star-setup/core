@@ -91,7 +91,6 @@ pub struct ProfileFlags {
   pub list_profiles: bool,
 }
 
-
 #[derive(Parser)]
 #[command(
   name = "ecos",
@@ -122,43 +121,71 @@ pub struct Args {
   pub profile: ProfileFlags,
 }
 
+pub struct ResolvedBuildFlags {
+    pub build_type: String,
+    pub build_dir:  String,
+    pub no_build:   bool,
+    pub clean:      bool,
+}
+
+pub struct ResolvedMonoFlags {
+    pub mono_repo: bool,
+    pub mono_dir:  String,
+    pub repos:     Option<Vec<String>>,
+    pub profile:   Option<String>,
+}
+
+pub struct ResolvedArgs {
+    pub repo:        Option<String>,
+    pub cmake_flags: Vec<String>,
+    pub connection:  ConnectionFlags,
+    pub build:       ResolvedBuildFlags,
+    pub mono:        ResolvedMonoFlags,
+    pub config:      ConfigFlags,
+    pub profile:     ProfileFlags,
+}
+
 impl Args {
-  pub fn parse_with_config(config: &EcosystemConfig) -> Self {
+  pub fn parse_with_config(config: &EcosystemConfig) -> ResolvedArgs {
     let default = config.configs.get("default");
     let mut args = Args::parse();
 
-    if !args.connection.ssh {
-      args.connection.ssh = default.is_some_and(|e| e.ssh);
-    }
-    if !args.connection.verbose {
-      args.connection.verbose = default.is_some_and(|e| e.verbose);
-    }
-    if !args.build.no_build {
-      args.build.no_build = default.is_some_and(|e| e.no_build);
-    }
-
-    args.build.build_type = args.build.build_type
-      .or_else(|| default.map(|e| e.build_type.clone()))
-      .or_else(|| Some("Debug".to_string()));
-
-    args.build.build_dir = args.build.build_dir
-      .or_else(|| default.map(|e| e.build_dir.clone()))
-      .or_else(|| Some("build".to_string()));
-
-    args.mono.mono_dir = args.mono.mono_dir
-      .or_else(|| default.map(|e| e.mono_dir.clone()))
-      .or_else(|| Some("build-mono".to_string()));
+    let ssh      = args.connection.ssh     || default.is_some_and(|e| e.ssh);
+    let verbose  = args.connection.verbose || default.is_some_and(|e| e.verbose);
+    let no_build = args.build.no_build     || default.is_some_and(|e| e.no_build);
 
     if args.cmake_flags.is_empty() {
-      args.cmake_flags = default.map_or_else(
-        Vec::new, |e| e.cmake_flags.clone()
-      );
+      args.cmake_flags = default.map_or_else(Vec::new, |e| e.cmake_flags.clone());
     }
 
-    if args.mono.repos.is_some() || args.mono.profile.is_some() {
-      args.mono.mono_repo = true;
-    }
+    let repos   = args.mono.repos.take();
+    let profile = args.mono.profile.take();
+    let mono_repo = args.mono.mono_repo || repos.is_some() || profile.is_some();
 
-    args
+    ResolvedArgs {
+      repo:        args.repo,
+      cmake_flags: args.cmake_flags,
+      connection:  ConnectionFlags { ssh, verbose },
+      build: ResolvedBuildFlags {
+        build_type: args.build.build_type
+          .or_else(|| default.map(|e| e.build_type.clone()))
+          .unwrap_or_else(|| "Debug".to_string()),
+        build_dir: args.build.build_dir
+          .or_else(|| default.map(|e| e.build_dir.clone()))
+          .unwrap_or_else(|| "build".to_string()),
+        no_build,
+        clean: args.build.clean,
+      },
+      mono: ResolvedMonoFlags {
+        mono_repo,
+        mono_dir: args.mono.mono_dir
+          .or_else(|| default.map(|e| e.mono_dir.clone()))
+          .unwrap_or_else(|| "build-mono".to_string()),
+        repos,
+        profile,
+      },
+      config:  args.config,
+      profile: args.profile,
+    }
   }
 }

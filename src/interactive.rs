@@ -1,7 +1,7 @@
 //! Interactive CLI mode for ecosystem-setup.
 
 use std::io::{self, BufRead, Write};
-use crate::cli::Args;
+use crate::cli::ResolvedArgs;
 
 fn ask(prompt: &str) -> String {
   print!("{prompt}: ");
@@ -31,7 +31,7 @@ fn ask_yesno(prompt: &str, default: bool) -> bool {
 }
 
 /// Interactive CLI mode — prompts for any unset arguments.
-pub fn interactive_mode(args: &mut Args) {
+pub fn interactive_mode(args: &mut ResolvedArgs) {
   println!("Ecosystem Setup Interactive Mode");
 
   if args.repo.is_none() {
@@ -90,12 +90,8 @@ pub fn interactive_mode(args: &mut Args) {
     }
   }
 
-  args.build.build_type = Some(ask_default(
-    "Build type", args.build.build_type.as_deref().unwrap_or("Debug")
-  ));
-  args.build.build_dir = Some(ask_default(
-    "Build directory", args.build.build_dir.as_deref().unwrap_or("build")
-  ));
+  args.build.build_type = ask_default("Build type", &args.build.build_type);
+  args.build.build_dir = ask_default("Build directory", &args.build.build_dir);
 
   if args.cmake_flags.is_empty() {
     let cmake_extra = ask_default(

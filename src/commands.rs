@@ -3,7 +3,7 @@
 use std::fs;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
-use crate::cli::Args;
+use crate::cli::ResolvedArgs;
 use crate::config::EcosystemConfig;
 use crate::profiles::list_profiles;
 use crate::repository::{resolve_repo_url, clone_repository};
@@ -28,7 +28,7 @@ fn print_mode_header(
   println!();
 }
 
-pub fn single_repo_mode(args: &Args) -> Result<(), String> {
+pub fn single_repo_mode(args: &ResolvedArgs) -> Result<(), String> {
   let repo = args.repo.as_deref().ok_or("No repository specified")?;
   let repo_url = resolve_repo_url(repo, args.connection.ssh);
   let repo_name = Path::new(&repo_url).file_stem()
@@ -63,21 +63,17 @@ pub fn single_repo_mode(args: &Args) -> Result<(), String> {
     run_command(&["git", "clone", &repo_url], None, args.connection.verbose)?;
   }
 
-  let build_path = PathBuf::from(&repo_name).join(
-    args.build.build_dir.as_deref().unwrap_or("build")
-  );
+  let build_path = PathBuf::from(&repo_name).join(&args.build.build_dir);
   if args.build.clean && build_path.exists() {
     println!("Cleaning build directory\n");
     fs::remove_dir_all(&build_path).map_err(|e| e.to_string())?;
   }
 
-  println!("Creating build directory: {}\n", args.build.build_dir.as_deref().unwrap_or("build"));
+  println!("Creating build directory: {}\n", args.build.build_dir);
   fs::create_dir_all(&build_path).map_err(|e| e.to_string())?;
 
   println!("Configuring with CMake\n");
-  let build_type = format!(
-    "-DCMAKE_BUILD_TYPE={}", args.build.build_type.as_deref().unwrap_or("Debug")
-  );
+  let build_type = format!("-DCMAKE_BUILD_TYPE={}", args.build.build_type);
   let mut cmake_cmd = vec!["cmake", "..", &build_type];
   let cmake_flags: Vec<&str> = args.cmake_flags.iter().map(String::as_str).collect();
   cmake_cmd.extend(cmake_flags.iter());
@@ -86,16 +82,13 @@ pub fn single_repo_mode(args: &Args) -> Result<(), String> {
   if !args.build.no_build {
     println!("Building project\n");
     run_command(
-      &["cmake",
-             "--build", ".",
-             "--config", args.build.build_type.as_deref().unwrap_or("Debug")
-            ],
+      &["cmake", "--build", ".", "--config", &args.build.build_type],
       Some(build_path.to_str().unwrap()),
       args.connection.verbose
     )?;
   }
 
-  println!("Project finished in {repo_name}/{}", args.build.build_dir.as_deref().unwrap_or("build"));
+  println!("Project finished in {repo_name}/{}", args.build.build_dir);
   Ok(())
 }
 
@@ -144,7 +137,7 @@ set_property(DIRECTORY ${{CMAKE_CURRENT_SOURCE_DIR}} PROPERTY VS_STARTUP_PROJECT
   Ok(())
 }
 
-pub fn mono_repo_mode(args: &Args, config: &EcosystemConfig) -> Result<(), String> {
+pub fn mono_repo_mode(args: &ResolvedArgs, config: &EcosystemConfig) -> Result<(), String> {
   let repo_input = args.repo.as_deref().ok_or("No repository specified")?;
 
   let test_repo = if repo_input.starts_with("http") || repo_input.starts_with("git@") {
@@ -178,7 +171,7 @@ pub fn mono_repo_mode(args: &Args, config: &EcosystemConfig) -> Result<(), Strin
       Some(&test_repo),
       None,
       args.connection.ssh,
-      Some(args.mono.mono_dir.as_deref().unwrap_or("build-mono")),
+      Some(&args.mono.mono_dir),
       Some(profile_name),
       Some(profile_repos.len())
     );
@@ -189,7 +182,7 @@ pub fn mono_repo_mode(args: &Args, config: &EcosystemConfig) -> Result<(), Strin
       Some(&test_repo),
       None,
       args.connection.ssh,
-      Some(args.mono.mono_dir.as_deref().unwrap_or("build-mono")),
+      Some(&args.mono.mono_dir),
       None,
       Some(r.len())
     );
@@ -202,9 +195,7 @@ pub fn mono_repo_mode(args: &Args, config: &EcosystemConfig) -> Result<(), Strin
 
   println!("Total repositories: {}\n", repos.len());
 
-  let mono_repo_path = PathBuf::from(
-    args.mono.mono_dir.as_deref().unwrap_or("build-mono")
-  );
+  let mono_repo_path = PathBuf::from(&args.mono.mono_dir);
   println!("Creating directory: {}\n", mono_repo_path.display());
   fs::create_dir_all(&mono_repo_path).map_err(|e| e.to_string())?;
 
@@ -235,10 +226,7 @@ pub fn mono_repo_mode(args: &Args, config: &EcosystemConfig) -> Result<(), Strin
   if !args.build.no_build {
     println!("Building project\n");
     run_command(
-      &["cmake",
-             "--build", ".",
-             "--config", args.build.build_type.as_deref().unwrap_or("Debug")
-            ],
+      &["cmake", "--build", ".", "--config", &args.build.build_type],
       Some(build_path.to_str().unwrap()),
       args.connection.verbose
     )?;

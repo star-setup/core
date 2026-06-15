@@ -14,7 +14,7 @@ use profiles::{list_profiles, add_profile, remove_profile};
 use utils::check_prerequisites;
 use commands::{single_repo_mode, mono_repo_mode};
 use interactive::interactive_mode;
-use cli::Args;
+use cli::{Args};
 
 fn main() {
   let mut config = load_config();
@@ -38,9 +38,9 @@ fn main() {
   if let Some(name) = &args.config.config_add.clone() {
     let entry = ConfigEntry {
       ssh:         args.connection.ssh,
-      build_type:  args.build.build_type.clone().unwrap_or_default(),
-      build_dir:   args.build.build_dir.clone().unwrap_or_default(),
-      mono_dir:    args.mono.mono_dir.clone().unwrap_or_default(),
+      build_type:  args.build.build_type.clone(),
+      build_dir:   args.build.build_dir.clone(),
+      mono_dir:    args.mono.mono_dir.clone(),
       no_build:    args.build.no_build,
       verbose:     args.connection.verbose,
       cmake_flags: args.cmake_flags.clone(),
