@@ -7,11 +7,18 @@ use crate::config::EcosystemConfig;
 #[derive(ClapArgs)]
 pub struct ConnectionFlags {
   /// Use SSH instead of HTTPS for cloning
-  #[arg(long)]
-  pub ssh: Option<bool>,
+  #[arg(long, conflicts_with = "https")]
+  pub ssh: bool,
+  /// Use HTTPS instead of SSH for cloning
+  #[arg(long, conflicts_with = "ssh")]
+  pub https: bool,
+
   /// Show detailed command output
-  #[arg(short = 'v', long)]
-  pub verbose: Option<bool>,
+  #[arg(short = 'v', long, conflicts_with = "no_verbose")]
+  pub verbose: bool,
+   /// Suppress detailed command output
+  #[arg(long, conflicts_with = "verbose")]
+  pub no_verbose: bool,
 }
 
 /// `CMake` build flags.
@@ -26,12 +33,18 @@ pub struct BuildFlags {
   pub build_dir: Option<String>,
 
   /// Skip building, only configure
-  #[arg(short = 'n', long)]
-  pub no_build: Option<bool>,
+  #[arg(short = 'n', long, conflicts_with = "build")]
+  pub no_build: bool,
+  /// Build after configuring (overrides config no_build)
+  #[arg(long, conflicts_with = "no_build")]
+  pub build: bool,
 
   /// Clean build directory before building
-  #[arg(short = 'c', long)]
-  pub clean: Option<bool>,
+  #[arg(short = 'c', long, conflicts_with = "no_clean")]
+  pub clean: bool,
+  /// Do not clean build directory
+  #[arg(long, conflicts_with = "clean")]
+  pub no_clean: bool,
 }
 
 /// Mono-repo flags.
@@ -121,32 +134,32 @@ pub struct Args {
 }
 
 pub struct ResolvedConnectionFlags {
-    pub ssh:     bool,
-    pub verbose: bool,
+  pub ssh:     bool,
+  pub verbose: bool,
 }
 
 pub struct ResolvedBuildFlags {
-    pub build_type: String,
-    pub build_dir:  String,
-    pub no_build:   bool,
-    pub clean:      bool,
+  pub build_type: String,
+  pub build_dir:  String,
+  pub no_build:   bool,
+  pub clean:      bool,
 }
 
 pub struct ResolvedMonoFlags {
-    pub mono_repo: bool,
-    pub mono_dir:  String,
-    pub repos:     Option<Vec<String>>,
-    pub profile:   Option<String>,
+  pub mono_repo: bool,
+  pub mono_dir:  String,
+  pub repos:     Option<Vec<String>>,
+  pub profile:   Option<String>,
 }
 
 pub struct ResolvedArgs {
-    pub repo:        Option<String>,
-    pub cmake_flags: Vec<String>,
-    pub connection:  ResolvedConnectionFlags,
-    pub build:       ResolvedBuildFlags,
-    pub mono:        ResolvedMonoFlags,
-    pub config:      ConfigFlags,
-    pub profile:     ProfileFlags,
+  pub repo:        Option<String>,
+  pub cmake_flags: Vec<String>,
+  pub connection:  ResolvedConnectionFlags,
+  pub build:       ResolvedBuildFlags,
+  pub mono:        ResolvedMonoFlags,
+  pub config:      ConfigFlags,
+  pub profile:     ProfileFlags,
 }
 
 impl Args {
@@ -154,9 +167,25 @@ impl Args {
     let default = config.configs.get("default");
     let mut args = Args::parse();
 
-    let ssh      = args.connection.ssh.or_else(|| default.map(|e| e.ssh)).unwrap_or(false);
-    let verbose  = args.connection.verbose.or_else(|| default.map(|e| e.verbose)).unwrap_or(false);
-    let no_build = args.build.no_build.or_else(|| default.map(|e| e.no_build)).unwrap_or(false);
+    let ssh_cli = if args.connection.https { Some(false) }
+                           else if args.connection.ssh   { Some(true)  }
+                                else                     { None        };
+    let ssh = ssh_cli.or_else(|| default.map(|e| e.ssh)).unwrap_or(false);
+
+    let verbose_cli = if args.connection.no_verbose { Some(false) }
+                               else if args.connection.verbose    { Some(true)  }
+                                    else                          { None        };
+    let verbose = verbose_cli.or_else(|| default.map(|e| e.verbose)).unwrap_or(false);
+
+    let no_build_cli = if args.build.build    { Some(false) }
+                                else if args.build.no_build { Some(true)  }
+                                     else                   { None        };
+    let no_build = no_build_cli.or_else(|| default.map(|e| e.no_build)).unwrap_or(false);
+
+    let clean_cli = if args.build.no_clean { Some(false) }
+                             else if args.build.clean    { Some(true)  }
+                                  else                   { None        };
+    let clean = clean_cli.or_else(|| default.map(|e| e.clean)).unwrap_or(false);
 
     if args.cmake_flags.is_empty() {
       args.cmake_flags = default.map_or_else(Vec::new, |e| e.cmake_flags.clone());
@@ -178,7 +207,7 @@ impl Args {
           .or_else(|| default.map(|e| e.build_dir.clone()))
           .unwrap_or_else(|| "build".to_string()),
         no_build,
-        clean: args.build.clean.or_else(|| default.map(|e| e.clean)).unwrap_or(false),
+        clean,
       },
       mono: ResolvedMonoFlags {
         mono_repo,
