@@ -31,8 +31,7 @@ fn print_mode_header(
 pub fn single_repo_mode(args: &ResolvedArgs) -> Result<(), String> {
   let repo = args.repo.as_deref().ok_or("No repository specified")?;
   let repo_url = resolve_repo_url(repo, args.connection.ssh);
-  let repo_name = Path::new(&repo_url).file_stem()
-    .and_then(|s| s.to_str())
+  let repo_name = repo_url.rsplit('/').next()
     .unwrap_or(repo)
     .trim_end_matches(".git")
     .to_string();
@@ -75,8 +74,7 @@ pub fn single_repo_mode(args: &ResolvedArgs) -> Result<(), String> {
   println!("Configuring with CMake\n");
   let build_type = format!("-DCMAKE_BUILD_TYPE={}", args.build.build_type);
   let mut cmake_cmd = vec!["cmake", "..", &build_type];
-  let cmake_flags: Vec<&str> = args.cmake_flags.iter().map(String::as_str).collect();
-  cmake_cmd.extend(cmake_flags.iter());
+  cmake_cmd.extend(args.cmake_flags.iter().map(String::as_str));
   run_command(&cmake_cmd, Some(build_path.as_path()), args.connection.verbose)?;
 
   if !args.build.no_build {
@@ -220,8 +218,7 @@ pub fn mono_repo_mode(args: &ResolvedArgs, config: &EcosystemConfig) -> Result<(
   println!("Configuring with CMake in {}\n", build_path.display());
   let build_type_flag = format!("-DCMAKE_BUILD_TYPE={}", args.build.build_type);
   let mut cmake_cmd = vec!["cmake", "-DBUILD_LOCAL=ON", &build_type_flag, ".."];
-  let cmake_flags: Vec<&str> = args.cmake_flags.iter().map(String::as_str).collect();
-  cmake_cmd.extend(cmake_flags.iter());
+  cmake_cmd.extend(args.cmake_flags.iter().map(String::as_str));
   run_command(&cmake_cmd, Some(build_path.as_path()), args.connection.verbose)?;
 
   if !args.build.no_build {

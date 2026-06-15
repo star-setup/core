@@ -77,9 +77,7 @@ pub fn load_config() -> EcosystemConfig {
 }
 
 pub fn save_config(config: &mut EcosystemConfig) -> Result<PathBuf, String> {
-  if config.path.is_none() { config.path = Some(PathBuf::from(".ecosystem-setup.json")); }
-
-  let path = config.path.as_ref().unwrap().clone();
+  let path = config.path.get_or_insert_with(|| PathBuf::from(".ecosystem-setup.json")).clone();
   let json = serde_json::to_string_pretty(config)
     .map_err(|e| format!("Failed to serialize config: {e}"))?;
 
