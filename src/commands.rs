@@ -218,7 +218,8 @@ pub fn mono_repo_mode(args: &ResolvedArgs, config: &EcosystemConfig) -> Result<(
   fs::create_dir_all(&build_path).map_err(|e| e.to_string())?;
 
   println!("Configuring with CMake in {}\n", build_path.display());
-  let mut cmake_cmd = vec!["cmake", "-DBUILD_LOCAL=ON", ".."];
+  let build_type_flag = format!("-DCMAKE_BUILD_TYPE={}", args.build.build_type);
+  let mut cmake_cmd = vec!["cmake", "-DBUILD_LOCAL=ON", &build_type_flag, ".."];
   let cmake_flags: Vec<&str> = args.cmake_flags.iter().map(String::as_str).collect();
   cmake_cmd.extend(cmake_flags.iter());
   run_command(&cmake_cmd, Some(build_path.as_path()), args.connection.verbose)?;
