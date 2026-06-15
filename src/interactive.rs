@@ -4,7 +4,7 @@ use std::io::{self, BufRead, Write};
 use crate::cli::Args;
 
 fn ask(prompt: &str) -> String {
-  print!("{}: ", prompt);
+  print!("{prompt}: ");
   io::stdout().flush().ok();
   let mut input = String::new();
   io::stdin().lock().read_line(&mut input).ok();
@@ -12,7 +12,7 @@ fn ask(prompt: &str) -> String {
 }
 
 fn ask_default(prompt: &str, default: &str) -> String {
-  print!("{} [{}]: ", prompt, default);
+  print!("{prompt} [{default}]: ");
   io::stdout().flush().ok();
   let mut input = String::new();
   io::stdin().lock().read_line(&mut input).ok();
@@ -22,7 +22,7 @@ fn ask_default(prompt: &str, default: &str) -> String {
 
 fn ask_yesno(prompt: &str, default: bool) -> bool {
   let default_char = if default { "Y" } else { "N" };
-  print!("{} (y/n) [{}]: ", prompt, default_char);
+  print!("{prompt} (y/n) [{default_char}]: ");
   io::stdout().flush().ok();
   let mut input = String::new();
   io::stdin().lock().read_line(&mut input).ok();
@@ -41,37 +41,45 @@ pub fn interactive_mode(args: &mut Args) {
     }
   }
 
-  if !args.ssh     { args.ssh     = ask_yesno("Use SSH?", false); }
-  if !args.verbose { args.verbose = ask_yesno("Verbose?", false); }
-  if !args.clean   { args.clean   = ask_yesno("Clean build directory if exists?", false); }
+  if !args.connection.ssh {
+    args.connection.ssh = ask_yesno("Use SSH?", false);
+  }
+  if !args.connection.verbose {
+    args.connection.verbose = ask_yesno("Verbose?", false);
+  }
+  if !args.build.clean {
+    args.build.clean = ask_yesno("Clean build directory if exists?", false);
+  }
 
-  if !args.mono_repo {
+  if !args.mono.mono_repo {
     loop {
       let mode = ask("Select mode: (1) Single Repo (2) Mono-Repo");
       match mode.as_str() {
         "1" => { break; }
-        "2" => { args.mono_repo = true; break; }
+        "2" => { args.mono.mono_repo = true; break; }
         _ => {}
       }
     }
   }
 
-  if args.mono_repo && args.profile.is_none() && args.repos.is_none() {
+  if args.mono.mono_repo && args.mono.profile.is_none() && args.mono.repos.is_none() {
     loop {
       let choice = ask("Mono-repo: (1) Use profile (2) Manual repo list");
       match choice.as_str() {
         "1" => {
           loop {
             let profile = ask("Profile name");
-            if !profile.is_empty() { args.profile = Some(profile); break; }
+            if !profile.is_empty() { args.mono.profile = Some(profile); break; }
           }
           break;
         }
         "2" => {
           loop {
-            let repo_list = ask("Enter repos (space separated 'username/lib1 username/lib2')");
+            let repo_list = ask(
+              "Enter repos (space separated 'username/lib1 username/lib2')"
+            );
             if !repo_list.is_empty() {
-              args.repos = Some(repo_list.split_whitespace().map(String::from).collect());
+              args.mono.repos = Some(repo_list.split_whitespace().map(String::from).collect());
               break;
             }
           }
@@ -82,18 +90,24 @@ pub fn interactive_mode(args: &mut Args) {
     }
   }
 
-  args.build_type = ask_default("Build type", &args.build_type.clone());
-  args.build_dir  = ask_default("Build directory", &args.build_dir.clone());
+  args.build.build_type = Some(ask_default(
+    "Build type", args.build.build_type.as_deref().unwrap_or("Debug")
+  ));
+  args.build.build_dir = Some(ask_default(
+    "Build directory", args.build.build_dir.as_deref().unwrap_or("build")
+  ));
 
-  if args.cmake_args.is_empty() {
-    let cmake_extra = ask_default("Additional CMake args (space separated)", "");
+  if args.cmake_flags.is_empty() {
+    let cmake_extra = ask_default(
+      "Additional CMake args (space separated)", ""
+    );
     if !cmake_extra.is_empty() {
-      args.cmake_args = cmake_extra.split_whitespace().map(String::from).collect();
+      args.cmake_flags = cmake_extra.split_whitespace().map(String::from).collect();
     }
   }
 
-  if !args.no_build {
-    args.no_build = ask_yesno("Configure only (skip build)?", false);
+  if !args.build.no_build {
+    args.build.no_build = ask_yesno("Configure only (skip build)?", false);
   }
 
   println!("\nInteractive mode complete");

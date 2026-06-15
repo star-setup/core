@@ -10,13 +10,13 @@ use serde::{Deserialize, Serialize};
 /// Represents a single named configuration entry.
 #[derive(Serialize, Deserialize, Default)]
 pub struct ConfigEntry {
-  pub ssh:        bool,
-  pub build_type: String,
-  pub build_dir:  String,
-  pub mono_dir:   String,
-  pub no_build:   bool,
-  pub verbose:    bool,
-  pub cmake_args: Vec<String>,
+  pub ssh:         bool,
+  pub build_type:  String,
+  pub build_dir:   String,
+  pub mono_dir:    String,
+  pub no_build:    bool,
+  pub verbose:     bool,
+  pub cmake_flags: Vec<String>,
 }
 
 /// Top-level configuration structure.
@@ -48,33 +48,41 @@ pub fn load_config() -> EcosystemConfig {
     if !path.exists() { continue; }
     match fs::read_to_string(&path) {
       Ok(contents) => match serde_json::from_str::<EcosystemConfig>(&contents) {
-        Ok(mut config) => { config.path = Some(path); return config; }
-        Err(e) => { println!("Warning: Invalid JSON in {}: {}", path.display(), e); invalid_count += 1; }
+        Ok(mut config) => {
+          config.path = Some(path);
+          return config;
+        }
+        Err(e) => {
+          println!("Warning: Invalid JSON in {}: {e}", path.display());
+          invalid_count += 1;
+        }
       },
       Err(e) if e.kind() == io::ErrorKind::PermissionDenied => {
-        println!("Error: No permission to read {}", path.display()); invalid_count += 1;
+        println!("Error: No permission to read {}", path.display());
+        invalid_count += 1;
       }
-      Err(e) => { println!("An unexpected error occurred reading {}: {}", path.display(), e); invalid_count += 1; }
+      Err(e) => {
+        println!("An unexpected error occurred reading {}: {e}", path.display());
+        invalid_count += 1;
+      }
     }
   }
 
   if invalid_count != 0 {
     println!(
-      "Found {} config file{} that had errors", invalid_count, if invalid_count != 1 { "s" } else { "" }
+      "Found {invalid_count} config file{} that had errors", if invalid_count == 1 { "" } else { "s" }
     );
-  } else {
-    println!("Failed to find config file");
-  }
+  } else { println!("Failed to find config file"); }
   EcosystemConfig::new()
 }
 
 pub fn save_config(config: &mut EcosystemConfig) -> Result<PathBuf, String> {
-  if config.path.is_none() {
-    config.path = Some(PathBuf::from(".ecosystem-setup.json"));
-  }
+  if config.path.is_none() { config.path = Some(PathBuf::from(".ecosystem-setup.json")); }
+
   let path = config.path.as_ref().unwrap().clone();
   let json = serde_json::to_string_pretty(config)
-    .map_err(|e| format!("Failed to serialize config: {}", e))?;
+    .map_err(|e| format!("Failed to serialize config: {e}"))?;
+
   fs::write(&path, json).map_err(|e| match e.kind() {
     io::ErrorKind::PermissionDenied => format!("Error: No permission to write to {}", path.display()),
     _ => format!("An unexpected error occurred writing {}: {}", path.display(), e),
@@ -100,13 +108,13 @@ pub fn create_default_config() -> Result<(), String> {
   let mut config = EcosystemConfig::new();
   config.path = Some(path.clone());
   config.configs.insert("default".to_string(), ConfigEntry {
-    ssh:        false,
-    build_type: "Debug".to_string(),
-    build_dir:  "build".to_string(),
-    mono_dir:   "build-mono".to_string(),
-    no_build:   false,
-    verbose:    false,
-    cmake_args: vec![],
+    ssh:         false,
+    build_type:  "Debug".to_string(),
+    build_dir:   "build".to_string(),
+    mono_dir:    "build-mono".to_string(),
+    no_build:    false,
+    verbose:     false,
+    cmake_flags: vec![],
   });
 
   save_config(&mut config)?;
@@ -123,7 +131,7 @@ pub fn create_default_config() -> Result<(), String> {
 /// Adds a new named configuration entry.
 pub fn add_config(config: &mut EcosystemConfig, name: &str, entry: ConfigEntry) -> Result<(), String> {
   if config.configs.contains_key(name) {
-    print!("Warning: Configuration '{}' already exists. Overwrite? (y/n): ", name);
+    print!("Warning: Configuration '{name}' already exists. Overwrite? (y/n): ");
     io::stdout().flush().ok();
     let mut input = String::new();
     io::stdin().read_line(&mut input).ok();
@@ -137,7 +145,7 @@ pub fn add_config(config: &mut EcosystemConfig, name: &str, entry: ConfigEntry) 
   let path = save_config(config)?;
 
   let e = &config.configs[name];
-  println!("Configuration '{}' added successfully to {}", name, path.display());
+  println!("Configuration '{name}' added successfully to {}", path.display());
   println!("Configuration details:");
   println!("  SSH: {}", e.ssh);
   println!("  Build Type: {}", e.build_type);
@@ -145,12 +153,12 @@ pub fn add_config(config: &mut EcosystemConfig, name: &str, entry: ConfigEntry) 
   println!("  Mono-build Directory: {}", e.mono_dir);
   println!("  No-build flag: {}", e.no_build);
   println!("  Verbose flag: {}", e.verbose);
-  if !e.cmake_args.is_empty() {
-    if e.cmake_args.len() == 1 {
-      println!("  CMake argument: {}", e.cmake_args[0]);
+  if !e.cmake_flags.is_empty() {
+    if e.cmake_flags.len() == 1 {
+      println!("  CMake argument: {}", e.cmake_flags[0]);
     } else {
       println!("  CMake arguments:");
-      for arg in &e.cmake_args { println!("    {}", arg); }
+      for arg in &e.cmake_flags { println!("    {arg}"); }
     }
   }
 
@@ -159,12 +167,12 @@ pub fn add_config(config: &mut EcosystemConfig, name: &str, entry: ConfigEntry) 
 
 /// Removes a named configuration entry.
 pub fn remove_config(config: &mut EcosystemConfig, name: &str) -> Result<(), String> {
-  let e = match config.configs.get(name) {
-    None => { println!("\nWarning: Config '{}' not found.\n", name); return Ok(()); }
-    Some(e) => e,
+  let Some(e) = config.configs.get(name) else {
+    println!("\nWarning: Config '{name}' not found.\n");
+    return Ok(());
   };
 
-  println!("Config {}", name);
+  println!("Config {name}");
   println!("Configuration details:");
   println!("  SSH: {}", e.ssh);
   println!("  Build Type: {}", e.build_type);
@@ -184,7 +192,7 @@ pub fn remove_config(config: &mut EcosystemConfig, name: &str) -> Result<(), Str
 
   config.configs.remove(name);
   let path = save_config(config)?;
-  println!("\nConfig '{}' was successfully removed", name);
+  println!("\nConfig '{name}' was successfully removed");
   println!("Configuration saved to: {}\n", path.display());
   Ok(())
 }
@@ -199,20 +207,20 @@ pub fn list_configs(config: &EcosystemConfig) {
 
   println!("Configurations:");
   for (name, e) in &config.configs {
-    println!("\n{}:", name);
+    println!("\n{name}:");
     println!("  SSH: {}", e.ssh);
     println!("  Build Type: {}", e.build_type);
     println!("  Build Directory: {}", e.build_dir);
     println!("  Mono-build Directory: {}", e.mono_dir);
     println!("  No-build flag: {}", e.no_build);
     println!("  Verbose flag: {}", e.verbose);
-    if e.cmake_args.is_empty() {
+    if e.cmake_flags.is_empty() {
       println!();
-    } else if e.cmake_args.len() == 1 {
-      println!("  CMake argument: {}", e.cmake_args[0]);
+    } else if e.cmake_flags.len() == 1 {
+      println!("  CMake argument: {}", e.cmake_flags[0]);
     } else {
       println!("  CMake arguments:");
-      for arg in &e.cmake_args { println!("    {}", arg); }
+      for arg in &e.cmake_flags { println!("    {arg}"); }
     }
   }
 }

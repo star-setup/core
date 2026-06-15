@@ -15,7 +15,7 @@ pub fn add_profile(config: &mut EcosystemConfig, args: &[String]) -> Result<(), 
   let repos = args[1..].to_vec();
 
   if config.profiles.contains_key(&name) {
-    print!("Warning: Profile '{}' already exists. Overwrite? (y/n): ", name);
+    print!("Warning: Profile '{name}' already exists. Overwrite? (y/n): ");
     io::stdout().flush().ok();
     let mut input = String::new();
     io::stdin().read_line(&mut input).ok();
@@ -29,12 +29,12 @@ pub fn add_profile(config: &mut EcosystemConfig, args: &[String]) -> Result<(), 
   let path = save_config(config)?;
   let repos = config.profiles.get(&name).unwrap();
 
-  println!("Profile '{}' added successfully", name);
+  println!("Profile '{name}' added successfully");
   println!("Configuration saved to: {}", path.display());
   println!("Profile details:");
   println!("  Repositories ({}):", repos.len());
-  for repo in repos { println!("    - {}", repo); }
-  println!("\nUsage: ecos username/test-repo --profile {}", name);
+  for repo in repos { println!("    - {repo}"); }
+  println!("\nUsage: ecos username/test-repo --profile {name}");
 
   Ok(())
 }
@@ -42,13 +42,13 @@ pub fn add_profile(config: &mut EcosystemConfig, args: &[String]) -> Result<(), 
 /// Removes a profile from the configuration.
 pub fn remove_profile(config: &mut EcosystemConfig, name: &str) -> Result<(), String> {
   let repos = match config.profiles.get(name) {
-    None => { println!("Warning: Profile '{}' not found.", name); return Ok(()); }
+    None => { println!("Warning: Profile '{name}' not found."); return Ok(()); }
     Some(r) => r.clone(),
   };
 
-  println!("Profile '{}'", name);
+  println!("Profile '{name}'");
   println!("  Libraries: {}", repos.len());
-  for repo in &repos { println!("    - {}", repo); }
+  for repo in &repos { println!("    - {repo}"); }
 
   print!("\nAre you sure you want to remove this profile? (y/n): ");
   io::stdout().flush().ok();
@@ -61,7 +61,7 @@ pub fn remove_profile(config: &mut EcosystemConfig, name: &str) -> Result<(), St
 
   config.profiles.remove(name);
   let path = save_config(config)?;
-  println!("\nProfile '{}' removed successfully", name);
+  println!("\nProfile '{name}' removed successfully");
   println!("Configuration saved to: {}\n", path.display());
   Ok(())
 }
@@ -78,9 +78,9 @@ pub fn list_profiles(config: &EcosystemConfig) {
 
   println!("Configured profiles:\n");
   for (name, repos) in &config.profiles {
-    println!("  {}", name);
+    println!("  {name}");
     println!("  Repositories ({}):", repos.len());
-    for repo in repos { println!("      - {}", repo); }
+    for repo in repos { println!("      - {repo}"); }
     println!();
   }
 }

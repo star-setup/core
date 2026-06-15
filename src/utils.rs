@@ -10,7 +10,7 @@ pub fn check_prerequisites(verbose: bool) -> Result<(), String> {
     if Command::new(tool).arg("--version").output().is_err() {
       missing.push(tool);
     } else if verbose {
-      println!("Found {}", tool);
+      println!("Found {tool}");
     }
   }
   if !missing.is_empty() {
@@ -25,7 +25,9 @@ pub fn run_command(cmd: &[&str], cwd: Option<&str>, verbose: bool) -> Result<(),
   if cmd.is_empty() { return Err("No command provided".to_string()); }
   if verbose {
     println!("Running: {}", cmd.join(" "));
-    if let Some(dir) = cwd { println!("  in directory: {}", dir); }
+    if let Some(dir) = cwd {
+      println!("  in directory: {dir}");
+    }
   }
   let mut command = Command::new(cmd[0]);
   command.args(&cmd[1..]);
@@ -36,7 +38,7 @@ pub fn run_command(cmd: &[&str], cwd: Option<&str>, verbose: bool) -> Result<(),
   }
   match command.status() {
     Ok(status) if status.success() => Ok(()),
-    Ok(status) => Err(format!("Command failed with exit code: {}", status)),
-    Err(e)     => Err(format!("Error running command: {}", e)),
+    Ok(status) => Err(format!("Command failed with exit code: {status}")),
+    Err(e)     => Err(format!("Error running command: {e}")),
   }
 }

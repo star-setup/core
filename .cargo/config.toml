@@ -1,0 +1,5 @@
+[build]
+rustflags = ["-D", "warnings"]
+
+[alias]
+check = "clippy -- -D warnings"
