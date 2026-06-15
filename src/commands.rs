@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use crate::cli::ResolvedArgs;
 use crate::config::EcosystemConfig;
 use crate::profiles::list_profiles;
-use crate::repository::{resolve_repo_url, clone_repository};
+use crate::repository::{resolve_repo_url, clone_repository, repo_name};
 use crate::utils::run_command;
 
 fn print_mode_header(
@@ -31,10 +31,7 @@ fn print_mode_header(
 pub fn single_repo_mode(args: &ResolvedArgs) -> Result<(), String> {
   let repo = args.repo.as_deref().ok_or("No repository specified")?;
   let repo_url = resolve_repo_url(repo, args.connection.ssh);
-  let repo_name = repo_url.rsplit('/').next()
-    .unwrap_or(repo)
-    .trim_end_matches(".git")
-    .to_string();
+  let repo_name = repo_name(&repo_url);
 
   print_mode_header(
     "Single Repository Mode",
@@ -159,10 +156,7 @@ pub fn mono_repo_mode(args: &ResolvedArgs, config: &EcosystemConfig) -> Result<(
     return Err("Repository must be in format 'username/repo' for mono-repo mode".to_string());
   };
 
-  let test_repo_name = test_repo.split('/')
-                                        .next_back()
-                                        .unwrap_or(&test_repo)
-                                        .to_string();
+  let test_repo_name = repo_name(&test_repo);
 
   let mut repos: Vec<String> = if let Some(profile_name) = &args.mono.profile {
     let profile_repos = config.profiles.get(profile_name)

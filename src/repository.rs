@@ -20,10 +20,7 @@ pub fn clone_repository(
   target_dir: &Path,
   use_ssh: bool, verbose: bool
 ) -> Result<(), String> {
-  let repo_name = repo_path.split('/')
-                                 .next_back()
-                                 .unwrap_or(repo_path)
-                                 .trim_end_matches(".git");
+  let repo_name = repo_name(repo_path);
   let repo_dir  = target_dir.join(repo_name);
 
   if repo_dir.exists() {
@@ -36,4 +33,11 @@ pub fn clone_repository(
 
   run_command(&["git", "clone", &repo_url], Some(target_dir), verbose)
     .map_err(|e| format!("Failed to clone {repo_path}: {e}"))
+}
+
+pub fn repo_name(path: &str) -> &str {
+    path.split('/')
+        .next_back()
+        .unwrap_or(path)
+        .trim_end_matches(".git")
 }
