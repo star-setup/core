@@ -72,7 +72,7 @@ pub fn load_config() -> EcosystemConfig {
     println!(
       "Found {invalid_count} config file{} that had errors", if invalid_count == 1 { "" } else { "s" }
     );
-  } else { println!("Failed to find config file"); }
+  }
   EcosystemConfig::new()
 }
 
