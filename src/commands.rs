@@ -92,14 +92,7 @@ fn create_mono_repo_cmakelists(
   test_repo: &str,
   repos: &[String]
 ) -> Result<(), String> {
-  let module_names: Vec<&str> = repos
-    .iter()
-    .map(|r| r
-    .split('/')
-    .next_back()
-    .unwrap_or(r.as_str())
-    .trim_end_matches(".git"))
-    .collect();
+  let module_names: Vec<&str> = repos.iter().map(|r| repo_name(r)).collect();
   let modules_cmake = module_names.join("\n  ");
 
   let cmake_content = format!("

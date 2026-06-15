@@ -73,7 +73,7 @@ fn main() {
     std::process::exit(1);
   }
 
-  let result = if args.mono.mono_repo || args.mono.profile.is_some() {
+  let result = if args.mono.mono_repo {
     mono_repo_mode(&args, &config)
   } else {
     single_repo_mode(&args)
