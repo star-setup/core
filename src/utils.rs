@@ -1,4 +1,4 @@
-//! Utility functions for ecosystem-setup.
+//! Utility functions for star-setup.
 
 use std::process::{Stdio, Command};
 use std::path::Path;
@@ -33,6 +33,13 @@ pub fn run_command(cmd: &[&str], cwd: Option<&Path>, verbose: bool) -> Result<()
   }
 
   let mut command = Command::new(cmd[0]);
+  command.stdin(Stdio::null());
+  if cmd[0] == "git" {
+      command.env("GIT_TERMINAL_PROMPT", "0");
+      if std::env::var("GIT_SSH_COMMAND").is_err() {
+          command.env("GIT_SSH_COMMAND", "ssh -o BatchMode=yes");
+      }
+  }
 
   if verbose {
     command.stdout(Stdio::inherit());

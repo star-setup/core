@@ -5,7 +5,7 @@ use std::io::{self, Write};
 use std::io::IsTerminal;
 use std::path::{Path, PathBuf};
 use crate::cli::ResolvedArgs;
-use crate::config::EcosystemConfig;
+use crate::config::SetupConfig;
 use crate::profiles::list_profiles;
 use crate::repository::{resolve_repo_url, clone_repository, repo_name};
 use crate::utils::run_command;
@@ -19,7 +19,7 @@ fn print_mode_header(
   profile: Option<&str>,
   lib_count: Option<usize>,
 ) {
-  println!("Ecosystem Setup: {mode}");
+  println!("Starlet Setup: {mode}");
   if      let Some(p) = profile    { println!("  Profile: {p}");         }
   if      let Some(r) = test_repo  { println!("  Test Repository: {r}"); }
   else if let Some(r) = repo_name  { println!("  Repository: {r}");      }
@@ -104,7 +104,7 @@ fn create_mono_repo_cmakelists(
   let cmake_content = format!("
 cmake_minimum_required(VERSION 3.23)
 
-project(ecosystem_dev LANGUAGES CXX)
+project(star_setup LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 
 if(NOT EXISTS \"${{CMAKE_CURRENT_SOURCE_DIR}}/{test_repo}/CMakeLists.txt\")
@@ -136,7 +136,7 @@ set_property(DIRECTORY ${{CMAKE_CURRENT_SOURCE_DIR}} PROPERTY VS_STARTUP_PROJECT
   Ok(())
 }
 
-pub fn mono_repo_mode(args: &ResolvedArgs, config: &EcosystemConfig) -> Result<(), String> {
+pub fn mono_repo_mode(args: &ResolvedArgs, config: &SetupConfig) -> Result<(), String> {
   let repo_input = args.repo.as_deref().ok_or("No repository specified")?;
   let repo_input = repo_input.trim_end_matches('/');
 

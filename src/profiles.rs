@@ -1,13 +1,13 @@
-//! Profile management for ecosystem-setup.
+//! Profile management for star-setup.
 
 use std::io;
 use std::io::Write;
 use std::io::IsTerminal;
-use crate::config::{EcosystemConfig, save_config};
+use crate::config::{SetupConfig, save_config};
 
 /// Adds a new profile to the configuration.
 /// args: [name, repo1, repo2, ...]
-pub fn add_profile(config: &mut EcosystemConfig, args: &[String], yes: bool) -> Result<(), String> {
+pub fn add_profile(config: &mut SetupConfig, args: &[String], yes: bool) -> Result<(), String> {
   if args.len() < 2 {
     return Err("--profile-add requires NAME REPO1 [REPO2 ...]".to_string());
   }
@@ -45,7 +45,7 @@ pub fn add_profile(config: &mut EcosystemConfig, args: &[String], yes: bool) -> 
 }
 
 /// Removes a profile from the configuration.
-pub fn remove_profile(config: &mut EcosystemConfig, name: &str, yes: bool) -> Result<(), String> {
+pub fn remove_profile(config: &mut SetupConfig, name: &str, yes: bool) -> Result<(), String> {
   let repos = match config.profiles.get(name) {
     None => { println!("Warning: Profile '{name}' not found."); return Ok(()); }
     Some(r) => r.clone(),
@@ -77,7 +77,7 @@ pub fn remove_profile(config: &mut EcosystemConfig, name: &str, yes: bool) -> Re
 }
 
 /// Lists all configured profiles.
-pub fn list_profiles(config: &EcosystemConfig) {
+pub fn list_profiles(config: &SetupConfig) {
   println!("Available profiles:");
 
   if config.profiles.is_empty() {

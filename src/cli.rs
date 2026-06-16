@@ -1,7 +1,7 @@
-//! Command-line argument parsing for ecosystem-setup.
+//! Command-line argument parsing for star-setup.
 
 use clap::{Args as ClapArgs, Parser};
-use crate::config::EcosystemConfig;
+use crate::config::SetupConfig;
 
 /// Connection and output flags.
 #[allow(clippy::struct_excessive_bools)]
@@ -175,7 +175,7 @@ pub struct ResolvedArgs {
 }
 
 impl Args {
-  pub fn parse_with_config(config: &EcosystemConfig) -> Result<ResolvedArgs, String> {
+  pub fn parse_with_config(config: &SetupConfig) -> Result<ResolvedArgs, String> {
     let mut args = Args::parse();
 
     let config_name = args.config.config_name.as_deref().unwrap_or("default");

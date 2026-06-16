@@ -1,4 +1,4 @@
-//! Configuration file management for ecosystem-setup.
+//! Configuration file management for star-setup.
 
 use std::collections::HashMap;
 use std::fs;
@@ -24,7 +24,7 @@ pub struct ConfigEntry {
 
 /// Top-level configuration structure.
 #[derive(Serialize, Deserialize, Default)]
-pub struct EcosystemConfig {
+pub struct SetupConfig {
   #[serde(default)]
   pub configs:  HashMap<String, ConfigEntry>,
   #[serde(default)]
@@ -33,16 +33,16 @@ pub struct EcosystemConfig {
   pub path: Option<PathBuf>,
 }
 
-impl EcosystemConfig {
+impl SetupConfig {
   pub fn new() -> Self {
     Self::default()
   }
 }
 
-pub fn load_config() -> EcosystemConfig {
-  let mut locations = vec![PathBuf::from(".ecosystem-setup.json")];
+pub fn load_config() -> SetupConfig {
+  let mut locations = vec![PathBuf::from(".star-setup.json")];
   if let Some(home) = dirs::home_dir() {
-      locations.push(home.join(".ecosystem-setup.json"));
+      locations.push(home.join(".star-setup.json"));
   }
 
   let mut invalid_count = 0;
@@ -50,7 +50,7 @@ pub fn load_config() -> EcosystemConfig {
   for path in locations {
     if !path.exists() { continue; }
     match fs::read_to_string(&path) {
-      Ok(contents) => match serde_json::from_str::<EcosystemConfig>(&contents) {
+      Ok(contents) => match serde_json::from_str::<SetupConfig>(&contents) {
         Ok(mut config) => {
           config.path = Some(path);
           return config;
@@ -76,11 +76,11 @@ pub fn load_config() -> EcosystemConfig {
       "Found {invalid_count} config file{} that had errors", if invalid_count == 1 { "" } else { "s" }
     );
   }
-  EcosystemConfig::new()
+  SetupConfig::new()
 }
 
-pub fn save_config(config: &mut EcosystemConfig) -> Result<PathBuf, String> {
-  let path = config.path.get_or_insert_with(|| PathBuf::from(".ecosystem-setup.json")).clone();
+pub fn save_config(config: &mut SetupConfig) -> Result<PathBuf, String> {
+  let path = config.path.get_or_insert_with(|| PathBuf::from(".star-setup.json")).clone();
   let json = serde_json::to_string_pretty(config)
     .map_err(|e| format!("Failed to serialize config: {e}"))?;
 
@@ -93,7 +93,7 @@ pub fn save_config(config: &mut EcosystemConfig) -> Result<PathBuf, String> {
 
 /// Creates a default configuration file in the current directory.
 pub fn create_default_config(yes: bool) -> Result<(), String> {
-  let path = PathBuf::from(".ecosystem-setup.json");
+  let path = PathBuf::from(".star-setup.json");
 
   if path.exists() {
     let confirmed = if yes || !io::stdin().is_terminal() {
@@ -111,7 +111,7 @@ pub fn create_default_config(yes: bool) -> Result<(), String> {
     }
   }
 
-  let mut config = EcosystemConfig::new();
+  let mut config = SetupConfig::new();
   config.path = Some(path.clone());
   config.configs.insert("default".to_string(), ConfigEntry {
     ssh:         false,
@@ -129,15 +129,15 @@ pub fn create_default_config(yes: bool) -> Result<(), String> {
   println!("Created config file: {}", dunce::canonicalize(&path).unwrap_or(path).display());
   println!("Edit this file to customize your defaults.");
   println!("\nConfig files are checked in this order:");
-  println!("  1. ./.ecosystem-setup.json (current directory)");
-  println!("  2. ~/.ecosystem-setup.json (home directory)");
+  println!("  1. ./.star-setup.json (current directory)");
+  println!("  2. ~/.star-setup.json (home directory)");
 
   Ok(())
 }
 
 /// Adds a new named configuration entry.
 pub fn add_config(
-  config: &mut EcosystemConfig,
+  config: &mut SetupConfig,
   name: &str,
   entry: ConfigEntry,
   yes: bool
@@ -184,7 +184,7 @@ pub fn add_config(
 }
 
 /// Removes a named configuration entry.
-pub fn remove_config(config: &mut EcosystemConfig, name: &str, yes: bool) -> Result<(), String> {
+pub fn remove_config(config: &mut SetupConfig, name: &str, yes: bool) -> Result<(), String> {
   let Some(e) = config.configs.get(name) else {
     println!("\nWarning: Config '{name}' not found.\n");
     return Ok(());
@@ -222,7 +222,7 @@ pub fn remove_config(config: &mut EcosystemConfig, name: &str, yes: bool) -> Res
 }
 
 /// Lists all saved configuration entries.
-pub fn list_configs(config: &EcosystemConfig) {
+pub fn list_configs(config: &SetupConfig) {
   if config.configs.is_empty() {
     println!("  No configurations created.");
     println!("  Run with --init-config to create a default configuration.");
