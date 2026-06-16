@@ -113,7 +113,7 @@ pub fn create_default_config(yes: bool) -> Result<(), String> {
   let path = PathBuf::from(".star-setup.json");
 
   if path.exists() &&
-     !confirm(&format!("{} already exists. Overwrite? (y/n): ", path.display()), yes
+     !confirm(&format!("{} already exists. Overwrite?", path.display()), yes
   ) {
     println!("Aborted.");
     return Ok(());
@@ -151,7 +151,7 @@ pub fn add_config(
   yes: bool
 ) -> Result<(), String> {
   if config.configs.contains_key(name) &&
-     !confirm(&format!("Warning: Configuration '{name}' already exists. Overwrite? (y/n): "), yes
+     !confirm(&format!("Warning: Configuration '{name}' already exists. Overwrite?"), yes
   ) {
     println!("Aborted.");
     return Ok(());
@@ -179,7 +179,7 @@ pub fn remove_config(config: &mut SetupConfig, name: &str, yes: bool) -> Result<
   println!("Configuration details:");
   print_entry(e);
 
-  if !confirm("\nAre you sure you want to remove this config? (y/n): ", yes) {
+  if !confirm("\nAre you sure you want to remove this config?", yes) {
     println!("Aborted.");
     return Ok(());
   }
