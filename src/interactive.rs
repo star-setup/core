@@ -7,7 +7,10 @@ fn ask(prompt: &str) -> String {
   print!("{prompt}: ");
   io::stdout().flush().ok();
   let mut input = String::new();
-  io::stdin().lock().read_line(&mut input).ok();
+  if io::stdin().lock().read_line(&mut input).unwrap_or(0) == 0 {
+    eprintln!("\nError: unexpected end of input");
+    std::process::exit(1);
+  }
   input.trim().to_string()
 }
 
@@ -15,7 +18,10 @@ fn ask_default(prompt: &str, default: &str) -> String {
   print!("{prompt} [{default}]: ");
   io::stdout().flush().ok();
   let mut input = String::new();
-  io::stdin().lock().read_line(&mut input).ok();
+  if io::stdin().lock().read_line(&mut input).unwrap_or(0) == 0 {
+    eprintln!("\nError: unexpected end of input");
+    std::process::exit(1);
+  }
   let val = input.trim().to_string();
   if val.is_empty() { default.to_string() } else { val }
 }
@@ -25,7 +31,10 @@ fn ask_yesno(prompt: &str, default: bool) -> bool {
   print!("{prompt} (y/n) [{default_char}]: ");
   io::stdout().flush().ok();
   let mut input = String::new();
-  io::stdin().lock().read_line(&mut input).ok();
+  if io::stdin().lock().read_line(&mut input).unwrap_or(0) == 0 {
+    eprintln!("\nError: unexpected end of input");
+    std::process::exit(1);
+  }
   let val = input.trim().to_lowercase();
   if val.is_empty() { default } else { val.starts_with('y') }
 }

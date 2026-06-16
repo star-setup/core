@@ -15,6 +15,7 @@ use utils::check_prerequisites;
 use commands::{single_repo_mode, mono_repo_mode};
 use interactive::interactive_mode;
 use cli::{Args};
+use std::io::IsTerminal;
 
 fn main() {
   let mut config = load_config();
@@ -68,7 +69,12 @@ fn main() {
   }
 
   if args.repo.is_none() {
-    interactive_mode(&mut args);
+    if std::io::stdin().is_terminal() {
+      interactive_mode(&mut args);
+    } else {
+      eprintln!("Error: no repository specified");
+      std::process::exit(1);
+    }
   }
 
   if let Err(e) = check_prerequisites(args.connection.verbose) {
