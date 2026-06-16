@@ -41,7 +41,7 @@ fn ask_yesno(prompt: &str, default: bool) -> bool {
 
 /// Interactive CLI mode — prompts for any unset arguments.
 pub fn interactive_mode(args: &mut ResolvedArgs) {
-  println!("Ecosystem Setup Interactive Mode");
+  println!("Star Setup Interactive Mode");
 
   if args.repo.is_none() {
     loop {
