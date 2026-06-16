@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use crate::cli::ResolvedArgs;
 use crate::config::SetupConfig;
 use crate::profiles::list_profiles;
-use crate::repository::{resolve_repo_url, clone_repository, repo_name};
+use crate::repository::{clone_repository, repo_dir_name, resolve_repo_url};
 use crate::utils::{confirm, run_command};
 
 fn print_mode_header(
@@ -17,7 +17,7 @@ fn print_mode_header(
   profile: Option<&str>,
   lib_count: Option<usize>,
 ) {
-  println!("Starlet Setup: {mode}");
+  println!("Star Setup: {mode}");
   if      let Some(p) = profile    { println!("  Profile: {p}");         }
   if      let Some(r) = test_repo  { println!("  Test Repository: {r}"); }
   else if let Some(r) = repo_name  { println!("  Repository: {r}");      }
@@ -30,31 +30,31 @@ fn print_mode_header(
 pub fn single_repo_mode(args: &ResolvedArgs) -> Result<(), String> {
   let repo = args.repo.as_deref().ok_or("No repository specified")?;
   let repo_url = resolve_repo_url(repo, args.connection.ssh);
-  let repo_name = repo_name(&repo_url);
+  let dir_name = repo_dir_name(repo);
 
   print_mode_header(
     "Single Repository Mode",
     None,
-    Some(repo_name),
+    Some(&dir_name),
     args.connection.ssh,
     None,
     None,
     None
   );
 
-  let repo_path = Path::new(&repo_name);
+  let repo_path = Path::new(&dir_name);
   if repo_path.exists() {
-    println!("Repository {repo_name} already exists");
+    println!("Repository {dir_name} already exists");
     if confirm("Update existing repository?", args.yes) {
-      println!("Updating {repo_name}\n");
-      run_command(&["git", "pull"], Some(Path::new(repo_name)), args.connection.verbose)?;
+      println!("Updating {dir_name}\n");
+      run_command(&["git", "pull"], Some(Path::new(&dir_name)), args.connection.verbose)?;
     }
   } else {
-    println!("Cloning {repo_name}\n");
-    run_command(&["git", "clone", &repo_url], None, args.connection.verbose)?;
+    println!("Cloning {dir_name}\n");
+    run_command(&["git", "clone", &repo_url, &dir_name], None, args.connection.verbose)?;
   }
 
-  let build_path = PathBuf::from(&repo_name).join(&args.build.build_dir);
+  let build_path = PathBuf::from(&dir_name).join(&args.build.build_dir);
   if args.build.clean && build_path.exists() {
     println!("Cleaning build directory\n");
     fs::remove_dir_all(&build_path).map_err(|e| e.to_string())?;
@@ -78,7 +78,7 @@ pub fn single_repo_mode(args: &ResolvedArgs) -> Result<(), String> {
     )?;
   }
 
-  println!("Project finished in {repo_name}/{}", args.build.build_dir);
+  println!("Project finished in {dir_name}/{}", args.build.build_dir);
   Ok(())
 }
 
@@ -87,7 +87,7 @@ fn create_mono_repo_cmakelists(
   test_repo: &str,
   repos: &[String]
 ) -> Result<(), String> {
-  let module_names: Vec<&str> = repos.iter().map(|r| repo_name(r)).collect();
+  let module_names: Vec<String> = repos.iter().map(|r| repo_dir_name(r)).collect();
   let modules_cmake = module_names.join("\n  ");
 
   let cmake_content = format!("
@@ -145,7 +145,7 @@ pub fn mono_repo_mode(args: &ResolvedArgs, config: &SetupConfig) -> Result<(), S
     return Err("Repository must be in format 'username/repo' for mono-repo mode".to_string());
   };
 
-  let test_repo_name = repo_name(&test_repo);
+  let test_repo_name = repo_dir_name(&test_repo);
 
   let mut repos: Vec<String> = if let Some(profile_name) = &args.mono.profile {
     let profile_repos = config.profiles.get(profile_name)
@@ -178,7 +178,7 @@ pub fn mono_repo_mode(args: &ResolvedArgs, config: &SetupConfig) -> Result<(), S
     return Err("No repos or profile specified for mono-repo mode".to_string());
   };
 
-  if !repos.iter().any(|r| repo_name(r) == repo_name(&test_repo)) {
+  if !repos.iter().any(|r| repo_dir_name(r) == repo_dir_name(&test_repo)) {
     repos.push(test_repo.clone());
   }
 
@@ -200,7 +200,7 @@ pub fn mono_repo_mode(args: &ResolvedArgs, config: &SetupConfig) -> Result<(), S
   println!("\n  Finished cloning ({} repositories)\n", repos.len());
 
   println!("Creating mono-repo configuration");
-  create_mono_repo_cmakelists(&mono_repo_path, test_repo_name, &repos)?;
+  create_mono_repo_cmakelists(&mono_repo_path, &test_repo_name, &repos)?;
 
   println!("Creating build directory\n");
   let build_path = mono_repo_path.join(&args.build.build_dir);
