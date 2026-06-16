@@ -4,12 +4,15 @@ use crate::utils::run_command;
 use std::path::Path;
 
 pub fn repo_dir_name(path: &str) -> String {
-  let clean = path.trim_end_matches(".git");
-  if let Some((owner, repo)) = clean.rsplit_once('/') {
-    let owner = owner.rsplit_once(':').map_or(owner, |(_, o)| o);
-    format!("{owner}-{repo}")
-  } else {
-    clean.to_string()
+  let clean = path.trim_end_matches('/').trim_end_matches(".git");
+  let mut parts = clean.rsplit('/');
+  let repo = parts.next().unwrap_or(clean);
+  match parts.next() {
+    Some(owner) => {
+      let owner = owner.rsplit_once(':').map_or(owner, |(_, o)| o);
+      format!("{owner}-{repo}")
+    }
+    None => clean.to_string(),
   }
 }
 
