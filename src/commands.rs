@@ -233,7 +233,7 @@ pub fn mono_repo_mode(args: &ResolvedArgs, config: &EcosystemConfig) -> Result<(
   }
 
   println!("Setup complete");
-  println!("Repositories in: {}", mono_repo_path.canonicalize().unwrap_or(mono_repo_path).display());
-  println!("Build output in: {}", build_path.canonicalize().unwrap_or(build_path).display());
+  println!("Repositories in: {}", dunce::canonicalize(&mono_repo_path).unwrap_or(mono_repo_path).display());
+  println!("Build output in: {}", dunce::canonicalize(&build_path).unwrap_or(build_path).display());
   Ok(())
 }

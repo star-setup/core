@@ -120,7 +120,7 @@ pub fn create_default_config() -> Result<(), String> {
 
   save_config(&mut config)?;
 
-  println!("Created config file: {}", path.canonicalize().unwrap_or(path).display());
+  println!("Created config file: {}", dunce::canonicalize(&path).unwrap_or(path).display());
   println!("Edit this file to customize your defaults.");
   println!("\nConfig files are checked in this order:");
   println!("  1. ./.ecosystem-setup.json (current directory)");
