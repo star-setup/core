@@ -97,7 +97,12 @@ pub fn load_config() -> SetupConfig {
 }
 
 pub fn save_config(config: &mut SetupConfig) -> Result<PathBuf, String> {
-  let path = config.path.get_or_insert_with(|| PathBuf::from(".star-setup.json")).clone();
+  let path = config.path.get_or_insert_with(|| {
+    dirs::home_dir().map_or_else(
+      || PathBuf::from(".star-setup.json"),
+      |h| h.join(".star-setup.json")
+    )
+  }).clone();
   let json = serde_json::to_string_pretty(config)
     .map_err(|e| format!("Failed to serialize config: {e}"))?;
 
