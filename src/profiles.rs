@@ -1,7 +1,7 @@
 //! Profile management for star-setup.
 
+use crate::config::{save_config, SetupConfig};
 use crate::utils::confirm;
-use crate::config::{SetupConfig, save_config};
 
 /// Adds a new profile to the configuration.
 /// args: [name, repo1, repo2, ...]
@@ -13,9 +13,12 @@ pub fn add_profile(config: &mut SetupConfig, args: &[String], yes: bool) -> Resu
   let name = args[0].clone();
   let repos = args[1..].to_vec();
 
-  if config.profiles.contains_key(&name) &&
-     !confirm(&format!("Warning: Profile '{name}' already exists. Overwrite?"), yes
-  ) {
+  if config.profiles.contains_key(&name)
+    && !confirm(
+      &format!("Warning: Profile '{name}' already exists. Overwrite?"),
+      yes,
+    )
+  {
     println!("Aborted.");
     return Ok(());
   }
@@ -27,7 +30,9 @@ pub fn add_profile(config: &mut SetupConfig, args: &[String], yes: bool) -> Resu
   println!("Configuration saved to: {}", path.display());
   println!("Profile details:");
   println!("  Repositories ({}):", repos.len());
-  for repo in repos { println!("    - {repo}"); }
+  for repo in repos {
+    println!("    - {repo}");
+  }
   println!("\nUsage: star-setup username/test-repo --profile {name}");
 
   Ok(())
@@ -36,15 +41,23 @@ pub fn add_profile(config: &mut SetupConfig, args: &[String], yes: bool) -> Resu
 /// Removes a profile from the configuration.
 pub fn remove_profile(config: &mut SetupConfig, name: &str, yes: bool) -> Result<(), String> {
   let repos = match config.profiles.get(name) {
-    None => { println!("Warning: Profile '{name}' not found."); return Ok(()); }
+    None => {
+      println!("Warning: Profile '{name}' not found.");
+      return Ok(());
+    }
     Some(r) => r.clone(),
   };
 
   println!("Profile '{name}'");
   println!("  Libraries: {}", repos.len());
-  for repo in &repos { println!("    - {repo}"); }
+  for repo in &repos {
+    println!("    - {repo}");
+  }
 
-  if !confirm(&format!("Are you sure you want to remove profile '{name}'?"), yes) {
+  if !confirm(
+    &format!("Are you sure you want to remove profile '{name}'?"),
+    yes,
+  ) {
     println!("Aborted.");
     return Ok(());
   }
@@ -70,7 +83,9 @@ pub fn list_profiles(config: &SetupConfig) {
   for (name, repos) in &config.profiles {
     println!("  {name}");
     println!("  Repositories ({}):", repos.len());
-    for repo in repos { println!("      - {repo}"); }
+    for repo in repos {
+      println!("      - {repo}");
+    }
     println!();
   }
 }

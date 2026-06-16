@@ -1,7 +1,7 @@
 //! Command-line argument parsing for star-setup.
 
-use clap::{Args as ClapArgs, Parser};
 use crate::config::SetupConfig;
+use clap::{Args as ClapArgs, Parser};
 
 /// Connection and output flags.
 #[allow(clippy::struct_excessive_bools)]
@@ -17,7 +17,7 @@ pub struct ConnectionFlags {
   /// Show detailed command output
   #[arg(short = 'v', long, conflicts_with = "no_verbose")]
   pub verbose: bool,
-   /// Suppress detailed command output
+  /// Suppress detailed command output
   #[arg(long, conflicts_with = "verbose")]
   pub no_verbose: bool,
 }
@@ -145,38 +145,42 @@ pub struct Args {
 }
 
 pub struct ResolvedConnectionFlags {
-  pub ssh:     bool,
+  pub ssh: bool,
   pub verbose: bool,
 }
 
 pub struct ResolvedBuildFlags {
   pub build_type: String,
-  pub build_dir:  String,
-  pub no_build:   bool,
-  pub clean:      bool,
+  pub build_dir: String,
+  pub no_build: bool,
+  pub clean: bool,
 }
 
 pub struct ResolvedMonoFlags {
   pub mono_repo: bool,
-  pub mono_dir:  String,
-  pub repos:     Option<Vec<String>>,
-  pub profile:   Option<String>,
+  pub mono_dir: String,
+  pub repos: Option<Vec<String>>,
+  pub profile: Option<String>,
 }
 
 pub struct ResolvedArgs {
-  pub repo:        Option<String>,
+  pub repo: Option<String>,
   pub cmake_flags: Vec<String>,
-  pub yes:         bool,
-  pub connection:  ResolvedConnectionFlags,
-  pub build:       ResolvedBuildFlags,
-  pub mono:        ResolvedMonoFlags,
-  pub config:      ConfigFlags,
-  pub profile:     ProfileFlags,
+  pub yes: bool,
+  pub connection: ResolvedConnectionFlags,
+  pub build: ResolvedBuildFlags,
+  pub mono: ResolvedMonoFlags,
+  pub config: ConfigFlags,
+  pub profile: ProfileFlags,
 }
 
 fn resolve_bool(positive: bool, negative: bool, config: Option<bool>, default: bool) -> bool {
-  if negative      { return false; }
-  if positive      { return true;  }
+  if negative {
+    return false;
+  }
+  if positive {
+    return true;
+  }
   config.unwrap_or(default)
 }
 
@@ -197,44 +201,48 @@ impl Args {
       args.connection.ssh,
       args.connection.https,
       default.map(|e| e.ssh),
-      false
+      false,
     );
     let verbose = resolve_bool(
       args.connection.verbose,
       args.connection.no_verbose,
       default.map(|e| e.verbose),
-      false
+      false,
     );
     let no_build = resolve_bool(
       args.build.no_build,
       args.build.build,
       default.map(|e| e.no_build),
-      false
+      false,
     );
     let clean = resolve_bool(
       args.build.clean,
       args.build.no_clean,
       default.map(|e| e.clean),
-      false
+      false,
     );
     if args.cmake_flags.is_empty() {
       args.cmake_flags = default.map_or_else(Vec::new, |e| e.cmake_flags.clone());
     }
 
-    let repos     = args.mono.repos.take();
-    let profile   = args.mono.profile.take();
+    let repos = args.mono.repos.take();
+    let profile = args.mono.profile.take();
     let mono_repo = args.mono.mono_repo || repos.is_some() || profile.is_some();
 
     Ok(ResolvedArgs {
-      repo:        args.repo,
+      repo: args.repo,
       cmake_flags: args.cmake_flags,
-      yes:         args.yes,
-      connection:  ResolvedConnectionFlags { ssh, verbose },
+      yes: args.yes,
+      connection: ResolvedConnectionFlags { ssh, verbose },
       build: ResolvedBuildFlags {
-        build_type: args.build.build_type
+        build_type: args
+          .build
+          .build_type
           .or_else(|| default.map(|e| e.build_type.clone()))
           .unwrap_or_else(|| "Debug".to_string()),
-        build_dir: args.build.build_dir
+        build_dir: args
+          .build
+          .build_dir
           .or_else(|| default.map(|e| e.build_dir.clone()))
           .unwrap_or_else(|| "build".to_string()),
         no_build,
@@ -242,13 +250,15 @@ impl Args {
       },
       mono: ResolvedMonoFlags {
         mono_repo,
-        mono_dir: args.mono.mono_dir
+        mono_dir: args
+          .mono
+          .mono_dir
           .or_else(|| default.map(|e| e.mono_dir.clone()))
           .unwrap_or_else(|| "build-mono".to_string()),
         repos,
         profile,
       },
-      config:  args.config,
+      config: args.config,
       profile: args.profile,
     })
   }

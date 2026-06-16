@@ -1,7 +1,7 @@
 //! Interactive CLI mode for ecosystem-setup.
 
-use std::io::{self, BufRead, Write};
 use crate::cli::ResolvedArgs;
+use std::io::{self, BufRead, Write};
 
 fn ask(prompt: &str) -> String {
   print!("{prompt}: ");
@@ -23,7 +23,11 @@ fn ask_default(prompt: &str, default: &str) -> String {
     std::process::exit(1);
   }
   let val = input.trim().to_string();
-  if val.is_empty() { default.to_string() } else { val }
+  if val.is_empty() {
+    default.to_string()
+  } else {
+    val
+  }
 }
 
 fn ask_yesno(prompt: &str, default: bool) -> bool {
@@ -36,7 +40,11 @@ fn ask_yesno(prompt: &str, default: bool) -> bool {
     std::process::exit(1);
   }
   let val = input.trim().to_lowercase();
-  if val.is_empty() { default } else { val.starts_with('y') }
+  if val.is_empty() {
+    default
+  } else {
+    val.starts_with('y')
+  }
 }
 
 /// Interactive CLI mode — prompts for any unset arguments.
@@ -46,7 +54,10 @@ pub fn interactive_mode(args: &mut ResolvedArgs) {
   if args.repo.is_none() {
     loop {
       let repo = ask("Enter repository (user/repo or URL)");
-      if !repo.is_empty() { args.repo = Some(repo); break; }
+      if !repo.is_empty() {
+        args.repo = Some(repo);
+        break;
+      }
     }
   }
 
@@ -64,8 +75,13 @@ pub fn interactive_mode(args: &mut ResolvedArgs) {
     loop {
       let mode = ask("Select mode: (1) Single Repo (2) Mono-Repo");
       match mode.as_str() {
-        "1" => { break; }
-        "2" => { args.mono.mono_repo = true; break; }
+        "1" => {
+          break;
+        }
+        "2" => {
+          args.mono.mono_repo = true;
+          break;
+        }
         _ => {}
       }
     }
@@ -78,15 +94,16 @@ pub fn interactive_mode(args: &mut ResolvedArgs) {
         "1" => {
           loop {
             let profile = ask("Profile name");
-            if !profile.is_empty() { args.mono.profile = Some(profile); break; }
+            if !profile.is_empty() {
+              args.mono.profile = Some(profile);
+              break;
+            }
           }
           break;
         }
         "2" => {
           loop {
-            let repo_list = ask(
-              "Enter repos (space separated 'username/lib1 username/lib2')"
-            );
+            let repo_list = ask("Enter repos (space separated 'username/lib1 username/lib2')");
             if !repo_list.is_empty() {
               args.mono.repos = Some(repo_list.split_whitespace().map(String::from).collect());
               break;
@@ -103,9 +120,7 @@ pub fn interactive_mode(args: &mut ResolvedArgs) {
   args.build.build_dir = ask_default("Build directory", &args.build.build_dir);
 
   if args.cmake_flags.is_empty() {
-    let cmake_extra = ask_default(
-      "Additional CMake args (space separated)", ""
-    );
+    let cmake_extra = ask_default("Additional CMake args (space separated)", "");
     if !cmake_extra.is_empty() {
       args.cmake_flags = cmake_extra.split_whitespace().map(String::from).collect();
     }

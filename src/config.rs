@@ -1,23 +1,23 @@
 //! Configuration file management for star-setup.
 
+use crate::utils::confirm;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
 use std::io;
 use std::path::PathBuf;
-use serde::{Deserialize, Serialize};
-use crate::utils::confirm;
 
 /// Represents a single named configuration entry.
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Serialize, Deserialize, Default)]
 pub struct ConfigEntry {
-  pub ssh:         bool,
-  pub build_type:  String,
-  pub build_dir:   String,
-  pub mono_dir:    String,
-  pub no_build:    bool,
-  pub clean:       bool,
-  pub verbose:     bool,
+  pub ssh: bool,
+  pub build_type: String,
+  pub build_dir: String,
+  pub mono_dir: String,
+  pub no_build: bool,
+  pub clean: bool,
+  pub verbose: bool,
   pub cmake_flags: Vec<String>,
 }
 
@@ -25,7 +25,7 @@ pub struct ConfigEntry {
 #[derive(Serialize, Deserialize, Default)]
 pub struct SetupConfig {
   #[serde(default)]
-  pub configs:  HashMap<String, ConfigEntry>,
+  pub configs: HashMap<String, ConfigEntry>,
   #[serde(default)]
   pub profiles: HashMap<String, Vec<String>>,
   #[serde(skip)]
@@ -52,20 +52,24 @@ fn print_entry(e: &ConfigEntry) {
     println!("  CMake argument: {}", e.cmake_flags[0]);
   } else {
     println!("  CMake arguments:");
-    for arg in &e.cmake_flags { println!("    {arg}"); }
+    for arg in &e.cmake_flags {
+      println!("    {arg}");
+    }
   }
 }
 
 pub fn load_config() -> SetupConfig {
   let mut locations = vec![PathBuf::from(".star-setup.json")];
   if let Some(home) = dirs::home_dir() {
-      locations.push(home.join(".star-setup.json"));
+    locations.push(home.join(".star-setup.json"));
   }
 
   let mut invalid_count = 0;
 
   for path in locations {
-    if !path.exists() { continue; }
+    if !path.exists() {
+      continue;
+    }
     match fs::read_to_string(&path) {
       Ok(contents) => match serde_json::from_str::<SetupConfig>(&contents) {
         Ok(mut config) => {
@@ -82,7 +86,10 @@ pub fn load_config() -> SetupConfig {
         invalid_count += 1;
       }
       Err(e) => {
-        println!("An unexpected error occurred reading {}: {e}", path.display());
+        println!(
+          "An unexpected error occurred reading {}: {e}",
+          path.display()
+        );
         invalid_count += 1;
       }
     }
@@ -90,25 +97,35 @@ pub fn load_config() -> SetupConfig {
 
   if invalid_count != 0 {
     println!(
-      "Found {invalid_count} config file{} that had errors", if invalid_count == 1 { "" } else { "s" }
+      "Found {invalid_count} config file{} that had errors",
+      if invalid_count == 1 { "" } else { "s" }
     );
   }
   SetupConfig::new()
 }
 
 pub fn save_config(config: &mut SetupConfig) -> Result<PathBuf, String> {
-  let path = config.path.get_or_insert_with(|| {
-    dirs::home_dir().map_or_else(
-      || PathBuf::from(".star-setup.json"),
-      |h| h.join(".star-setup.json")
-    )
-  }).clone();
-  let json = serde_json::to_string_pretty(config)
-    .map_err(|e| format!("Failed to serialize config: {e}"))?;
+  let path = config
+    .path
+    .get_or_insert_with(|| {
+      dirs::home_dir().map_or_else(
+        || PathBuf::from(".star-setup.json"),
+        |h| h.join(".star-setup.json"),
+      )
+    })
+    .clone();
+  let json =
+    serde_json::to_string_pretty(config).map_err(|e| format!("Failed to serialize config: {e}"))?;
 
   fs::write(&path, json).map_err(|e| match e.kind() {
-    io::ErrorKind::PermissionDenied => format!("Error: No permission to write to {}", path.display()),
-    _ => format!("An unexpected error occurred writing {}: {}", path.display(), e),
+    io::ErrorKind::PermissionDenied => {
+      format!("Error: No permission to write to {}", path.display())
+    }
+    _ => format!(
+      "An unexpected error occurred writing {}: {}",
+      path.display(),
+      e
+    ),
   })?;
   Ok(path)
 }
@@ -117,29 +134,38 @@ pub fn save_config(config: &mut SetupConfig) -> Result<PathBuf, String> {
 pub fn create_default_config(yes: bool) -> Result<(), String> {
   let path = PathBuf::from(".star-setup.json");
 
-  if path.exists() &&
-     !confirm(&format!("{} already exists. Overwrite?", path.display()), yes
-  ) {
+  if path.exists()
+    && !confirm(
+      &format!("{} already exists. Overwrite?", path.display()),
+      yes,
+    )
+  {
     println!("Aborted.");
     return Ok(());
   }
 
   let mut config = SetupConfig::new();
   config.path = Some(path.clone());
-  config.configs.insert("default".to_string(), ConfigEntry {
-    ssh:         false,
-    build_type:  "Debug".to_string(),
-    build_dir:   "build".to_string(),
-    mono_dir:    "build-mono".to_string(),
-    no_build:    false,
-    clean:       false,
-    verbose:     false,
-    cmake_flags: vec![],
-  });
+  config.configs.insert(
+    "default".to_string(),
+    ConfigEntry {
+      ssh: false,
+      build_type: "Debug".to_string(),
+      build_dir: "build".to_string(),
+      mono_dir: "build-mono".to_string(),
+      no_build: false,
+      clean: false,
+      verbose: false,
+      cmake_flags: vec![],
+    },
+  );
 
   save_config(&mut config)?;
 
-  println!("Created config file: {}", dunce::canonicalize(&path).unwrap_or(path).display());
+  println!(
+    "Created config file: {}",
+    dunce::canonicalize(&path).unwrap_or(path).display()
+  );
   println!("Edit this file to customize your defaults.");
   println!("\nConfig files are checked in this order:");
   println!("  1. ./.star-setup.json (current directory)");
@@ -153,11 +179,14 @@ pub fn add_config(
   config: &mut SetupConfig,
   name: &str,
   entry: ConfigEntry,
-  yes: bool
+  yes: bool,
 ) -> Result<(), String> {
-  if config.configs.contains_key(name) &&
-     !confirm(&format!("Warning: Configuration '{name}' already exists. Overwrite?"), yes
-  ) {
+  if config.configs.contains_key(name)
+    && !confirm(
+      &format!("Warning: Configuration '{name}' already exists. Overwrite?"),
+      yes,
+    )
+  {
     println!("Aborted.");
     return Ok(());
   }
@@ -166,7 +195,10 @@ pub fn add_config(
   let path = save_config(config)?;
 
   let e = &config.configs[name];
-  println!("Configuration '{name}' added successfully to {}", path.display());
+  println!(
+    "Configuration '{name}' added successfully to {}",
+    path.display()
+  );
   println!("Configuration details:");
   print_entry(e);
 

@@ -1,7 +1,7 @@
 //! Repository functions including cloning and URL resolution.
 
-use std::path::Path;
 use crate::utils::run_command;
+use std::path::Path;
 
 pub fn repo_dir_name(path: &str) -> String {
   let clean = path.trim_end_matches(".git");
@@ -20,8 +20,11 @@ pub fn resolve_repo_url(repo_input: &str, use_ssh: bool) -> String {
     return repo_input.to_string();
   }
   let clean = repo_input.trim_end_matches(".git");
-  if use_ssh { format!("git@github.com:{clean}.git"     ) }
-  else       { format!("https://github.com/{clean}.git" ) }
+  if use_ssh {
+    format!("git@github.com:{clean}.git")
+  } else {
+    format!("https://github.com/{clean}.git")
+  }
 }
 
 /// Clones a single repository into the target directory.
@@ -29,7 +32,8 @@ pub fn resolve_repo_url(repo_input: &str, use_ssh: bool) -> String {
 pub fn clone_repository(
   repo_path: &str,
   target_dir: &Path,
-  use_ssh: bool, verbose: bool
+  use_ssh: bool,
+  verbose: bool,
 ) -> Result<(), String> {
   let repo_name = repo_dir_name(repo_path);
   let repo_dir = target_dir.join(&repo_name);
@@ -40,8 +44,12 @@ pub fn clone_repository(
   }
 
   println!("\n  Cloning {repo_name}");
-  let repo_url   = resolve_repo_url(repo_path, use_ssh);
+  let repo_url = resolve_repo_url(repo_path, use_ssh);
 
-  run_command(&["git", "clone", &repo_url, &repo_name], Some(target_dir), verbose)
-    .map_err(|e| format!("Failed to clone {repo_path}: {e}"))
+  run_command(
+    &["git", "clone", &repo_url, &repo_name],
+    Some(target_dir),
+    verbose,
+  )
+  .map_err(|e| format!("Failed to clone {repo_path}: {e}"))
 }
