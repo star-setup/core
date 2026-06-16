@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::io;
 use std::io::Write;
+use std::io::IsTerminal;
 use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 
@@ -91,15 +92,20 @@ pub fn save_config(config: &mut EcosystemConfig) -> Result<PathBuf, String> {
 }
 
 /// Creates a default configuration file in the current directory.
-pub fn create_default_config() -> Result<(), String> {
+pub fn create_default_config(yes: bool) -> Result<(), String> {
   let path = PathBuf::from(".ecosystem-setup.json");
 
   if path.exists() {
-    print!("{} already exists. Overwrite? (y/n): ", path.display());
-    io::stdout().flush().ok();
-    let mut input = String::new();
-    io::stdin().read_line(&mut input).ok();
-    if !input.trim().eq_ignore_ascii_case("y") {
+    let confirmed = if yes || !io::stdin().is_terminal() {
+        yes
+    } else {
+      print!("{} already exists. Overwrite? (y/n): ", path.display());
+      io::stdout().flush().ok();
+      let mut input = String::new();
+      io::stdin().read_line(&mut input).ok();
+      input.trim().eq_ignore_ascii_case("y")
+    };
+    if !confirmed {
       println!("Aborted.");
       return Ok(());
     }
@@ -130,13 +136,23 @@ pub fn create_default_config() -> Result<(), String> {
 }
 
 /// Adds a new named configuration entry.
-pub fn add_config(config: &mut EcosystemConfig, name: &str, entry: ConfigEntry) -> Result<(), String> {
+pub fn add_config(
+  config: &mut EcosystemConfig,
+  name: &str,
+  entry: ConfigEntry,
+  yes: bool
+) -> Result<(), String> {
   if config.configs.contains_key(name) {
-    print!("Warning: Configuration '{name}' already exists. Overwrite? (y/n): ");
-    io::stdout().flush().ok();
-    let mut input = String::new();
-    io::stdin().read_line(&mut input).ok();
-    if !input.trim().eq_ignore_ascii_case("y") {
+    let confirmed = if yes || !io::stdin().is_terminal() {
+      yes
+    } else {
+      print!("Warning: Configuration '{name}' already exists. Overwrite? (y/n): ");
+      io::stdout().flush().ok();
+      let mut input = String::new();
+      io::stdin().read_line(&mut input).ok();
+      input.trim().eq_ignore_ascii_case("y")
+    };
+    if !confirmed {
       println!("Aborted.");
       return Ok(());
     }
@@ -168,7 +184,7 @@ pub fn add_config(config: &mut EcosystemConfig, name: &str, entry: ConfigEntry) 
 }
 
 /// Removes a named configuration entry.
-pub fn remove_config(config: &mut EcosystemConfig, name: &str) -> Result<(), String> {
+pub fn remove_config(config: &mut EcosystemConfig, name: &str, yes: bool) -> Result<(), String> {
   let Some(e) = config.configs.get(name) else {
     println!("\nWarning: Config '{name}' not found.\n");
     return Ok(());
@@ -184,11 +200,16 @@ pub fn remove_config(config: &mut EcosystemConfig, name: &str) -> Result<(), Str
   println!("  Clean flag: {}", e.clean);
   println!("  Verbose flag: {}", e.verbose);
 
-  print!("\nAre you sure you want to remove this config? (y/n): ");
-  io::stdout().flush().ok();
-  let mut input = String::new();
-  io::stdin().read_line(&mut input).ok();
-  if !input.trim().eq_ignore_ascii_case("y") {
+  let confirmed = if yes || !io::stdin().is_terminal() {
+    yes
+  } else {
+    print!("\nAre you sure you want to remove this config? (y/n): ");
+    io::stdout().flush().ok();
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).ok();
+    input.trim().eq_ignore_ascii_case("y")
+  };
+  if !confirmed {
     println!("Aborted.");
     return Ok(());
   }

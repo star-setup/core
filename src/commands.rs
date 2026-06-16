@@ -2,6 +2,7 @@
 
 use std::fs;
 use std::io::{self, Write};
+use std::io::IsTerminal;
 use std::path::{Path, PathBuf};
 use crate::cli::ResolvedArgs;
 use crate::config::EcosystemConfig;
@@ -46,13 +47,18 @@ pub fn single_repo_mode(args: &ResolvedArgs) -> Result<(), String> {
   let repo_path = Path::new(&repo_name);
   if repo_path.exists() {
     println!("Repository {repo_name} already exists");
-    print!("Update existing repository? (y/n): ");
-    io::stdout().flush().ok();
-    let mut input = String::new();
-    io::stdin().read_line(&mut input).ok();
-    if input.trim().eq_ignore_ascii_case("y") {
+    let should_update = if args.yes || !io::stdin().is_terminal() {
+      args.yes
+    } else {
+      print!("Update existing repository? (y/n): ");
+      io::stdout().flush().ok();
+      let mut input = String::new();
+      io::stdin().read_line(&mut input).ok();
+      input.trim().eq_ignore_ascii_case("y")
+    };
+    if should_update {
       println!("Updating {repo_name}\n");
-      run_command(&["git", "pull"], Some(Path::new(&repo_name)), args.connection.verbose)?;
+      run_command(&["git", "pull"], Some(Path::new(repo_name)), args.connection.verbose)?;
     }
   } else {
     println!("Cloning {repo_name}\n");

@@ -2,11 +2,12 @@
 
 use std::io;
 use std::io::Write;
+use std::io::IsTerminal;
 use crate::config::{EcosystemConfig, save_config};
 
 /// Adds a new profile to the configuration.
 /// args: [name, repo1, repo2, ...]
-pub fn add_profile(config: &mut EcosystemConfig, args: &[String]) -> Result<(), String> {
+pub fn add_profile(config: &mut EcosystemConfig, args: &[String], yes: bool) -> Result<(), String> {
   if args.len() < 2 {
     return Err("--profile-add requires NAME REPO1 [REPO2 ...]".to_string());
   }
@@ -15,11 +16,16 @@ pub fn add_profile(config: &mut EcosystemConfig, args: &[String]) -> Result<(), 
   let repos = args[1..].to_vec();
 
   if config.profiles.contains_key(&name) {
-    print!("Warning: Profile '{name}' already exists. Overwrite? (y/n): ");
-    io::stdout().flush().ok();
-    let mut input = String::new();
-    io::stdin().read_line(&mut input).ok();
-    if !input.trim().eq_ignore_ascii_case("y") {
+    let confirmed = if yes || !io::stdin().is_terminal() {
+      yes
+    } else {
+      print!("Warning: Profile '{name}' already exists. Overwrite? (y/n): ");
+      io::stdout().flush().ok();
+      let mut input = String::new();
+      io::stdin().read_line(&mut input).ok();
+      input.trim().eq_ignore_ascii_case("y")
+    };
+    if !confirmed {
       println!("Aborted.");
       return Ok(());
     }
@@ -39,7 +45,7 @@ pub fn add_profile(config: &mut EcosystemConfig, args: &[String]) -> Result<(), 
 }
 
 /// Removes a profile from the configuration.
-pub fn remove_profile(config: &mut EcosystemConfig, name: &str) -> Result<(), String> {
+pub fn remove_profile(config: &mut EcosystemConfig, name: &str, yes: bool) -> Result<(), String> {
   let repos = match config.profiles.get(name) {
     None => { println!("Warning: Profile '{name}' not found."); return Ok(()); }
     Some(r) => r.clone(),
@@ -49,11 +55,16 @@ pub fn remove_profile(config: &mut EcosystemConfig, name: &str) -> Result<(), St
   println!("  Libraries: {}", repos.len());
   for repo in &repos { println!("    - {repo}"); }
 
-  print!("\nAre you sure you want to remove this profile? (y/n): ");
-  io::stdout().flush().ok();
-  let mut input = String::new();
-  io::stdin().read_line(&mut input).ok();
-  if !input.trim().eq_ignore_ascii_case("y") {
+  let confirmed = if yes || !io::stdin().is_terminal() {
+    yes
+  } else {
+    print!("\nAre you sure you want to remove this profile? (y/n): ");
+    io::stdout().flush().ok();
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).ok();
+   input.trim().eq_ignore_ascii_case("y")
+  };
+  if !confirmed {
     println!("Aborted.");
     return Ok(());
   }

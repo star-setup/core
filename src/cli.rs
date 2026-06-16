@@ -124,6 +124,10 @@ pub struct Args {
   #[arg(long = "cmake-arg", action = clap::ArgAction::Append)]
   pub cmake_flags: Vec<String>,
 
+  /// Skip confirmation prompts (non-interactive mode)
+  #[arg(short = 'y', long)]
+  pub yes: bool,
+
   #[command(flatten)]
   pub connection: ConnectionFlags,
 
@@ -162,6 +166,7 @@ pub struct ResolvedMonoFlags {
 pub struct ResolvedArgs {
   pub repo:        Option<String>,
   pub cmake_flags: Vec<String>,
+  pub yes:         bool,
   pub connection:  ResolvedConnectionFlags,
   pub build:       ResolvedBuildFlags,
   pub mono:        ResolvedMonoFlags,
@@ -213,6 +218,7 @@ impl Args {
     Ok(ResolvedArgs {
       repo:        args.repo,
       cmake_flags: args.cmake_flags,
+      yes:         args.yes,
       connection:  ResolvedConnectionFlags { ssh, verbose },
       build: ResolvedBuildFlags {
         build_type: args.build.build_type

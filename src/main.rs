@@ -25,7 +25,7 @@ fn main() {
   };
 
   if args.config.init_config {
-    if let Err(e) = create_default_config() {
+    if let Err(e) = create_default_config(args.yes) {
       eprintln!("Error: {e}"); std::process::exit(1);
     }
     return;
@@ -34,7 +34,7 @@ fn main() {
   if args.profile.list_profiles { list_profiles(&config); return; }
 
   if let Some(name) = args.config.config_remove.as_deref() {
-    if let Err(e) = remove_config(&mut config, name) {
+    if let Err(e) = remove_config(&mut config, name, args.yes) {
       eprintln!("Error: {e}"); std::process::exit(1);
     }
     return;
@@ -50,19 +50,19 @@ fn main() {
       verbose:     args.connection.verbose,
       cmake_flags: args.cmake_flags.clone(),
     };
-    if let Err(e) = add_config(&mut config, name, entry) {
+    if let Err(e) = add_config(&mut config, name, entry, args.yes) {
       eprintln!("Error: {e}"); std::process::exit(1);
     }
     return;
   }
   if let Some(name) = args.profile.profile_remove.as_deref()  {
-    if let Err(e) = remove_profile(&mut config, name) {
+    if let Err(e) = remove_profile(&mut config, name, args.yes) {
       eprintln!("Error: {e}"); std::process::exit(1);
     }
     return;
   }
   if let Some(vals) = args.profile.profile_add.as_ref() {
-    if let Err(e) = add_profile(&mut config, vals) {
+    if let Err(e) = add_profile(&mut config, vals, args.yes) {
       eprintln!("Error: {e}"); std::process::exit(1);
     }
     return;
