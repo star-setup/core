@@ -174,6 +174,12 @@ pub struct ResolvedArgs {
   pub profile:     ProfileFlags,
 }
 
+fn resolve_bool(positive: bool, negative: bool, config: Option<bool>, default: bool) -> bool {
+  if negative      { return false; }
+  if positive      { return true;  }
+  config.unwrap_or(default)
+}
+
 impl Args {
   pub fn parse_with_config(config: &SetupConfig) -> Result<ResolvedArgs, String> {
     let mut args = Args::parse();
@@ -187,32 +193,36 @@ impl Args {
 
     let default = config.configs.get(config_name);
 
-    let ssh_cli = if args.connection.https { Some(false) }
-                           else if args.connection.ssh   { Some(true)  }
-                                else                     { None        };
-    let ssh = ssh_cli.or_else(|| default.map(|e| e.ssh)).unwrap_or(false);
-
-    let verbose_cli = if args.connection.no_verbose { Some(false) }
-                               else if args.connection.verbose    { Some(true)  }
-                                    else                          { None        };
-    let verbose = verbose_cli.or_else(|| default.map(|e| e.verbose)).unwrap_or(false);
-
-    let no_build_cli = if args.build.build    { Some(false) }
-                                else if args.build.no_build { Some(true)  }
-                                     else                   { None        };
-    let no_build = no_build_cli.or_else(|| default.map(|e| e.no_build)).unwrap_or(false);
-
-    let clean_cli = if args.build.no_clean { Some(false) }
-                             else if args.build.clean    { Some(true)  }
-                                  else                   { None        };
-    let clean = clean_cli.or_else(|| default.map(|e| e.clean)).unwrap_or(false);
-
+    let ssh = resolve_bool(
+      args.connection.ssh,
+      args.connection.https,
+      default.map(|e| e.ssh),
+      false
+    );
+    let verbose = resolve_bool(
+      args.connection.verbose,
+      args.connection.no_verbose,
+      default.map(|e| e.verbose),
+      false
+    );
+    let no_build = resolve_bool(
+      args.build.no_build,
+      args.build.build,
+      default.map(|e| e.no_build),
+      false
+    );
+    let clean = resolve_bool(
+      args.build.clean,
+      args.build.no_clean,
+      default.map(|e| e.clean),
+      false
+    );
     if args.cmake_flags.is_empty() {
       args.cmake_flags = default.map_or_else(Vec::new, |e| e.cmake_flags.clone());
     }
 
-    let repos   = args.mono.repos.take();
-    let profile = args.mono.profile.take();
+    let repos     = args.mono.repos.take();
+    let profile   = args.mono.profile.take();
     let mono_repo = args.mono.mono_repo || repos.is_some() || profile.is_some();
 
     Ok(ResolvedArgs {
