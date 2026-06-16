@@ -1,14 +1,12 @@
 //! Command handlers for single and mono-repo modes.
 
 use std::fs;
-use std::io::{self, Write};
-use std::io::IsTerminal;
 use std::path::{Path, PathBuf};
 use crate::cli::ResolvedArgs;
 use crate::config::SetupConfig;
 use crate::profiles::list_profiles;
 use crate::repository::{resolve_repo_url, clone_repository, repo_name};
-use crate::utils::run_command;
+use crate::utils::{confirm, run_command};
 
 fn print_mode_header(
   mode: &str,
@@ -47,16 +45,7 @@ pub fn single_repo_mode(args: &ResolvedArgs) -> Result<(), String> {
   let repo_path = Path::new(&repo_name);
   if repo_path.exists() {
     println!("Repository {repo_name} already exists");
-    let should_update = if args.yes || !io::stdin().is_terminal() {
-      args.yes
-    } else {
-      print!("Update existing repository? (y/n): ");
-      io::stdout().flush().ok();
-      let mut input = String::new();
-      io::stdin().read_line(&mut input).ok();
-      input.trim().eq_ignore_ascii_case("y")
-    };
-    if should_update {
+    if confirm("Update existing repository?", args.yes) {
       println!("Updating {repo_name}\n");
       run_command(&["git", "pull"], Some(Path::new(repo_name)), args.connection.verbose)?;
     }

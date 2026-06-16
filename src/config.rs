@@ -3,10 +3,9 @@
 use std::collections::HashMap;
 use std::fs;
 use std::io;
-use std::io::Write;
-use std::io::IsTerminal;
 use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
+use crate::utils::confirm;
 
 /// Represents a single named configuration entry.
 #[allow(clippy::struct_excessive_bools)]
@@ -95,20 +94,11 @@ pub fn save_config(config: &mut SetupConfig) -> Result<PathBuf, String> {
 pub fn create_default_config(yes: bool) -> Result<(), String> {
   let path = PathBuf::from(".star-setup.json");
 
-  if path.exists() {
-    let confirmed = if yes || !io::stdin().is_terminal() {
-        yes
-    } else {
-      print!("{} already exists. Overwrite? (y/n): ", path.display());
-      io::stdout().flush().ok();
-      let mut input = String::new();
-      io::stdin().read_line(&mut input).ok();
-      input.trim().eq_ignore_ascii_case("y")
-    };
-    if !confirmed {
-      println!("Aborted.");
-      return Ok(());
-    }
+  if path.exists() &&
+     !confirm(&format!("{} already exists. Overwrite? (y/n): ", path.display()), yes
+  ) {
+    println!("Aborted.");
+    return Ok(());
   }
 
   let mut config = SetupConfig::new();
@@ -142,20 +132,11 @@ pub fn add_config(
   entry: ConfigEntry,
   yes: bool
 ) -> Result<(), String> {
-  if config.configs.contains_key(name) {
-    let confirmed = if yes || !io::stdin().is_terminal() {
-      yes
-    } else {
-      print!("Warning: Configuration '{name}' already exists. Overwrite? (y/n): ");
-      io::stdout().flush().ok();
-      let mut input = String::new();
-      io::stdin().read_line(&mut input).ok();
-      input.trim().eq_ignore_ascii_case("y")
-    };
-    if !confirmed {
-      println!("Aborted.");
-      return Ok(());
-    }
+  if config.configs.contains_key(name) &&
+     !confirm(&format!("Warning: Configuration '{name}' already exists. Overwrite? (y/n): "), yes
+  ) {
+    println!("Aborted.");
+    return Ok(());
   }
 
   config.configs.insert(name.to_string(), entry);
@@ -200,16 +181,7 @@ pub fn remove_config(config: &mut SetupConfig, name: &str, yes: bool) -> Result<
   println!("  Clean flag: {}", e.clean);
   println!("  Verbose flag: {}", e.verbose);
 
-  let confirmed = if yes || !io::stdin().is_terminal() {
-    yes
-  } else {
-    print!("\nAre you sure you want to remove this config? (y/n): ");
-    io::stdout().flush().ok();
-    let mut input = String::new();
-    io::stdin().read_line(&mut input).ok();
-    input.trim().eq_ignore_ascii_case("y")
-  };
-  if !confirmed {
+  if !confirm("\nAre you sure you want to remove this config? (y/n): ", yes) {
     println!("Aborted.");
     return Ok(());
   }

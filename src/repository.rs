@@ -9,8 +9,9 @@ pub fn resolve_repo_url(repo_input: &str, use_ssh: bool) -> String {
   if repo_input.starts_with("http") || repo_input.starts_with("git@") {
     return repo_input.to_string();
   }
-  if use_ssh { format!("git@github.com:{repo_input}.git"     ) }
-  else       { format!("https://github.com/{repo_input}.git" ) }
+  let clean = repo_input.trim_end_matches(".git");
+  if use_ssh { format!("git@github.com:{clean}.git"     ) }
+  else       { format!("https://github.com/{clean}.git" ) }
 }
 
 /// Clones a single repository into the target directory.

@@ -1,8 +1,6 @@
 //! Profile management for star-setup.
 
-use std::io;
-use std::io::Write;
-use std::io::IsTerminal;
+use crate::utils::confirm;
 use crate::config::{SetupConfig, save_config};
 
 /// Adds a new profile to the configuration.
@@ -15,20 +13,11 @@ pub fn add_profile(config: &mut SetupConfig, args: &[String], yes: bool) -> Resu
   let name = args[0].clone();
   let repos = args[1..].to_vec();
 
-  if config.profiles.contains_key(&name) {
-    let confirmed = if yes || !io::stdin().is_terminal() {
-      yes
-    } else {
-      print!("Warning: Profile '{name}' already exists. Overwrite? (y/n): ");
-      io::stdout().flush().ok();
-      let mut input = String::new();
-      io::stdin().read_line(&mut input).ok();
-      input.trim().eq_ignore_ascii_case("y")
-    };
-    if !confirmed {
-      println!("Aborted.");
-      return Ok(());
-    }
+  if config.profiles.contains_key(&name) &&
+     !confirm(&format!("Warning: Profile '{name}' already exists. Overwrite?"), yes
+  ) {
+    println!("Aborted.");
+    return Ok(());
   }
 
   config.profiles.insert(name.clone(), repos.clone());
@@ -39,7 +28,7 @@ pub fn add_profile(config: &mut SetupConfig, args: &[String], yes: bool) -> Resu
   println!("Profile details:");
   println!("  Repositories ({}):", repos.len());
   for repo in repos { println!("    - {repo}"); }
-  println!("\nUsage: ecos username/test-repo --profile {name}");
+  println!("\nUsage: star-setup username/test-repo --profile {name}");
 
   Ok(())
 }
@@ -55,16 +44,7 @@ pub fn remove_profile(config: &mut SetupConfig, name: &str, yes: bool) -> Result
   println!("  Libraries: {}", repos.len());
   for repo in &repos { println!("    - {repo}"); }
 
-  let confirmed = if yes || !io::stdin().is_terminal() {
-    yes
-  } else {
-    print!("\nAre you sure you want to remove this profile? (y/n): ");
-    io::stdout().flush().ok();
-    let mut input = String::new();
-    io::stdin().read_line(&mut input).ok();
-   input.trim().eq_ignore_ascii_case("y")
-  };
-  if !confirmed {
+  if !confirm(&format!("Are you sure you want to remove profile '{name}'?"), yes) {
     println!("Aborted.");
     return Ok(());
   }

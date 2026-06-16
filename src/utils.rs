@@ -2,8 +2,25 @@
 
 use std::process::{Stdio, Command};
 use std::path::Path;
-use std::io::Read;
 use std::thread;
+use std::io::Read;
+use std::io::BufRead;
+use std::io::Write;
+use std::io::IsTerminal;
+
+pub fn confirm(prompt: &str, yes: bool) -> bool {
+    if yes || !std::io::stdin().is_terminal() {
+        return yes;
+    }
+    print!("{prompt} (y/n): ");
+    std::io::stdout().flush().ok();
+    let mut input = String::new();
+    if std::io::stdin().lock().read_line(&mut input).unwrap_or(0) == 0 {
+        eprintln!("\nError: unexpected end of input");
+        std::process::exit(1);
+    }
+    input.trim().eq_ignore_ascii_case("y")
+}
 
 /// Checks if required tools are available on PATH.
 /// Returns Result.
