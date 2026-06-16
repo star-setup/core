@@ -1,5 +1,5 @@
 [package]
-name = "ecosystem-setup"
+name = "star-setup"
 version = "0.1.0"
 edition = "2021"
 
@@ -11,5 +11,5 @@ dirs = "5"
 dunce = "1"
 
 [[bin]]
-name = "ecos"
+name = "star-setup"
 path = "src/main.rs"

@@ -112,7 +112,7 @@ pub struct ProfileFlags {
 
 #[derive(Parser)]
 #[command(
-  name = "ecos",
+  name = "star-setup",
   about = "Lightweight CLI to clone, configure, and wire single or multi-repo ecosystems",
   long_about = None,
 )]
