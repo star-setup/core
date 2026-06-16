@@ -38,6 +38,24 @@ impl SetupConfig {
   }
 }
 
+fn print_entry(e: &ConfigEntry) {
+  println!("  SSH: {}", e.ssh);
+  println!("  Build Type: {}", e.build_type);
+  println!("  Build Directory: {}", e.build_dir);
+  println!("  Mono-build Directory: {}", e.mono_dir);
+  println!("  No-build flag: {}", e.no_build);
+  println!("  Clean flag: {}", e.clean);
+  println!("  Verbose flag: {}", e.verbose);
+  if e.cmake_flags.is_empty() {
+    println!();
+  } else if e.cmake_flags.len() == 1 {
+    println!("  CMake argument: {}", e.cmake_flags[0]);
+  } else {
+    println!("  CMake arguments:");
+    for arg in &e.cmake_flags { println!("    {arg}"); }
+  }
+}
+
 pub fn load_config() -> SetupConfig {
   let mut locations = vec![PathBuf::from(".star-setup.json")];
   if let Some(home) = dirs::home_dir() {
@@ -145,21 +163,7 @@ pub fn add_config(
   let e = &config.configs[name];
   println!("Configuration '{name}' added successfully to {}", path.display());
   println!("Configuration details:");
-  println!("  SSH: {}", e.ssh);
-  println!("  Build Type: {}", e.build_type);
-  println!("  Build Directory: {}", e.build_dir);
-  println!("  Mono-build Directory: {}", e.mono_dir);
-  println!("  No-build flag: {}", e.no_build);
-  println!("  Clean flag: {}", e.clean);
-  println!("  Verbose flag: {}", e.verbose);
-  if !e.cmake_flags.is_empty() {
-    if e.cmake_flags.len() == 1 {
-      println!("  CMake argument: {}", e.cmake_flags[0]);
-    } else {
-      println!("  CMake arguments:");
-      for arg in &e.cmake_flags { println!("    {arg}"); }
-    }
-  }
+  print_entry(e);
 
   Ok(())
 }
@@ -173,13 +177,7 @@ pub fn remove_config(config: &mut SetupConfig, name: &str, yes: bool) -> Result<
 
   println!("Config {name}");
   println!("Configuration details:");
-  println!("  SSH: {}", e.ssh);
-  println!("  Build Type: {}", e.build_type);
-  println!("  Build Directory: {}", e.build_dir);
-  println!("  Mono-build Directory: {}", e.mono_dir);
-  println!("  No-build flag: {}", e.no_build);
-  println!("  Clean flag: {}", e.clean);
-  println!("  Verbose flag: {}", e.verbose);
+  print_entry(e);
 
   if !confirm("\nAre you sure you want to remove this config? (y/n): ", yes) {
     println!("Aborted.");
@@ -204,20 +202,6 @@ pub fn list_configs(config: &SetupConfig) {
   println!("Configurations:");
   for (name, e) in &config.configs {
     println!("\n{name}:");
-    println!("  SSH: {}", e.ssh);
-    println!("  Build Type: {}", e.build_type);
-    println!("  Build Directory: {}", e.build_dir);
-    println!("  Mono-build Directory: {}", e.mono_dir);
-    println!("  No-build flag: {}", e.no_build);
-    println!("  Clean flag: {}", e.clean);
-    println!("  Verbose flag: {}", e.verbose);
-    if e.cmake_flags.is_empty() {
-      println!();
-    } else if e.cmake_flags.len() == 1 {
-      println!("  CMake argument: {}", e.cmake_flags[0]);
-    } else {
-      println!("  CMake arguments:");
-      for arg in &e.cmake_flags { println!("    {arg}"); }
-    }
+    print_entry(e);
   }
 }
