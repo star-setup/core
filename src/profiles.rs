@@ -25,9 +25,8 @@ pub fn add_profile(config: &mut EcosystemConfig, args: &[String]) -> Result<(), 
     }
   }
 
-  config.profiles.insert(name.clone(), repos);
+  config.profiles.insert(name.clone(), repos.clone());
   let path = save_config(config)?;
-  let repos = config.profiles.get(&name).unwrap();
 
   println!("Profile '{name}' added successfully");
   println!("Configuration saved to: {}", path.display());

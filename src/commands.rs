@@ -183,7 +183,9 @@ pub fn mono_repo_mode(args: &ResolvedArgs, config: &EcosystemConfig) -> Result<(
     return Err("No repos or profile specified for mono-repo mode".to_string());
   };
 
-  if !repos.contains(&test_repo) { repos.push(test_repo.clone()); }
+  if !repos.iter().any(|r| repo_name(r) == repo_name(&test_repo)) {
+    repos.push(test_repo.clone());
+  }
 
   println!("Total repositories: {}\n", repos.len());
 
