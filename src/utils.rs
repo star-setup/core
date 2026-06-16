@@ -9,17 +9,17 @@ use std::io::Write;
 use std::io::IsTerminal;
 
 pub fn confirm(prompt: &str, yes: bool) -> bool {
-    if yes || !std::io::stdin().is_terminal() {
-        return yes;
-    }
-    print!("{prompt} (y/n): ");
-    std::io::stdout().flush().ok();
-    let mut input = String::new();
-    if std::io::stdin().lock().read_line(&mut input).unwrap_or(0) == 0 {
-        eprintln!("\nError: unexpected end of input");
-        std::process::exit(1);
-    }
-    input.trim().eq_ignore_ascii_case("y")
+  if yes || !std::io::stdin().is_terminal() {
+    return yes;
+  }
+  print!("{prompt} (y/n): ");
+  std::io::stdout().flush().ok();
+  let mut input = String::new();
+  if std::io::stdin().lock().read_line(&mut input).unwrap_or(0) == 0 {
+    eprintln!("\nError: unexpected end of input");
+    std::process::exit(1);
+  }
+  input.trim().eq_ignore_ascii_case("y")
 }
 
 /// Checks if required tools are available on PATH.
@@ -27,7 +27,10 @@ pub fn confirm(prompt: &str, yes: bool) -> bool {
 pub fn check_prerequisites(verbose: bool) -> Result<(), String> {
   let mut missing: Vec<&str> = Vec::new();
   for tool in &["git", "cmake"] {
-    if Command::new(tool).arg("--version").output().is_err() {
+    if Command::new(tool).arg("--version")
+                                  .output()
+                                  .map_or(true, |o| !o.status.success()
+    ) {
       missing.push(tool);
     } else if verbose {
       println!("Found {tool}");
