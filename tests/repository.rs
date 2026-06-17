@@ -9,11 +9,15 @@ fn test_repo_dir_name() {
     ("git@github.com:owner/repo.git"),
     ("https://github.com/owner/repo"),
     ("https://github.com/owner/repo.git"),
-    ("owner/repo/")
+    ("owner/repo/"),
   ];
 
   for input in cases {
-    assert_eq!(repo_dir_name(input), "owner-repo", "Failed for input: {input}");
+    assert_eq!(
+      repo_dir_name(input),
+      "owner-repo",
+      "Failed for input: {input}"
+    );
   }
 }
 
@@ -26,11 +30,19 @@ fn test_repo_dir_name_no_owner() {
 #[test]
 fn test_resolve_repo_url() {
   let cases = vec![
-    ("owner/repo",                        false, "https://github.com/owner/repo.git"),
-    ("owner/repo",                        true,  "git@github.com:owner/repo.git"    ),
-    ("https://github.com/owner/repo.git", false, "https://github.com/owner/repo.git"),
-    ("git@github.com:owner/repo.git",     true,  "git@github.com:owner/repo.git"    ),
-    ("owner/repo.git",                    false, "https://github.com/owner/repo.git"),
+    ("owner/repo", false, "https://github.com/owner/repo.git"),
+    ("owner/repo", true, "git@github.com:owner/repo.git"),
+    (
+      "https://github.com/owner/repo.git",
+      false,
+      "https://github.com/owner/repo.git",
+    ),
+    (
+      "git@github.com:owner/repo.git",
+      true,
+      "git@github.com:owner/repo.git",
+    ),
+    ("owner/repo.git", false, "https://github.com/owner/repo.git"),
   ];
 
   for (input, use_ssh, expected) in cases {

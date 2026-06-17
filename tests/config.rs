@@ -83,16 +83,19 @@ fn test_save_and_load_roundtrip() {
 
   let mut config = SetupConfig::new();
   config.path = Some(path.clone());
-  config.configs.insert("default".to_string(), ConfigEntry {
-    ssh: true,
-    build_type: "Release".to_string(),
-    build_dir: "build".to_string(),
-    mono_dir: "mono".to_string(),
-    no_build: false,
-    clean: false,
-    verbose: false,
-    cmake_flags: vec![],
-  });
+  config.configs.insert(
+    "default".to_string(),
+    ConfigEntry {
+      ssh: true,
+      build_type: "Release".to_string(),
+      build_dir: "build".to_string(),
+      mono_dir: "mono".to_string(),
+      no_build: false,
+      clean: false,
+      verbose: false,
+      cmake_flags: vec![],
+    },
+  );
   save_config(&mut config).unwrap();
 
   let loaded = load_config(&[path]);
@@ -106,7 +109,7 @@ fn test_save_and_load_roundtrip() {
 fn test_load_config_skips_missing_local_file() {
   let config = load_config(&[]);
   assert!(config.configs.is_empty());
-} 
+}
 
 #[test]
 fn test_load_config_handles_invalid_json() {
