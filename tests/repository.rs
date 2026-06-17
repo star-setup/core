@@ -2,36 +2,19 @@ use star_setup::repository::{clone_repository, repo_dir_name, resolve_repo_url};
 
 /// repo_dir_name
 #[test]
-fn test_repo_dir_name_shorthand() {
-  assert_eq!(repo_dir_name("owner/repo"), "owner-repo");
-}
+fn test_repo_dir_name() {
+  let cases = vec![
+    ("owner/repo"),
+    ("owner/repo.git"),
+    ("git@github.com:owner/repo.git"),
+    ("https://github.com/owner/repo"),
+    ("https://github.com/owner/repo.git"),
+    ("owner/repo/")
+  ];
 
-#[test]
-fn test_repo_dir_name_shorthand_git_suffix() {
-  assert_eq!(repo_dir_name("owner/repo.git"), "owner-repo");
-}
-
-#[test]
-fn test_repo_dir_name_ssh() {
-  assert_eq!(repo_dir_name("git@github.com:owner/repo.git"), "owner-repo");
-}
-
-#[test]
-fn test_repo_dir_name_https() {
-  assert_eq!(repo_dir_name("https://github.com/owner/repo"), "owner-repo");
-}
-
-#[test]
-fn test_repo_dir_name_https_git_suffix() {
-  assert_eq!(
-    repo_dir_name("https://github.com/owner/repo.git"),
-    "owner-repo"
-  );
-}
-
-#[test]
-fn test_repo_dir_name_trailing_slash() {
-  assert_eq!(repo_dir_name("owner/repo/"), "owner-repo");
+  for input in cases {
+    assert_eq!(repo_dir_name(input), "owner-repo", "Failed for input: {input}");
+  }
 }
 
 #[test]
@@ -41,39 +24,22 @@ fn test_repo_dir_name_no_owner() {
 
 /// resolve_repo_url
 #[test]
-fn test_resolve_repo_url_shorthand_https() {
-  assert_eq!(
-    resolve_repo_url("owner/repo", false),
-    "https://github.com/owner/repo.git"
-  );
-}
+fn test_resolve_repo_url() {
+  let cases = vec![
+    ("owner/repo",                        false, "https://github.com/owner/repo.git"),
+    ("owner/repo",                        true,  "git@github.com:owner/repo.git"    ),
+    ("https://github.com/owner/repo.git", false, "https://github.com/owner/repo.git"),
+    ("git@github.com:owner/repo.git",     true,  "git@github.com:owner/repo.git"    ),
+    ("owner/repo.git",                    false, "https://github.com/owner/repo.git"),
+  ];
 
-#[test]
-fn test_resolve_repo_url_shorthand_ssh() {
-  assert_eq!(
-    resolve_repo_url("owner/repo", true),
-    "git@github.com:owner/repo.git"
-  );
-}
-
-#[test]
-fn test_resolve_repo_url_full_https_passthrough() {
-  let url = "https://github.com/owner/repo.git";
-  assert_eq!(resolve_repo_url(url, false), url);
-}
-
-#[test]
-fn test_resolve_repo_url_full_ssh_passthrough() {
-  let url = "git@github.com:owner/repo.git";
-  assert_eq!(resolve_repo_url(url, true), url);
-}
-
-#[test]
-fn test_resolve_repo_url_strips_git_suffix() {
-  assert_eq!(
-    resolve_repo_url("owner/repo.git", false),
-    "https://github.com/owner/repo.git"
-  );
+  for (input, use_ssh, expected) in cases {
+    assert_eq!(
+      resolve_repo_url(input, use_ssh),
+      expected,
+      "Failed for input: {input} (use_ssh: {use_ssh})"
+    );
+  }
 }
 
 /// clone_repository
@@ -81,6 +47,7 @@ fn test_resolve_repo_url_strips_git_suffix() {
 fn test_clone_skips_existing_directory() {
   let tmp = std::env::temp_dir().join("star_setup_test_clone");
   std::fs::create_dir_all(&tmp).ok();
+
   let repo_dir = tmp.join("owner-repo");
   std::fs::create_dir_all(&repo_dir).unwrap();
 
