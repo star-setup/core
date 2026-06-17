@@ -102,22 +102,26 @@ pub fn remove_profile(
 }
 
 /// Lists all configured profiles.
-pub fn list_profiles(config: &SetupConfig) {
-  println!("Available profiles:");
+pub fn list_profiles(config: &SetupConfig, output: &mut impl Write) {
+  writeln!(output, "Available profiles:").ok();
 
   if config.profiles.is_empty() {
-    println!("  No profiles configured.");
-    println!("  Run with --init-config to create a default configuration.");
+    writeln!(output, "  No profiles configured.").ok();
+    writeln!(
+      output,
+      "  Run with --init-config to create a default configuration."
+    )
+    .ok();
     return;
   }
 
-  println!("Configured profiles:\n");
+  writeln!(output, "Configured profiles:\n").ok();
   for (name, repos) in &config.profiles {
-    println!("  {name}");
-    println!("  Repositories ({}):", repos.len());
+    writeln!(output, "  {name}").ok();
+    writeln!(output, "  Repositories ({}):", repos.len()).ok();
     for repo in repos {
-      println!("      - {repo}");
+      writeln!(output, "      - {repo}").ok();
     }
-    println!();
+    writeln!(output).ok();
   }
 }

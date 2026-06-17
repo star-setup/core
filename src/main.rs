@@ -55,7 +55,7 @@ fn main() {
     return;
   }
   if args.profile.list_profiles {
-    list_profiles(&config);
+    list_profiles(&config, &mut stdout);
     return;
   }
 

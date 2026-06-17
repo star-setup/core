@@ -222,7 +222,7 @@ fn resolve_repos_for_mono(
 ) -> Result<Vec<String>, String> {
   if let Some(profile_name) = &args.mono.profile {
     let profile_repos = config.profiles.get(profile_name).ok_or_else(|| {
-      list_profiles(config);
+      list_profiles(config, output);
       format!("Profile '{profile_name}' not found")
     })?;
     if profile_repos.is_empty() {

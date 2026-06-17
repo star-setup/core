@@ -261,13 +261,8 @@ fn test_create_default_config_aborts_when_exists_and_not_confirmed() {
   std::fs::write(&path, "original").unwrap();
 
   let input = b"n\n";
-  star_setup::config::create_default_config(
-    path.clone(),
-    false,
-    &mut input.as_ref(),
-    &mut sink(),
-  )
-  .unwrap();
+  star_setup::config::create_default_config(path.clone(), false, &mut input.as_ref(), &mut sink())
+    .unwrap();
   assert_eq!(std::fs::read_to_string(&path).unwrap(), "original");
 
   std::fs::remove_dir_all(&tmp).ok();

@@ -142,3 +142,57 @@ fn test_add_profile_multiple_repos() {
 
   std::fs::remove_dir_all(&tmp).ok();
 }
+
+#[test]
+fn test_add_profile_aborts_when_exists_and_not_confirmed() {
+  let tmp = std::env::temp_dir().join("star_setup_test_add_profile_abort");
+  std::fs::create_dir_all(&tmp).ok();
+  let mut config = SetupConfig::new();
+  config.path = Some(tmp.join(".star-setup.json"));
+  insert_profile(&mut config, "myprofile", vec!["old/repo".to_string()]);
+
+  let input = b"n\n";
+  let args = vec!["myprofile".to_string(), "new/repo".to_string()];
+  star_setup::profiles::add_profile(&mut config, &args, false, &mut input.as_ref(), &mut sink())
+    .unwrap();
+  assert_eq!(config.profiles["myprofile"], vec!["old/repo"]);
+
+  std::fs::remove_dir_all(&tmp).ok();
+}
+
+#[test]
+fn test_remove_profile_aborts_when_not_confirmed() {
+  let mut config = SetupConfig::new();
+  insert_profile(&mut config, "myprofile", vec!["user/repo1".to_string()]);
+
+  let input = b"n\n";
+  star_setup::profiles::remove_profile(
+    &mut config,
+    "myprofile",
+    false,
+    &mut input.as_ref(),
+    &mut sink(),
+  )
+  .unwrap();
+  assert!(has_profile(&config, "myprofile"));
+}
+
+#[test]
+fn test_list_profiles_empty() {
+  let config = SetupConfig::new();
+  let mut output = sink();
+  star_setup::profiles::list_profiles(&config, &mut output);
+  let out = String::from_utf8(output).unwrap();
+  assert!(out.contains("No profiles configured"));
+}
+
+#[test]
+fn test_list_profiles_with_entries() {
+  let mut config = SetupConfig::new();
+  insert_profile(&mut config, "myprofile", vec!["user/repo1".to_string()]);
+  let mut output = sink();
+  star_setup::profiles::list_profiles(&config, &mut output);
+  let out = String::from_utf8(output).unwrap();
+  assert!(out.contains("myprofile"));
+  assert!(out.contains("user/repo1"));
+}
