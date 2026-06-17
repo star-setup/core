@@ -1,6 +1,6 @@
 use star_setup::cli::{
-  Args, BuildFlags, ConfigFlags, ConnectionFlags, MonoRepoFlags, ProfileFlags,
-  resolve_bool, resolve_with_config,
+  resolve_bool, resolve_with_config, Args, BuildFlags, ConfigFlags, ConnectionFlags, MonoRepoFlags,
+  ProfileFlags,
 };
 use star_setup::config::{ConfigEntry, SetupConfig};
 
@@ -35,7 +35,12 @@ fn default_args() -> Args {
     repo: None,
     cmake_flags: vec![],
     yes: false,
-    connection: ConnectionFlags { ssh: false, https: false, verbose: false, no_verbose: false },
+    connection: ConnectionFlags {
+      ssh: false,
+      https: false,
+      verbose: false,
+      no_verbose: false,
+    },
     build: BuildFlags {
       build_type: None,
       build_dir: None,
@@ -82,16 +87,19 @@ fn test_resolve_with_config_defaults_when_no_config() {
 #[test]
 fn test_resolve_with_config_applies_config_defaults() {
   let mut config = SetupConfig::new();
-  config.configs.insert("default".to_string(), ConfigEntry {
-    ssh: true,
-    verbose: true,
-    build_type: "Release".to_string(),
-    build_dir: "out".to_string(),
-    mono_dir: "mono".to_string(),
-    no_build: true,
-    clean: true,
-    cmake_flags: vec!["-DTEST=ON".to_string()],
-  });
+  config.configs.insert(
+    "default".to_string(),
+    ConfigEntry {
+      ssh: true,
+      verbose: true,
+      build_type: "Release".to_string(),
+      build_dir: "out".to_string(),
+      mono_dir: "mono".to_string(),
+      no_build: true,
+      clean: true,
+      cmake_flags: vec!["-DTEST=ON".to_string()],
+    },
+  );
   let resolved = resolve_with_config(default_args(), &config).unwrap();
   assert!(resolved.connection.ssh);
   assert!(resolved.connection.verbose);
@@ -105,16 +113,19 @@ fn test_resolve_with_config_applies_config_defaults() {
 #[test]
 fn test_resolve_with_config_cli_overrides_config() {
   let mut config = SetupConfig::new();
-  config.configs.insert("default".to_string(), ConfigEntry {
-    ssh: false,
-    verbose: false,
-    build_type: "Debug".to_string(),
-    build_dir: "build".to_string(),
-    mono_dir: "build-mono".to_string(),
-    no_build: false,
-    clean: false,
-    cmake_flags: vec![],
-  });
+  config.configs.insert(
+    "default".to_string(),
+    ConfigEntry {
+      ssh: false,
+      verbose: false,
+      build_type: "Debug".to_string(),
+      build_dir: "build".to_string(),
+      mono_dir: "build-mono".to_string(),
+      no_build: false,
+      clean: false,
+      cmake_flags: vec![],
+    },
+  );
   let mut args = default_args();
   args.connection.ssh = true;
   args.build.build_type = Some("Release".to_string());

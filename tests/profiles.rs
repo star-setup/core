@@ -1,7 +1,5 @@
 use star_setup::config::{save_config, SetupConfig};
-use star_setup::profiles::{
-  has_profile, insert_profile, remove_profile_entry,
-};
+use star_setup::profiles::{has_profile, insert_profile, remove_profile_entry};
 
 #[test]
 fn test_insert_profile() {

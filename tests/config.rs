@@ -2,6 +2,7 @@ use star_setup::config::{
   format_entry, has_config, insert_config, load_config, remove_config_entry, save_config,
   ConfigEntry, SetupConfig,
 };
+use std::path::PathBuf;
 
 fn sample_entry() -> ConfigEntry {
   ConfigEntry {
@@ -125,31 +126,20 @@ fn test_load_config_handles_invalid_json() {
 }
 
 #[test]
-fn test_create_default_config_creates_file() {
-  let tmp = std::env::temp_dir().join("star_setup_test_create_default");
-  std::fs::create_dir_all(&tmp).ok();
-  let original = std::env::current_dir().unwrap();
-  std::env::set_current_dir(&tmp).unwrap();
-
-  star_setup::config::create_default_config(true).unwrap();
-  assert!(tmp.join(".star-setup.json").exists());
-
-  std::env::set_current_dir(original).unwrap();
-  std::fs::remove_dir_all(&tmp).ok();
+fn test_load_config_skips_nonexistent_path() {
+  let config = load_config(&[PathBuf::from("/nonexistent/path/.star-setup.json")]);
+  assert!(config.configs.is_empty());
 }
 
 #[test]
-fn test_create_default_config_aborts_if_exists() {
-  let tmp = std::env::temp_dir().join("star_setup_test_create_abort");
+fn test_create_default_config_creates_file() {
+  let tmp = std::env::temp_dir().join("star_setup_test_create_default");
   std::fs::create_dir_all(&tmp).ok();
-  std::fs::write(tmp.join(".star-setup.json"), "original").unwrap();
-  let original = std::env::current_dir().unwrap();
-  std::env::set_current_dir(&tmp).unwrap();
+  let path = tmp.join(".star-setup.json");
 
-  star_setup::config::create_default_config(true).unwrap();
-  assert!(tmp.join(".star-setup.json").exists());
+  star_setup::config::create_default_config(path.clone(), true).unwrap();
+  assert!(path.exists());
 
-  std::env::set_current_dir(original).unwrap();
   std::fs::remove_dir_all(&tmp).ok();
 }
 

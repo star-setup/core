@@ -1,4 +1,4 @@
-use star_setup::commands::{resolve_test_repo, create_mono_repo_cmakelists};
+use star_setup::commands::{create_mono_repo_cmakelists, resolve_test_repo};
 
 // resolve_test_repo tests
 #[test]

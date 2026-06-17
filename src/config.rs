@@ -141,9 +141,7 @@ pub fn save_config(config: &mut SetupConfig) -> Result<PathBuf, String> {
 }
 
 /// Creates a default configuration file in the current directory.
-pub fn create_default_config(yes: bool) -> Result<(), String> {
-  let path = PathBuf::from(".star-setup.json");
-
+pub fn create_default_config(path: PathBuf, yes: bool) -> Result<(), String> {
   if path.exists()
     && !confirm(
       &format!("{} already exists. Overwrite?", path.display()),

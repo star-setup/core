@@ -15,6 +15,7 @@ use config::{
 };
 use interactive::interactive_mode;
 use profiles::{add_profile, list_profiles, remove_profile};
+use std::io;
 use std::io::IsTerminal;
 use std::path::PathBuf;
 use utils::check_prerequisites;
@@ -34,7 +35,7 @@ fn main() {
   };
 
   if args.config.init_config {
-    if let Err(e) = create_default_config(args.yes) {
+    if let Err(e) = create_default_config(PathBuf::from(".star-setup.json"), args.yes) {
       eprintln!("Error: {e}");
       std::process::exit(1);
     }
@@ -90,7 +91,7 @@ fn main() {
 
   if args.repo.is_none() {
     if std::io::stdin().is_terminal() {
-      interactive_mode(&mut args);
+      interactive_mode(&mut args, &mut io::stdin().lock(), &mut io::stdout());
     } else {
       eprintln!("Error: no repository specified");
       std::process::exit(1);
