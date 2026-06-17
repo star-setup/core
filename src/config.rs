@@ -3,6 +3,7 @@
 use crate::utils::confirm;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::fmt::Write;
 use std::fs;
 use std::io;
 use std::path::PathBuf;
@@ -38,42 +39,51 @@ impl SetupConfig {
   }
 }
 
-fn print_entry(e: &ConfigEntry) {
-  println!("  SSH: {}", e.ssh);
-  println!("  Build Type: {}", e.build_type);
-  println!("  Build Directory: {}", e.build_dir);
-  println!("  Mono-build Directory: {}", e.mono_dir);
-  println!("  No-build flag: {}", e.no_build);
-  println!("  Clean flag: {}", e.clean);
-  println!("  Verbose flag: {}", e.verbose);
-  if e.cmake_flags.is_empty() {
-    println!();
-  } else if e.cmake_flags.len() == 1 {
-    println!("  CMake argument: {}", e.cmake_flags[0]);
-  } else {
-    println!("  CMake arguments:");
-    for arg in &e.cmake_flags {
-      println!("    {arg}");
-    }
-  }
+pub fn insert_config(config: &mut SetupConfig, name: &str, entry: ConfigEntry) {
+  config.configs.insert(name.to_string(), entry);
 }
 
-pub fn load_config() -> SetupConfig {
-  let mut locations = vec![PathBuf::from(".star-setup.json")];
-  if let Some(home) = dirs::home_dir() {
-    locations.push(home.join(".star-setup.json"));
-  }
+pub fn remove_config_entry(config: &mut SetupConfig, name: &str) -> bool {
+  config.configs.remove(name).is_some()
+}
 
+pub fn has_config(config: &SetupConfig, name: &str) -> bool {
+  config.configs.contains_key(name)
+}
+
+pub fn format_entry(e: &ConfigEntry) -> String {
+  let mut out = String::new();
+  writeln!(out, "  SSH: {}", e.ssh).ok();
+  writeln!(out, "  Build Type: {}", e.build_type).ok();
+  writeln!(out, "  Build Directory: {}", e.build_dir).ok();
+  writeln!(out, "  Mono-build Directory: {}", e.mono_dir).ok();
+  writeln!(out, "  No-build flag: {}", e.no_build).ok();
+  writeln!(out, "  Clean flag: {}", e.clean).ok();
+  writeln!(out, "  Verbose flag: {}", e.verbose).ok();
+  if e.cmake_flags.is_empty() {
+    out.push('\n');
+  } else if e.cmake_flags.len() == 1 {
+    writeln!(out, "  CMake argument: {}", e.cmake_flags[0]).ok();
+  } else {
+    out.push_str("  CMake arguments:\n");
+    for arg in &e.cmake_flags {
+      writeln!(out, "    {arg}").ok();
+    }
+  }
+  out
+}
+
+pub fn load_config(locations: &[PathBuf]) -> SetupConfig {
   let mut invalid_count = 0;
 
   for path in locations {
     if !path.exists() {
       continue;
     }
-    match fs::read_to_string(&path) {
+    match fs::read_to_string(path) {
       Ok(contents) => match serde_json::from_str::<SetupConfig>(&contents) {
         Ok(mut config) => {
-          config.path = Some(path);
+          config.path = Some(path.clone());
           return config;
         }
         Err(e) => {
@@ -181,7 +191,7 @@ pub fn add_config(
   entry: ConfigEntry,
   yes: bool,
 ) -> Result<(), String> {
-  if config.configs.contains_key(name)
+  if has_config(config, name)
     && !confirm(
       &format!("Warning: Configuration '{name}' already exists. Overwrite?"),
       yes,
@@ -191,7 +201,7 @@ pub fn add_config(
     return Ok(());
   }
 
-  config.configs.insert(name.to_string(), entry);
+  insert_config(config, name, entry);
   let path = save_config(config)?;
 
   let e = &config.configs[name];
@@ -200,7 +210,7 @@ pub fn add_config(
     path.display()
   );
   println!("Configuration details:");
-  print_entry(e);
+  print!("{}", format_entry(e));
 
   Ok(())
 }
@@ -214,14 +224,14 @@ pub fn remove_config(config: &mut SetupConfig, name: &str, yes: bool) -> Result<
 
   println!("Config {name}");
   println!("Configuration details:");
-  print_entry(e);
+  print!("{}", format_entry(e));
 
   if !confirm("\nAre you sure you want to remove this config?", yes) {
     println!("Aborted.");
     return Ok(());
   }
 
-  config.configs.remove(name);
+  remove_config_entry(config, name);
   let path = save_config(config)?;
   println!("\nConfig '{name}' was successfully removed");
   println!("Configuration saved to: {}\n", path.display());
@@ -239,6 +249,6 @@ pub fn list_configs(config: &SetupConfig) {
   println!("Configurations:");
   for (name, e) in &config.configs {
     println!("\n{name}:");
-    print_entry(e);
+    print!("{}", format_entry(e));
   }
 }

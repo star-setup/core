@@ -16,10 +16,15 @@ use config::{
 use interactive::interactive_mode;
 use profiles::{add_profile, list_profiles, remove_profile};
 use std::io::IsTerminal;
+use std::path::PathBuf;
 use utils::check_prerequisites;
 
 fn main() {
-  let mut config = load_config();
+  let mut locations = vec![PathBuf::from(".star-setup.json")];
+  if let Some(home) = dirs::home_dir() {
+    locations.push(home.join(".star-setup.json"));
+  }
+  let mut config = load_config(&locations);
   let mut args = match Args::parse_with_config(&config) {
     Ok(args) => args,
     Err(e) => {

@@ -36,7 +36,7 @@ fn test_repo_dir_name_trailing_slash() {
 
 #[test]
 fn test_repo_dir_name_no_owner() {
-    assert_eq!(repo_dir_name("repo"), "repo");
+  assert_eq!(repo_dir_name("repo"), "repo");
 }
 
 /// resolve_repo_url
@@ -84,8 +84,6 @@ fn test_clone_skips_existing_directory() {
   let repo_dir = tmp.join("owner-repo");
   std::fs::create_dir_all(&repo_dir).unwrap();
 
-  // Should return Ok without calling git since dir exists
-  // We verify by checking the dir still exists and wasn't modified
   let result = clone_repository("owner/repo", &tmp, false, false);
   assert!(result.is_ok());
   assert!(repo_dir.exists());
