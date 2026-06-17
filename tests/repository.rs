@@ -1,4 +1,6 @@
 use star_setup::repository::{clone_repository, repo_dir_name, resolve_repo_url};
+mod helpers;
+use helpers::sink;
 
 /// repo_dir_name
 #[test]
@@ -63,7 +65,7 @@ fn test_clone_skips_existing_directory() {
   let repo_dir = tmp.join("owner-repo");
   std::fs::create_dir_all(&repo_dir).unwrap();
 
-  let result = clone_repository("owner/repo", &tmp, false, false);
+  let result = clone_repository("owner/repo", &tmp, false, false, &mut sink());
   assert!(result.is_ok());
   assert!(repo_dir.exists());
 

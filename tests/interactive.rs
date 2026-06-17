@@ -9,7 +9,12 @@ fn default_resolved() -> star_setup::cli::ResolvedArgs {
     repo: None,
     cmake_flags: vec![],
     yes: false,
-    connection: ConnectionFlags { ssh: false, https: false, verbose: false, no_verbose: false },
+    connection: ConnectionFlags {
+      ssh: false,
+      https: false,
+      verbose: false,
+      no_verbose: false,
+    },
     build: BuildFlags {
       build_type: None,
       build_dir: None,
@@ -18,7 +23,12 @@ fn default_resolved() -> star_setup::cli::ResolvedArgs {
       clean: false,
       no_clean: false,
     },
-    mono: MonoRepoFlags { mono_repo: false, mono_dir: None, repos: None, profile: None },
+    mono: MonoRepoFlags {
+      mono_repo: false,
+      mono_dir: None,
+      repos: None,
+      profile: None,
+    },
     config: ConfigFlags {
       init_config: false,
       config_name: None,
@@ -26,7 +36,11 @@ fn default_resolved() -> star_setup::cli::ResolvedArgs {
       config_remove: None,
       list_configs: false,
     },
-    profile: ProfileFlags { profile_add: None, profile_remove: None, list_profiles: false },
+    profile: ProfileFlags {
+      profile_add: None,
+      profile_remove: None,
+      list_profiles: false,
+    },
   };
   resolve_with_config(args, &SetupConfig::new()).unwrap()
 }
@@ -68,7 +82,10 @@ fn test_interactive_mode_mono_repo_with_manual_repos() {
   let mut args = default_resolved();
   interactive_mode(&mut args, &mut input.as_ref(), &mut output);
   assert!(args.mono.mono_repo);
-  assert_eq!(args.mono.repos, Some(vec!["user/lib1".to_string(), "user/lib2".to_string()]));
+  assert_eq!(
+    args.mono.repos,
+    Some(vec!["user/lib1".to_string(), "user/lib2".to_string()])
+  );
 }
 
 #[test]

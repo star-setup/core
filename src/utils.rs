@@ -1,30 +1,30 @@
 //! Utility functions for star-setup.
 
 use std::io::BufRead;
-use std::io::IsTerminal;
 use std::io::Read;
 use std::io::Write;
 use std::path::Path;
 use std::process::{Command, Stdio};
 use std::thread;
 
-pub fn confirm(prompt: &str, yes: bool) -> bool {
-  if yes || !std::io::stdin().is_terminal() {
-    return yes;
+pub fn confirm(prompt: &str, yes: bool, input: &mut impl BufRead, output: &mut impl Write) -> bool {
+  if yes {
+    return true;
   }
-  print!("{prompt} (y/n): ");
-  std::io::stdout().flush().ok();
-  let mut input = String::new();
-  if std::io::stdin().lock().read_line(&mut input).unwrap_or(0) == 0 {
+
+  write!(output, "{prompt} (y/n): ").ok();
+  output.flush().ok();
+  let mut line = String::new();
+  if input.read_line(&mut line).unwrap_or(0) == 0 {
     eprintln!("\nError: unexpected end of input");
     std::process::exit(1);
   }
-  input.trim().eq_ignore_ascii_case("y")
+  line.trim().eq_ignore_ascii_case("y")
 }
 
 /// Checks if required tools are available on PATH.
 /// Returns Result.
-pub fn check_prerequisites(verbose: bool) -> Result<(), String> {
+pub fn check_prerequisites(verbose: bool, output: &mut impl Write) -> Result<(), String> {
   let mut missing: Vec<&str> = Vec::new();
   for tool in &["git", "cmake"] {
     if Command::new(tool)
@@ -34,7 +34,7 @@ pub fn check_prerequisites(verbose: bool) -> Result<(), String> {
     {
       missing.push(tool);
     } else if verbose {
-      println!("Found {tool}");
+      writeln!(output, "Found {tool}").ok();
     }
   }
   if !missing.is_empty() {
@@ -45,15 +45,20 @@ pub fn check_prerequisites(verbose: bool) -> Result<(), String> {
 
 /// Runs a shell command with optional working directory.
 /// Returns Result.
-pub fn run_command(cmd: &[&str], cwd: Option<&Path>, verbose: bool) -> Result<(), String> {
+pub fn run_command(
+  cmd: &[&str],
+  cwd: Option<&Path>,
+  verbose: bool,
+  output: &mut impl Write,
+) -> Result<(), String> {
   if cmd.is_empty() {
     return Err("No command provided".to_string());
   }
 
   if verbose {
-    println!("Running: {}", cmd.join(" "));
+    writeln!(output, "Running: {}", cmd.join(" ")).ok();
     if let Some(dir) = cwd {
-      println!("  in directory: {}", dir.display());
+      writeln!(output, "  in directory: {}", dir.display()).ok();
     }
   }
 

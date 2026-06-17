@@ -1,4 +1,6 @@
 use star_setup::commands::{create_mono_repo_cmakelists, resolve_test_repo};
+mod helpers;
+use helpers::sink;
 
 // resolve_test_repo tests
 #[test]
@@ -60,7 +62,7 @@ fn test_create_mono_repo_cmakelists_creates_file() {
   std::fs::create_dir_all(&tmp).ok();
 
   let repos = vec!["user/lib1".to_string(), "user/lib2".to_string()];
-  create_mono_repo_cmakelists(&tmp, "user-testrepo", &repos).unwrap();
+  create_mono_repo_cmakelists(&tmp, "user-testrepo", &repos, &mut sink()).unwrap();
 
   let cmake_file = tmp.join("CMakeLists.txt");
   assert!(cmake_file.exists());
@@ -78,7 +80,7 @@ fn test_create_mono_repo_cmakelists_empty_repos() {
   let tmp = std::env::temp_dir().join("star_setup_test_cmakelists_empty");
   std::fs::create_dir_all(&tmp).ok();
 
-  create_mono_repo_cmakelists(&tmp, "user-testrepo", &[]).unwrap();
+  create_mono_repo_cmakelists(&tmp, "user-testrepo", &[], &mut sink()).unwrap();
   assert!(tmp.join("CMakeLists.txt").exists());
 
   std::fs::remove_dir_all(&tmp).ok();

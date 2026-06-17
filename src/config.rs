@@ -3,9 +3,10 @@
 use crate::utils::confirm;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::fmt::Write;
+use std::fmt::Write as FmtWrite;
 use std::fs;
 use std::io;
+use std::io::{BufRead, Write};
 use std::path::PathBuf;
 
 /// Represents a single named configuration entry.
@@ -73,7 +74,7 @@ pub fn format_entry(e: &ConfigEntry) -> String {
   out
 }
 
-pub fn load_config(locations: &[PathBuf]) -> SetupConfig {
+pub fn load_config(locations: &[PathBuf], output: &mut impl Write) -> SetupConfig {
   let mut invalid_count = 0;
 
   for path in locations {
@@ -87,29 +88,33 @@ pub fn load_config(locations: &[PathBuf]) -> SetupConfig {
           return config;
         }
         Err(e) => {
-          println!("Warning: Invalid JSON in {}: {e}", path.display());
+          writeln!(output, "Warning: Invalid JSON in {}: {e}", path.display()).ok();
           invalid_count += 1;
         }
       },
       Err(e) if e.kind() == io::ErrorKind::PermissionDenied => {
-        println!("Error: No permission to read {}", path.display());
+        writeln!(output, "Error: No permission to read {}", path.display()).ok();
         invalid_count += 1;
       }
       Err(e) => {
-        println!(
+        writeln!(
+          output,
           "An unexpected error occurred reading {}: {e}",
           path.display()
-        );
+        )
+        .ok();
         invalid_count += 1;
       }
     }
   }
 
   if invalid_count != 0 {
-    println!(
+    writeln!(
+      output,
       "Found {invalid_count} config file{} that had errors",
       if invalid_count == 1 { "" } else { "s" }
-    );
+    )
+    .ok();
   }
   SetupConfig::new()
 }
@@ -141,14 +146,21 @@ pub fn save_config(config: &mut SetupConfig) -> Result<PathBuf, String> {
 }
 
 /// Creates a default configuration file in the current directory.
-pub fn create_default_config(path: PathBuf, yes: bool) -> Result<(), String> {
+pub fn create_default_config(
+  path: PathBuf,
+  yes: bool,
+  input: &mut impl BufRead,
+  output: &mut impl Write,
+) -> Result<(), String> {
   if path.exists()
     && !confirm(
       &format!("{} already exists. Overwrite?", path.display()),
       yes,
+      input,
+      output,
     )
   {
-    println!("Aborted.");
+    writeln!(output, "Aborted.").ok();
     return Ok(());
   }
 
@@ -170,14 +182,16 @@ pub fn create_default_config(path: PathBuf, yes: bool) -> Result<(), String> {
 
   save_config(&mut config)?;
 
-  println!(
+  writeln!(
+    output,
     "Created config file: {}",
     dunce::canonicalize(&path).unwrap_or(path).display()
-  );
-  println!("Edit this file to customize your defaults.");
-  println!("\nConfig files are checked in this order:");
-  println!("  1. ./.star-setup.json (current directory)");
-  println!("  2. ~/.star-setup.json (home directory)");
+  )
+  .ok();
+  writeln!(output, "Edit this file to customize your defaults.").ok();
+  writeln!(output, "\nConfig files are checked in this order:").ok();
+  writeln!(output, "  1. ./.star-setup.json (current directory)").ok();
+  writeln!(output, "  2. ~/.star-setup.json (home directory)").ok();
 
   Ok(())
 }
@@ -188,14 +202,18 @@ pub fn add_config(
   name: &str,
   entry: ConfigEntry,
   yes: bool,
+  input: &mut impl BufRead,
+  output: &mut impl Write,
 ) -> Result<(), String> {
   if has_config(config, name)
     && !confirm(
       &format!("Warning: Configuration '{name}' already exists. Overwrite?"),
       yes,
+      input,
+      output,
     )
   {
-    println!("Aborted.");
+    writeln!(output, "Aborted.").ok();
     return Ok(());
   }
 
@@ -203,50 +221,67 @@ pub fn add_config(
   let path = save_config(config)?;
 
   let e = &config.configs[name];
-  println!(
+  writeln!(
+    output,
     "Configuration '{name}' added successfully to {}",
     path.display()
-  );
-  println!("Configuration details:");
-  print!("{}", format_entry(e));
+  )
+  .ok();
+  writeln!(output, "Configuration details:").ok();
+  write!(output, "{}", format_entry(e)).ok();
 
   Ok(())
 }
 
 /// Removes a named configuration entry.
-pub fn remove_config(config: &mut SetupConfig, name: &str, yes: bool) -> Result<(), String> {
+pub fn remove_config(
+  config: &mut SetupConfig,
+  name: &str,
+  yes: bool,
+  input: &mut impl BufRead,
+  output: &mut impl Write,
+) -> Result<(), String> {
   let Some(e) = config.configs.get(name) else {
-    println!("\nWarning: Config '{name}' not found.\n");
+    writeln!(output, "\nWarning: Config '{name}' not found.\n").ok();
     return Ok(());
   };
 
-  println!("Config {name}");
-  println!("Configuration details:");
-  print!("{}", format_entry(e));
+  writeln!(output, "Config {name}").ok();
+  writeln!(output, "Configuration details:").ok();
+  write!(output, "{}", format_entry(e)).ok();
 
-  if !confirm("\nAre you sure you want to remove this config?", yes) {
-    println!("Aborted.");
+  if !confirm(
+    "\nAre you sure you want to remove this config?",
+    yes,
+    input,
+    output,
+  ) {
+    writeln!(output, "Aborted.").ok();
     return Ok(());
   }
 
   remove_config_entry(config, name);
   let path = save_config(config)?;
-  println!("\nConfig '{name}' was successfully removed");
-  println!("Configuration saved to: {}\n", path.display());
+  writeln!(output, "\nConfig '{name}' was successfully removed").ok();
+  writeln!(output, "Configuration saved to: {}\n", path.display()).ok();
   Ok(())
 }
 
 /// Lists all saved configuration entries.
-pub fn list_configs(config: &SetupConfig) {
+pub fn list_configs(config: &SetupConfig, output: &mut impl Write) {
   if config.configs.is_empty() {
-    println!("  No configurations created.");
-    println!("  Run with --init-config to create a default configuration.");
+    writeln!(output, "  No configurations created.").ok();
+    writeln!(
+      output,
+      "  Run with --init-config to create a default configuration."
+    )
+    .ok();
     return;
   }
 
-  println!("Configurations:");
+  writeln!(output, "Configurations:").ok();
   for (name, e) in &config.configs {
-    println!("\n{name}:");
-    print!("{}", format_entry(e));
+    writeln!(output, "\n{name}:").ok();
+    write!(output, "{}", format_entry(e)).ok();
   }
 }

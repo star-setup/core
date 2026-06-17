@@ -3,6 +3,8 @@ use star_setup::config::{
   ConfigEntry, SetupConfig,
 };
 use std::path::PathBuf;
+mod helpers;
+use helpers::{empty_input, sink};
 
 fn sample_entry() -> ConfigEntry {
   ConfigEntry {
@@ -99,7 +101,7 @@ fn test_save_and_load_roundtrip() {
   );
   save_config(&mut config).unwrap();
 
-  let loaded = load_config(&[path]);
+  let loaded = load_config(&[path], &mut sink());
   assert!(loaded.configs.contains_key("default"));
   assert_eq!(loaded.configs["default"].ssh, true);
 
@@ -108,7 +110,7 @@ fn test_save_and_load_roundtrip() {
 
 #[test]
 fn test_load_config_skips_missing_local_file() {
-  let config = load_config(&[]);
+  let config = load_config(&[], &mut sink());
   assert!(config.configs.is_empty());
 }
 
@@ -119,7 +121,7 @@ fn test_load_config_handles_invalid_json() {
   let path = tmp.join(".star-setup.json");
   std::fs::write(&path, "{invalid json").unwrap();
 
-  let config = load_config(&[path]);
+  let config = load_config(&[path], &mut sink());
   assert!(config.configs.is_empty());
 
   std::fs::remove_dir_all(&tmp).ok();
@@ -127,7 +129,10 @@ fn test_load_config_handles_invalid_json() {
 
 #[test]
 fn test_load_config_skips_nonexistent_path() {
-  let config = load_config(&[PathBuf::from("/nonexistent/path/.star-setup.json")]);
+  let config = load_config(
+    &[PathBuf::from("/nonexistent/path/.star-setup.json")],
+    &mut sink(),
+  );
   assert!(config.configs.is_empty());
 }
 
@@ -137,7 +142,8 @@ fn test_create_default_config_creates_file() {
   std::fs::create_dir_all(&tmp).ok();
   let path = tmp.join(".star-setup.json");
 
-  star_setup::config::create_default_config(path.clone(), true).unwrap();
+  star_setup::config::create_default_config(path.clone(), true, &mut empty_input(), &mut sink())
+    .unwrap();
   assert!(path.exists());
 
   std::fs::remove_dir_all(&tmp).ok();
@@ -151,7 +157,15 @@ fn test_add_config_inserts_and_saves() {
   let mut config = SetupConfig::new();
   config.path = Some(path.clone());
 
-  star_setup::config::add_config(&mut config, "myconfig", sample_entry(), true).unwrap();
+  star_setup::config::add_config(
+    &mut config,
+    "myconfig",
+    sample_entry(),
+    true,
+    &mut empty_input(),
+    &mut sink(),
+  )
+  .unwrap();
   assert!(has_config(&config, "myconfig"));
   assert!(path.exists());
 
@@ -168,7 +182,14 @@ fn test_remove_config_removes_and_saves() {
   insert_config(&mut config, "myconfig", sample_entry());
   save_config(&mut config).unwrap();
 
-  star_setup::config::remove_config(&mut config, "myconfig", true).unwrap();
+  star_setup::config::remove_config(
+    &mut config,
+    "myconfig",
+    true,
+    &mut empty_input(),
+    &mut sink(),
+  )
+  .unwrap();
   assert!(!has_config(&config, "myconfig"));
 
   std::fs::remove_dir_all(&tmp).ok();
@@ -177,5 +198,12 @@ fn test_remove_config_removes_and_saves() {
 #[test]
 fn test_remove_config_not_found() {
   let mut config = SetupConfig::new();
-  star_setup::config::remove_config(&mut config, "nonexistent", true).unwrap();
+  star_setup::config::remove_config(
+    &mut config,
+    "nonexistent",
+    true,
+    &mut empty_input(),
+    &mut sink(),
+  )
+  .unwrap();
 }

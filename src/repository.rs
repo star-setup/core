@@ -1,6 +1,7 @@
 //! Repository functions including cloning and URL resolution.
 
 use crate::utils::run_command;
+use std::io::Write;
 use std::path::Path;
 
 pub fn repo_dir_name(path: &str) -> String {
@@ -37,22 +38,24 @@ pub fn clone_repository(
   target_dir: &Path,
   use_ssh: bool,
   verbose: bool,
+  output: &mut impl Write,
 ) -> Result<(), String> {
   let repo_name = repo_dir_name(repo_path);
   let repo_dir = target_dir.join(&repo_name);
 
   if repo_dir.exists() {
-    println!("\n  {repo_name} already exists");
+    writeln!(output, "\n  {repo_name} already exists").ok();
     return Ok(());
   }
 
-  println!("\n  Cloning {repo_name}");
+  writeln!(output, "\n  Cloning {repo_name}").ok();
   let repo_url = resolve_repo_url(repo_path, use_ssh);
 
   run_command(
     &["git", "clone", &repo_url, &repo_name],
     Some(target_dir),
     verbose,
+    output,
   )
   .map_err(|e| format!("Failed to clone {repo_path}: {e}"))
 }
