@@ -13,3 +13,6 @@ dunce = "1"
 [[bin]]
 name = "star-setup"
 path = "src/main.rs"
+
+[build-dependencies]
+embed-manifest = "1.5.0"
