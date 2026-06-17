@@ -107,14 +107,11 @@ pub fn single_repo_mode(args: &ResolvedArgs) -> Result<(), String> {
   Ok(())
 }
 
-fn resolve_test_repo(repo_input: &str) -> Result<String, String> {
+pub fn resolve_test_repo(repo_input: &str) -> Result<String, String> {
   let repo_input = repo_input.trim_end_matches('/');
   if repo_input.starts_with("http") || repo_input.starts_with("git@") {
     if repo_input.contains("github.com/") || repo_input.contains("github.com:") {
       let parts: Vec<&str> = repo_input.split('/').collect();
-      if parts.len() < 2 {
-        return Err("Could not parse repository URL".to_string());
-      }
       let user = parts[parts.len() - 2].split(':').next_back().unwrap_or("");
       let repo = parts[parts.len() - 1].trim_end_matches(".git");
       Ok(format!("{user}/{repo}"))
@@ -128,7 +125,7 @@ fn resolve_test_repo(repo_input: &str) -> Result<String, String> {
   }
 }
 
-fn create_mono_repo_cmakelists(
+pub fn create_mono_repo_cmakelists(
   mono_dir: &Path,
   test_repo: &str,
   repos: &[String],
