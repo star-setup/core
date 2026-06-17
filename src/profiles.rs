@@ -3,6 +3,18 @@
 use crate::config::{save_config, SetupConfig};
 use crate::utils::confirm;
 
+pub fn insert_profile(config: &mut SetupConfig, name: &str, repos: Vec<String>) {
+  config.profiles.insert(name.to_string(), repos);
+}
+
+pub fn remove_profile_entry(config: &mut SetupConfig, name: &str) -> bool {
+  config.profiles.remove(name).is_some()
+}
+
+pub fn has_profile(config: &SetupConfig, name: &str) -> bool {
+  config.profiles.contains_key(name)
+}
+
 /// Adds a new profile to the configuration.
 /// args: [name, repo1, repo2, ...]
 pub fn add_profile(config: &mut SetupConfig, args: &[String], yes: bool) -> Result<(), String> {
@@ -13,7 +25,7 @@ pub fn add_profile(config: &mut SetupConfig, args: &[String], yes: bool) -> Resu
   let name = args[0].clone();
   let repos = args[1..].to_vec();
 
-  if config.profiles.contains_key(&name)
+  if has_profile(config, &name)
     && !confirm(
       &format!("Warning: Profile '{name}' already exists. Overwrite?"),
       yes,
@@ -23,7 +35,7 @@ pub fn add_profile(config: &mut SetupConfig, args: &[String], yes: bool) -> Resu
     return Ok(());
   }
 
-  config.profiles.insert(name.clone(), repos.clone());
+  insert_profile(config, &name, repos.clone());
   let path = save_config(config)?;
 
   println!("Profile '{name}' added successfully");
@@ -62,7 +74,7 @@ pub fn remove_profile(config: &mut SetupConfig, name: &str, yes: bool) -> Result
     return Ok(());
   }
 
-  config.profiles.remove(name);
+  remove_profile_entry(config, name);
   let path = save_config(config)?;
   println!("\nProfile '{name}' removed successfully");
   println!("Configuration saved to: {}\n", path.display());
