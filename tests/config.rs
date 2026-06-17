@@ -207,3 +207,88 @@ fn test_remove_config_not_found() {
   )
   .unwrap();
 }
+
+#[test]
+fn test_add_config_aborts_when_exists_and_not_confirmed() {
+  let tmp = std::env::temp_dir().join("star_setup_test_add_config_abort");
+  std::fs::create_dir_all(&tmp).ok();
+  let mut config = SetupConfig::new();
+  config.path = Some(tmp.join(".star-setup.json"));
+  insert_config(&mut config, "myconfig", sample_entry());
+
+  let input = b"n\n";
+  star_setup::config::add_config(
+    &mut config,
+    "myconfig",
+    sample_entry(),
+    false,
+    &mut input.as_ref(),
+    &mut sink(),
+  )
+  .unwrap();
+  assert_eq!(config.configs["myconfig"].ssh, true); // unchanged
+
+  std::fs::remove_dir_all(&tmp).ok();
+}
+
+#[test]
+fn test_remove_config_aborts_when_not_confirmed() {
+  let tmp = std::env::temp_dir().join("star_setup_test_remove_config_abort");
+  std::fs::create_dir_all(&tmp).ok();
+  let mut config = SetupConfig::new();
+  config.path = Some(tmp.join(".star-setup.json"));
+  insert_config(&mut config, "myconfig", sample_entry());
+
+  let input = b"n\n";
+  star_setup::config::remove_config(
+    &mut config,
+    "myconfig",
+    false,
+    &mut input.as_ref(),
+    &mut sink(),
+  )
+  .unwrap();
+  assert!(has_config(&config, "myconfig")); // still exists
+
+  std::fs::remove_dir_all(&tmp).ok();
+}
+
+#[test]
+fn test_create_default_config_aborts_when_exists_and_not_confirmed() {
+  let tmp = std::env::temp_dir().join("star_setup_test_create_default_abort");
+  std::fs::create_dir_all(&tmp).ok();
+  let path = tmp.join(".star-setup.json");
+  std::fs::write(&path, "original").unwrap();
+
+  let input = b"n\n";
+  star_setup::config::create_default_config(
+    path.clone(),
+    false,
+    &mut input.as_ref(),
+    &mut sink(),
+  )
+  .unwrap();
+  assert_eq!(std::fs::read_to_string(&path).unwrap(), "original");
+
+  std::fs::remove_dir_all(&tmp).ok();
+}
+
+#[test]
+fn test_list_configs_empty() {
+  let config = SetupConfig::new();
+  let mut output = sink();
+  star_setup::config::list_configs(&config, &mut output);
+  let out = String::from_utf8(output).unwrap();
+  assert!(out.contains("No configurations created"));
+}
+
+#[test]
+fn test_list_configs_with_entries() {
+  let mut config = SetupConfig::new();
+  insert_config(&mut config, "myconfig", sample_entry());
+  let mut output = sink();
+  star_setup::config::list_configs(&config, &mut output);
+  let out = String::from_utf8(output).unwrap();
+  assert!(out.contains("myconfig"));
+  assert!(out.contains("Configurations:"));
+}
