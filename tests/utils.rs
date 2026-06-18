@@ -28,3 +28,24 @@ fn test_run_command_errors_on_empty() {
   let mut output = sink();
   assert!(run_command(&[], None, false, &mut output).is_err());
 }
+
+#[test]
+fn test_confirm_uppercase_y_returns_true() {
+  let input = b"Y\n";
+  let mut output = sink();
+  assert!(confirm("prompt", false, &mut input.as_ref(), &mut output));
+}
+
+#[test]
+fn test_confirm_yes_word_returns_false() {
+  let input = b"yes\n";
+  let mut output = sink();
+  assert!(!confirm("prompt", false, &mut input.as_ref(), &mut output));
+}
+
+#[test]
+fn test_confirm_padded_y_returns_true() {
+  let input = b" y \n";
+  let mut output = sink();
+  assert!(confirm("prompt", false, &mut input.as_ref(), &mut output));
+}

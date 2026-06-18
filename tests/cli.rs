@@ -198,3 +198,50 @@ fn test_resolve_with_config_mono_repo_from_profile() {
   let resolved = resolve_with_config(args, &config).unwrap();
   assert!(resolved.mono.mono_repo);
 }
+
+#[test]
+fn test_resolve_with_config_named_config_pulls_correct_values() {
+  let mut config = SetupConfig::new();
+  config.configs.insert(
+    "myconfig".to_string(),
+    ConfigEntry {
+      ssh: true,
+      verbose: false,
+      build_type: "RelWithDebInfo".to_string(),
+      build_dir: "out".to_string(),
+      mono_dir: "mono".to_string(),
+      no_build: false,
+      clean: true,
+      cmake_flags: vec![],
+    },
+  );
+  let mut args = default_args();
+  args.config.config_name = Some("myconfig".to_string());
+  let resolved = resolve_with_config(args, &config).unwrap();
+  assert!(resolved.connection.ssh);
+  assert_eq!(resolved.build.build_type, "RelWithDebInfo");
+  assert_eq!(resolved.build.build_dir, "out");
+  assert!(resolved.build.clean);
+}
+
+#[test]
+fn test_resolve_with_config_cli_cmake_flags_not_overwritten_by_config() {
+  let mut config = SetupConfig::new();
+  config.configs.insert(
+    "default".to_string(),
+    ConfigEntry {
+      ssh: false,
+      verbose: false,
+      build_type: "Debug".to_string(),
+      build_dir: "build".to_string(),
+      mono_dir: "build-mono".to_string(),
+      no_build: false,
+      clean: false,
+      cmake_flags: vec!["-DCONFIG_FLAG=ON".to_string()],
+    },
+  );
+  let mut args = default_args();
+  args.cmake_flags = vec!["-DCLI_FLAG=ON".to_string()];
+  let resolved = resolve_with_config(args, &config).unwrap();
+  assert_eq!(resolved.cmake_flags, vec!["-DCLI_FLAG=ON"]);
+}
