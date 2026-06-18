@@ -1,24 +1,16 @@
-#![warn(clippy::all, clippy::pedantic)]
+//! Entry point. Parses arguments, loads config, and dispatches to the appropriate command handler.
 
-mod cli;
-mod commands;
-mod config;
-mod interactive;
-mod profiles;
-mod repository;
-mod utils;
-
-use cli::Args;
-use commands::{mono_repo_mode, single_repo_mode};
-use config::{
+use star_setup::cli::Args;
+use star_setup::commands::{mono_repo_mode, single_repo_mode};
+use star_setup::config::{
   add_config, create_default_config, list_configs, load_config, remove_config, ConfigEntry,
 };
-use interactive::interactive_mode;
-use profiles::{add_profile, list_profiles, remove_profile};
+use star_setup::interactive::interactive_mode;
+use star_setup::profiles::{add_profile, list_profiles, remove_profile};
+use star_setup::utils::check_prerequisites;
 use std::io;
 use std::io::IsTerminal;
 use std::path::PathBuf;
-use utils::check_prerequisites;
 
 fn main() {
   let mut stdin = io::stdin().lock();

@@ -1,4 +1,4 @@
-//! Utility functions for star-setup.
+//! Utility functions.
 
 use std::io::BufRead;
 use std::io::Read;
@@ -7,6 +7,7 @@ use std::path::Path;
 use std::process::{Command, Stdio};
 use std::thread;
 
+/// Returns `true` if `yes` is set or the user enters `y`/`Y`
 pub fn confirm(prompt: &str, yes: bool, input: &mut impl BufRead, output: &mut impl Write) -> bool {
   if yes {
     return true;
@@ -24,6 +25,8 @@ pub fn confirm(prompt: &str, yes: bool, input: &mut impl BufRead, output: &mut i
 
 /// Checks if required tools are available on PATH.
 /// Returns Result.
+/// # Errors
+/// Returns an error if any required tool is missing from PATH.
 pub fn check_prerequisites(verbose: bool, output: &mut impl Write) -> Result<(), String> {
   let mut missing: Vec<&str> = Vec::new();
   for tool in &["git", "cmake"] {
@@ -45,6 +48,8 @@ pub fn check_prerequisites(verbose: bool, output: &mut impl Write) -> Result<(),
 
 /// Runs a shell command with optional working directory.
 /// Returns Result.
+/// # Errors
+/// Returns an error if the command is empty, fails to spawn, or exits with a non-zero status.
 pub fn run_command(
   cmd: &[&str],
   cwd: Option<&Path>,

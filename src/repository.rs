@@ -4,6 +4,8 @@ use crate::utils::run_command;
 use std::io::Write;
 use std::path::Path;
 
+/// Converts a repository path or URL to a local directory name (`owner-repo`).
+#[must_use]
 pub fn repo_dir_name(path: &str) -> String {
   let clean = path.trim_end_matches('/').trim_end_matches(".git");
   let mut parts = clean.rsplit('/');
@@ -19,6 +21,7 @@ pub fn repo_dir_name(path: &str) -> String {
 
 /// Converts repository input to a full GitHub URL.
 /// Accepts either 'username/repo' shorthand or a full URL.
+#[must_use]
 pub fn resolve_repo_url(repo_input: &str, use_ssh: bool) -> String {
   if repo_input.starts_with("http") || repo_input.starts_with("git@") {
     return repo_input.to_string();
@@ -33,6 +36,8 @@ pub fn resolve_repo_url(repo_input: &str, use_ssh: bool) -> String {
 
 /// Clones a single repository into the target directory.
 /// Skips if the repository already exists.
+/// # Errors
+/// Returns an error if the git clone command fails
 pub fn clone_repository(
   repo_path: &str,
   target_dir: &Path,

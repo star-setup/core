@@ -1,4 +1,4 @@
-//! Configuration file management for star-setup.
+//! Configuration file management.
 
 use crate::utils::confirm;
 use serde::{Deserialize, Serialize};
@@ -13,45 +13,64 @@ use std::path::PathBuf;
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Serialize, Deserialize, Default)]
 pub struct ConfigEntry {
+  /// Use SSH instead of HTTPS for cloning.
   pub ssh: bool,
+  /// `CMake` build type (e.g. `Debug`, `Release`).
   pub build_type: String,
+  /// Build directory name.
   pub build_dir: String,
+  /// Mono-repo build directory name.
   pub mono_dir: String,
+  /// Skip the build step, only configure.
   pub no_build: bool,
+  /// Clean the build directory before configuring.
   pub clean: bool,
+  /// Show detailed command output.
   pub verbose: bool,
+  /// Additional `CMake` arguments.
   pub cmake_flags: Vec<String>,
 }
 
 /// Top-level configuration structure.
 #[derive(Serialize, Deserialize, Default)]
 pub struct SetupConfig {
+  /// Named configuration entries.
   #[serde(default)]
   pub configs: HashMap<String, ConfigEntry>,
+  /// Named profile entries mapping profile names to repository lists.
   #[serde(default)]
   pub profiles: HashMap<String, Vec<String>>,
+  /// Path to the config file this was loaded from, if any.
   #[serde(skip)]
   pub path: Option<PathBuf>,
 }
 
 impl SetupConfig {
+  /// Creates a new empty `SetupConfig`.
+  #[must_use]
   pub fn new() -> Self {
     Self::default()
   }
 }
 
+/// Inserts or overwrites a named configuration entry.
 pub fn insert_config(config: &mut SetupConfig, name: &str, entry: ConfigEntry) {
   config.configs.insert(name.to_string(), entry);
 }
 
+/// Removes a named configuration entry. Returns `true` if it existed.
 pub fn remove_config_entry(config: &mut SetupConfig, name: &str) -> bool {
   config.configs.remove(name).is_some()
 }
 
+/// Returns `true` if a configuration with the given name exists.
+#[must_use]
 pub fn has_config(config: &SetupConfig, name: &str) -> bool {
   config.configs.contains_key(name)
 }
 
+/// Formats a `ConfigEntry` as a human-readable string.
+#[must_use]
 pub fn format_entry(e: &ConfigEntry) -> String {
   let mut out = String::new();
   writeln!(out, "  SSH: {}", e.ssh).ok();
@@ -74,6 +93,7 @@ pub fn format_entry(e: &ConfigEntry) -> String {
   out
 }
 
+/// Loads configuration from the first valid JSON file in `locations`.
 pub fn load_config(locations: &[PathBuf], output: &mut impl Write) -> SetupConfig {
   let mut invalid_count = 0;
 
@@ -119,6 +139,9 @@ pub fn load_config(locations: &[PathBuf], output: &mut impl Write) -> SetupConfi
   SetupConfig::new()
 }
 
+/// Serializes the configuration and writes it to the path stored in `config.path`.
+/// # Errors
+/// Returns an error if serialization fails or if the file cannot be written.
 pub fn save_config(config: &mut SetupConfig) -> Result<PathBuf, String> {
   let path = config
     .path
@@ -146,6 +169,8 @@ pub fn save_config(config: &mut SetupConfig) -> Result<PathBuf, String> {
 }
 
 /// Creates a default configuration file in the current directory.
+/// # Errors
+/// Returns an error if the config file cannot be written.
 pub fn create_default_config(
   path: PathBuf,
   yes: bool,
@@ -197,6 +222,8 @@ pub fn create_default_config(
 }
 
 /// Adds a new named configuration entry.
+/// # Errors
+/// Returns an error if saving the config file fails.
 pub fn add_config(
   config: &mut SetupConfig,
   name: &str,
@@ -234,6 +261,8 @@ pub fn add_config(
 }
 
 /// Removes a named configuration entry.
+/// # Errors
+/// Returns an error if saving the config file fails.
 pub fn remove_config(
   config: &mut SetupConfig,
   name: &str,

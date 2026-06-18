@@ -1,8 +1,9 @@
-//! Interactive CLI mode for ecosystem-setup.
+//! Interactive CLI mode.
 
 use crate::cli::ResolvedArgs;
 use std::io::{BufRead, Write};
 
+/// Prompts the user for a required string value.
 fn ask(prompt: &str, input: &mut impl BufRead, output: &mut impl Write) -> String {
   write!(output, "{prompt}: ").ok();
   output.flush().ok();
@@ -14,6 +15,7 @@ fn ask(prompt: &str, input: &mut impl BufRead, output: &mut impl Write) -> Strin
   line.trim().to_string()
 }
 
+/// Prompts the user for a string value, returning `default` if the input is empty.
 fn ask_default(
   prompt: &str,
   default: &str,
@@ -35,6 +37,7 @@ fn ask_default(
   }
 }
 
+/// Prompts the user for a yes/no answer, returning `default` if the input is empty.
 fn ask_yesno(
   prompt: &str,
   default: bool,

@@ -1,4 +1,4 @@
-//! Command-line argument parsing for star-setup.
+//! Command-line argument parsing.
 
 use crate::config::SetupConfig;
 use clap::{Args as ClapArgs, Parser};
@@ -110,6 +110,7 @@ pub struct ProfileFlags {
   pub list_profiles: bool,
 }
 
+/// Top-level CLI arguments for star-setup.
 #[derive(Parser)]
 #[command(
   name = "star-setup",
@@ -144,11 +145,13 @@ pub struct Args {
   pub profile: ProfileFlags,
 }
 
+/// Resolved connection flags after applying config and CLI overrides.
 pub struct ResolvedConnectionFlags {
   pub ssh: bool,
   pub verbose: bool,
 }
 
+/// Resolved build flags after applying config and CLI overrides.
 pub struct ResolvedBuildFlags {
   pub build_type: String,
   pub build_dir: String,
@@ -156,6 +159,7 @@ pub struct ResolvedBuildFlags {
   pub clean: bool,
 }
 
+/// Resolved mono-repo flags after applying config and CLI overrides.
 pub struct ResolvedMonoFlags {
   pub mono_repo: bool,
   pub mono_dir: String,
@@ -163,6 +167,7 @@ pub struct ResolvedMonoFlags {
   pub profile: Option<String>,
 }
 
+/// Fully resolved arguments ready for command execution.
 pub struct ResolvedArgs {
   pub repo: Option<String>,
   pub cmake_flags: Vec<String>,
@@ -174,6 +179,9 @@ pub struct ResolvedArgs {
   pub profile: ProfileFlags,
 }
 
+/// Resolves a boolean flag from CLI positive/negative flags, config value, and a default.
+/// Negative flag takes highest priority, then positive, then config, then default.
+#[must_use]
 pub fn resolve_bool(positive: bool, negative: bool, config: Option<bool>, default: bool) -> bool {
   if negative {
     return false;
@@ -184,6 +192,9 @@ pub fn resolve_bool(positive: bool, negative: bool, config: Option<bool>, defaul
   config.unwrap_or(default)
 }
 
+/// Resolves raw `Args` into `ResolvedArgs` by applying config defaults and CLI overrides.
+/// # Errors
+/// Returns an error if the named config does not exist in the provided `SetupConfig`.
 pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<ResolvedArgs, String> {
   let config_name = args.config.config_name.as_deref().unwrap_or("default");
   if let Some(name) = &args.config.config_name {
@@ -261,6 +272,9 @@ pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<Resol
 }
 
 impl Args {
+  /// Parses CLI arguments and resolves them against the provided `SetupConfig`.
+  /// # Errors
+  /// Returns an error if the named config does not exist in the loaded `SetupConfig`.
   pub fn parse_with_config(config: &SetupConfig) -> Result<ResolvedArgs, String> {
     resolve_with_config(Args::parse(), config)
   }

@@ -9,6 +9,7 @@ use std::fs;
 use std::io::{BufRead, Write};
 use std::path::{Path, PathBuf};
 
+/// Header information printed at the start of each command mode.
 struct ModeHeader<'a> {
   mode: &'a str,
   test_repo: Option<&'a str>,
@@ -19,6 +20,7 @@ struct ModeHeader<'a> {
   lib_count: Option<usize>,
 }
 
+/// Prints a formatted header summarizing the current mode and configuration.
 fn print_mode_header(header: &ModeHeader<'_>, output: &mut impl Write) {
   writeln!(output, "Star Setup: {}", header.mode).ok();
   if let Some(p) = header.profile {
@@ -44,6 +46,9 @@ fn print_mode_header(header: &ModeHeader<'_>, output: &mut impl Write) {
   writeln!(output).ok();
 }
 
+/// Runs `CMake` configuration and optionally builds the project in `build_path`.
+/// # Errors
+/// Returns an error if any `CMake` command fails.
 fn cmake_build(
   args: &ResolvedArgs,
   build_path: &Path,
@@ -75,6 +80,9 @@ fn cmake_build(
   Ok(())
 }
 
+/// Clones and configures a single repository.
+/// # Errors
+/// Returns an error if no repository is specified, or if any git or `CMake` command fails.
 pub fn single_repo_mode(
   args: &ResolvedArgs,
   input: &mut impl BufRead,
@@ -145,6 +153,9 @@ pub fn single_repo_mode(
   Ok(())
 }
 
+/// Normalizes a repository input to `username/repo` format.
+/// # Errors
+/// Returns an error if the input is not a recognizable GitHub URL or `username/repo` format.
 pub fn resolve_test_repo(repo_input: &str) -> Result<String, String> {
   let repo_input = repo_input.trim_end_matches('/');
   if repo_input.starts_with("http") || repo_input.starts_with("git@") {
@@ -166,6 +177,9 @@ pub fn resolve_test_repo(repo_input: &str) -> Result<String, String> {
   }
 }
 
+/// Generates a root `CMakeLists.txt` wiring all repositories as subdirectories.
+/// # Errors
+/// Returns an error if the `CMakeLists.txt` file cannot be written to `mono_dir`
 pub fn create_mono_repo_cmakelists(
   mono_dir: &Path,
   test_repo: &str,
@@ -217,6 +231,9 @@ set_property(DIRECTORY ${{CMAKE_CURRENT_SOURCE_DIR}} PROPERTY VS_STARTUP_PROJECT
   Ok(())
 }
 
+/// Resolves the list of repositories for mono-repo mode from a profile or explicit repo list.
+/// # Errors
+/// Returns an error if the specified profile does not exist, or has no repositories.
 pub fn resolve_repos_for_mono(
   args: &ResolvedArgs,
   config: &SetupConfig,
@@ -263,6 +280,9 @@ pub fn resolve_repos_for_mono(
   }
 }
 
+/// Clones and configures a mono-repo ecosystem from a profile or explicit repository list.
+/// # Errors
+/// Returns an error if no repository is specified, directory creation fails, or any git or `CMake` command fails.
 pub fn mono_repo_mode(
   args: &ResolvedArgs,
   config: &SetupConfig,

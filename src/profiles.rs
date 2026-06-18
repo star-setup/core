@@ -1,23 +1,29 @@
-//! Profile management for star-setup.
+//! Profile management.
 
 use crate::config::{save_config, SetupConfig};
 use crate::utils::confirm;
 use std::io::{BufRead, Write};
 
+/// Inserts or overwrites a named profile.
 pub fn insert_profile(config: &mut SetupConfig, name: &str, repos: Vec<String>) {
   config.profiles.insert(name.to_string(), repos);
 }
 
+/// Removes a named profile. Returns `true` if it existed.
 pub fn remove_profile_entry(config: &mut SetupConfig, name: &str) -> bool {
   config.profiles.remove(name).is_some()
 }
 
+/// Returns `true` if a profile with the given name exists.
+#[must_use]
 pub fn has_profile(config: &SetupConfig, name: &str) -> bool {
   config.profiles.contains_key(name)
 }
 
 /// Adds a new profile to the configuration.
 /// args: [name, repo1, repo2, ...]
+/// # Errors
+/// Returns an error if fewer than two arguments are provided or if saving fails.
 pub fn add_profile(
   config: &mut SetupConfig,
   args: &[String],
@@ -63,6 +69,8 @@ pub fn add_profile(
 }
 
 /// Removes a profile from the configuration.
+/// # Errors
+/// Returns an error if saving the config file fails.
 pub fn remove_profile(
   config: &mut SetupConfig,
   name: &str,

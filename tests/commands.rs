@@ -42,7 +42,7 @@ fn test_resolve_test_repo_errors() {
     (
       "git@github.com:owner",
       "Repository URL missing repository name",
-    )
+    ),
   ];
   for (input, error) in cases {
     assert_eq!(resolve_test_repo(input), Err(error.to_string()))
