@@ -105,6 +105,9 @@ fn test_save_and_load_roundtrip() {
   let loaded = load_config(&[path], &mut sink());
   assert!(loaded.configs.contains_key("default"));
   assert!(loaded.configs["default"].ssh);
+  assert_eq!(loaded.configs["default"].build_type, "Release");
+  assert_eq!(loaded.configs["default"].mono_dir, "mono");
+  assert_eq!(loaded.configs["default"].cmake_flags, Vec::<String>::new());
 }
 
 #[test]

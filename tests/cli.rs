@@ -245,3 +245,45 @@ fn test_resolve_with_config_cli_cmake_flags_not_overwritten_by_config() {
   let resolved = resolve_with_config(args, &config).unwrap();
   assert_eq!(resolved.cmake_flags, vec!["-DCLI_FLAG=ON"]);
 }
+
+#[test]
+fn test_resolve_with_config_negative_flags_override_config() {
+  let mut config = SetupConfig::new();
+  config.configs.insert(
+    "default".to_string(),
+    ConfigEntry {
+      ssh: true,
+      verbose: true,
+      build_type: "Debug".to_string(),
+      build_dir: "build".to_string(),
+      mono_dir: "build-mono".to_string(),
+      no_build: true,
+      clean: true,
+      cmake_flags: vec![],
+    },
+  );
+
+  let mut args = default_args();
+  args.connection.https = true; // negates ssh
+  args.connection.no_verbose = true; // negates verbose
+  args.build.build = true; // negates no_build
+  args.build.no_clean = true; // negates clean
+
+  let resolved = resolve_with_config(args, &config).unwrap();
+  assert!(
+    !resolved.connection.ssh,
+    "https should override config ssh:true"
+  );
+  assert!(
+    !resolved.connection.verbose,
+    "no_verbose should override config verbose:true"
+  );
+  assert!(
+    !resolved.build.no_build,
+    "build should override config no_build:true"
+  );
+  assert!(
+    !resolved.build.clean,
+    "no_clean should override config clean:true"
+  );
+}
