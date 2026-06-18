@@ -188,10 +188,17 @@ fn test_save_and_load_profile_roundtrip() {
   let path = tmp.path().join(".star-setup.json");
   let mut config = SetupConfig::new();
   config.path = Some(path.clone());
-  insert_profile(&mut config, "myprofile", vec!["user/repo1".to_string(), "user/repo2".to_string()]);
+  insert_profile(
+    &mut config,
+    "myprofile",
+    vec!["user/repo1".to_string(), "user/repo2".to_string()],
+  );
   save_config(&mut config).unwrap();
 
   let loaded = star_setup::config::load_config(&[path], &mut sink());
   assert!(loaded.profiles.contains_key("myprofile"));
-  assert_eq!(loaded.profiles["myprofile"], vec!["user/repo1", "user/repo2"]);
+  assert_eq!(
+    loaded.profiles["myprofile"],
+    vec!["user/repo1", "user/repo2"]
+  );
 }

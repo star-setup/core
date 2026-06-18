@@ -108,7 +108,7 @@ pub fn single_repo_mode(
   let repo_path = Path::new(&dir_name);
   if repo_path.exists() {
     writeln!(output, "Repository {dir_name} already exists").ok();
-    if confirm("Update existing repository?", args.yes, input, output) {
+    if confirm("Update existing repository?", args.yes, input, output)? {
       writeln!(output, "Updating {dir_name}\n").ok();
       run_command(
         &["git", "pull"],

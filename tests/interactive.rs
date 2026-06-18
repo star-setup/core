@@ -50,7 +50,7 @@ fn test_interactive_mode_single_repo() {
   let input = b"user/repo\nn\nn\nn\n1\n\n\n\nn\n";
   let mut output = Vec::new();
   let mut args = default_resolved();
-  interactive_mode(&mut args, &mut input.as_ref(), &mut output);
+  interactive_mode(&mut args, &mut input.as_ref(), &mut output).unwrap();
   assert_eq!(args.repo, Some("user/repo".to_string()));
   assert!(!args.connection.ssh);
   assert!(!args.mono.mono_repo);
@@ -61,7 +61,7 @@ fn test_interactive_mode_ssh_enabled() {
   let input = b"user/repo\ny\nn\nn\n1\n\n\n\nn\n";
   let mut output = Vec::new();
   let mut args = default_resolved();
-  interactive_mode(&mut args, &mut input.as_ref(), &mut output);
+  interactive_mode(&mut args, &mut input.as_ref(), &mut output).unwrap();
   assert!(args.connection.ssh);
 }
 
@@ -70,7 +70,7 @@ fn test_interactive_mode_mono_repo_with_profile() {
   let input = b"user/repo\nn\nn\nn\n2\n1\nmyprofile\n\n\n\nn\n";
   let mut output = Vec::new();
   let mut args = default_resolved();
-  interactive_mode(&mut args, &mut input.as_ref(), &mut output);
+  interactive_mode(&mut args, &mut input.as_ref(), &mut output).unwrap();
   assert!(args.mono.mono_repo);
   assert_eq!(args.mono.profile, Some("myprofile".to_string()));
 }
@@ -80,7 +80,7 @@ fn test_interactive_mode_mono_repo_with_manual_repos() {
   let input = b"user/repo\nn\nn\nn\n2\n2\nuser/lib1 user/lib2\n\n\n\nn\n";
   let mut output = Vec::new();
   let mut args = default_resolved();
-  interactive_mode(&mut args, &mut input.as_ref(), &mut output);
+  interactive_mode(&mut args, &mut input.as_ref(), &mut output).unwrap();
   assert!(args.mono.mono_repo);
   assert_eq!(
     args.mono.repos,
@@ -94,7 +94,7 @@ fn test_interactive_mode_skips_repo_prompt_when_set() {
   let mut output = Vec::new();
   let mut args = default_resolved();
   args.repo = Some("already/set".to_string());
-  interactive_mode(&mut args, &mut input.as_ref(), &mut output);
+  interactive_mode(&mut args, &mut input.as_ref(), &mut output).unwrap();
   assert_eq!(args.repo, Some("already/set".to_string()));
 }
 
@@ -103,8 +103,19 @@ fn test_interactive_mode_output_contains_header() {
   let input = b"user/repo\nn\nn\nn\n1\n\n\n\nn\n";
   let mut output = Vec::new();
   let mut args = default_resolved();
-  interactive_mode(&mut args, &mut input.as_ref(), &mut output);
+  interactive_mode(&mut args, &mut input.as_ref(), &mut output).unwrap();
   let out_str = String::from_utf8(output).unwrap();
   assert!(out_str.contains("Star Setup Interactive Mode"));
   assert!(out_str.contains("Interactive mode complete"));
+}
+
+#[test]
+fn test_interactive_mode_errors_on_eof() {
+  let input = b"";
+  let mut output = Vec::new();
+  let mut args = default_resolved();
+  args.repo = None;
+  let result = interactive_mode(&mut args, &mut input.as_ref(), &mut output);
+  assert!(result.is_err());
+  assert!(result.unwrap_err().contains("unexpected end of input"));
 }

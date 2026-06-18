@@ -44,7 +44,7 @@ pub fn add_profile(
       yes,
       input,
       output,
-    )
+    )?
   {
     writeln!(output, "Aborted.").ok();
     return Ok(());
@@ -97,7 +97,7 @@ pub fn remove_profile(
     yes,
     input,
     output,
-  ) {
+  )? {
     writeln!(output, "Aborted.").ok();
     return Ok(());
   }

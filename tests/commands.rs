@@ -128,7 +128,10 @@ fn test_resolve_repos_for_mono_empty_profile_errors() {
 #[test]
 fn test_resolve_repos_for_mono_with_profile() {
   let mut config = SetupConfig::new();
-  config.profiles.insert("myprofile".to_string(), vec!["user/lib1".to_string(), "user/lib2".to_string()]);
+  config.profiles.insert(
+    "myprofile".to_string(),
+    vec!["user/lib1".to_string(), "user/lib2".to_string()],
+  );
   let mut args = default_resolved();
   args.mono.profile = Some("myprofile".to_string());
   let result = resolve_repos_for_mono(&args, &config, "user/repo", &mut sink());
@@ -152,7 +155,9 @@ fn test_resolve_repos_for_mono_no_repos_or_profile_errors() {
   let args = default_resolved();
   let result = resolve_repos_for_mono(&args, &config, "user/repo", &mut sink());
   assert!(result.is_err());
-  assert!(result.unwrap_err().contains("No repos or profile specified"));
+  assert!(result
+    .unwrap_err()
+    .contains("No repos or profile specified"));
 }
 
 #[test]

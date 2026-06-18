@@ -207,7 +207,7 @@ fn test_add_config_aborts_when_exists_and_not_confirmed() {
     &mut config,
     "myconfig",
     ConfigEntry {
-      ssh: false,  // different from sample_entry's ssh: true
+      ssh: false, // different from sample_entry's ssh: true
       build_type: "Debug".to_string(),
       build_dir: "build".to_string(),
       mono_dir: "mono".to_string(),

@@ -183,7 +183,7 @@ pub fn create_default_config(
       yes,
       input,
       output,
-    )
+    )?
   {
     writeln!(output, "Aborted.").ok();
     return Ok(());
@@ -238,7 +238,7 @@ pub fn add_config(
       yes,
       input,
       output,
-    )
+    )?
   {
     writeln!(output, "Aborted.").ok();
     return Ok(());
@@ -284,7 +284,7 @@ pub fn remove_config(
     yes,
     input,
     output,
-  ) {
+  )? {
     writeln!(output, "Aborted.").ok();
     return Ok(());
   }
