@@ -4,55 +4,38 @@ use helpers::sink;
 
 // resolve_test_repo tests
 #[test]
-fn test_resolve_test_repo_shorthand() {
-  assert_eq!(resolve_test_repo("user/repo").unwrap(), "user/repo");
+fn test_reoslve_test_repo() {
+  let cases = [
+    "user/repo",
+    "user/repo/",
+    "https://github.com/user/repo",
+    "https://github.com/user/repo.git",
+    "git@github.com:user/repo.git",
+    "git@github.com:user/repo"
+  ];
+
+  for input in cases {
+    assert_eq!(
+      resolve_test_repo(input),
+      Ok("user/repo".to_string()),
+      "Failed for input: {input}"
+    )
+  }
 }
 
 #[test]
-fn test_resolve_test_repo_trailing_slash() {
-  assert_eq!(resolve_test_repo("user/repo/").unwrap(), "user/repo");
-}
+fn test_reoslve_test_repo_errors() {
+  let cases = vec!{
+    ("repo", "Repository must be in format 'username/repo' for mono-repo mode"),
+    ("https://gitlab.com/user/repo", "Could not parse repository URL")
+  };
 
-#[test]
-fn test_resolve_test_repo_https_url() {
-  assert_eq!(
-    resolve_test_repo("https://github.com/user/repo").unwrap(),
-    "user/repo"
-  );
-}
-
-#[test]
-fn test_resolve_test_repo_https_url_git_suffix() {
-  assert_eq!(
-    resolve_test_repo("https://github.com/user/repo.git").unwrap(),
-    "user/repo"
-  );
-}
-
-#[test]
-fn test_resolve_test_repo_ssh_url() {
-  assert_eq!(
-    resolve_test_repo("git@github.com:user/repo.git").unwrap(),
-    "user/repo"
-  );
-}
-
-#[test]
-fn test_resolve_test_repo_ssh_url_no_git_suffix() {
-  assert_eq!(
-    resolve_test_repo("git@github.com:user/repo").unwrap(),
-    "user/repo"
-  );
-}
-
-#[test]
-fn test_resolve_test_repo_no_owner_errors() {
-  assert!(resolve_test_repo("repo").is_err());
-}
-
-#[test]
-fn test_resolve_test_repo_non_github_url_errors() {
-  assert!(resolve_test_repo("https://gitlab.com/user/repo").is_err());
+  for (input, error) in cases {
+    assert_eq!(
+      resolve_test_repo(input),
+      Err(error.to_string())
+    )
+  }
 }
 
 // create_mono_repo_cmakelists tests

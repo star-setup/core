@@ -5,13 +5,13 @@ use helpers::sink;
 /// repo_dir_name
 #[test]
 fn test_repo_dir_name() {
-  let cases = vec![
-    ("owner/repo"),
-    ("owner/repo.git"),
-    ("git@github.com:owner/repo.git"),
-    ("https://github.com/owner/repo"),
-    ("https://github.com/owner/repo.git"),
-    ("owner/repo/"),
+  let cases = [
+    "owner/repo",
+    "owner/repo.git",
+    "git@github.com:owner/repo.git",
+    "https://github.com/owner/repo",
+    "https://github.com/owner/repo.git",
+    "owner/repo/",
   ];
 
   for input in cases {
