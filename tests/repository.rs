@@ -2,7 +2,6 @@ use star_setup::repository::{clone_repository, repo_dir_name, resolve_repo_url};
 mod helpers;
 use helpers::sink;
 
-/// repo_dir_name
 #[test]
 fn test_repo_dir_name() {
   let cases = [
@@ -28,16 +27,22 @@ fn test_repo_dir_name_no_owner() {
   assert_eq!(repo_dir_name("repo"), "repo");
 }
 
-/// resolve_repo_url
 #[test]
 fn test_resolve_repo_url() {
   let cases = vec![
     ("owner/repo", false, "https://github.com/owner/repo.git"),
+    ("owner/repo/", false, "https://github.com/owner/repo.git"),
     ("owner/repo", true, "git@github.com:owner/repo.git"),
+    ("owner/repo/", true, "git@github.com:owner/repo.git"),
     (
       "https://github.com/owner/repo.git",
       false,
       "https://github.com/owner/repo.git",
+    ),
+    (
+      "https://github.com/owner/repo.git",
+      true,
+      "https://github.com/owner/repo.git"
     ),
     (
       "git@github.com:owner/repo.git",
@@ -56,7 +61,6 @@ fn test_resolve_repo_url() {
   }
 }
 
-/// clone_repository
 #[test]
 fn test_clone_skips_existing_directory() {
   let tmp = std::env::temp_dir().join("star_setup_test_clone");

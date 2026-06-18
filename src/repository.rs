@@ -23,7 +23,7 @@ pub fn resolve_repo_url(repo_input: &str, use_ssh: bool) -> String {
   if repo_input.starts_with("http") || repo_input.starts_with("git@") {
     return repo_input.to_string();
   }
-  let clean = repo_input.trim_end_matches(".git");
+  let clean = repo_input.trim_end_matches('/').trim_end_matches(".git");
   if use_ssh {
     format!("git@github.com:{clean}.git")
   } else {
