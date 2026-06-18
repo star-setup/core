@@ -24,7 +24,7 @@ fn test_insert_config() {
   let mut config = SetupConfig::new();
   insert_config(&mut config, "myconfig", sample_entry());
   assert!(config.configs.contains_key("myconfig"));
-  assert_eq!(config.configs["myconfig"].ssh, true);
+  assert!(config.configs["myconfig"].ssh);
 }
 
 #[test]
@@ -103,7 +103,7 @@ fn test_save_and_load_roundtrip() {
 
   let loaded = load_config(&[path], &mut sink());
   assert!(loaded.configs.contains_key("default"));
-  assert_eq!(loaded.configs["default"].ssh, true);
+  assert!(loaded.configs["default"].ssh);
 
   std::fs::remove_dir_all(&tmp).ok();
 }
@@ -226,7 +226,7 @@ fn test_add_config_aborts_when_exists_and_not_confirmed() {
     &mut sink(),
   )
   .unwrap();
-  assert_eq!(config.configs["myconfig"].ssh, true); // unchanged
+  assert!(config.configs["myconfig"].ssh);
 
   std::fs::remove_dir_all(&tmp).ok();
 }

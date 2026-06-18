@@ -4,7 +4,7 @@ use helpers::sink;
 
 // resolve_test_repo tests
 #[test]
-fn test_reoslve_test_repo() {
+fn test_resolve_test_repo() {
   let cases = [
     "user/repo",
     "user/repo/",
@@ -24,7 +24,7 @@ fn test_reoslve_test_repo() {
 }
 
 #[test]
-fn test_reoslve_test_repo_errors() {
+fn test_resolve_test_repo_errors() {
   let cases = vec![
     (
       "repo",
