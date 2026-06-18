@@ -77,6 +77,8 @@ fn test_format_entry_multiple_cmake_flags() {
   entry.cmake_flags = vec!["-DTEST=ON".to_string(), "-DDEBUG=OFF".to_string()];
   let output = format_entry(&entry);
   assert!(output.contains("CMake arguments:"));
+  assert!(output.contains("-DTEST=ON"));
+  assert!(output.contains("-DDEBUG=OFF"));
 }
 #[test]
 fn test_save_and_load_roundtrip() {
@@ -204,7 +206,16 @@ fn test_add_config_aborts_when_exists_and_not_confirmed() {
   star_setup::config::add_config(
     &mut config,
     "myconfig",
-    sample_entry(),
+    ConfigEntry {
+      ssh: false,  // different from sample_entry's ssh: true
+      build_type: "Debug".to_string(),
+      build_dir: "build".to_string(),
+      mono_dir: "mono".to_string(),
+      no_build: false,
+      clean: false,
+      verbose: false,
+      cmake_flags: vec![],
+    },
     false,
     &mut input.as_ref(),
     &mut sink(),
@@ -262,4 +273,44 @@ fn test_list_configs_with_entries() {
   let out = String::from_utf8(output).unwrap();
   assert!(out.contains("myconfig"));
   assert!(out.contains("Configurations:"));
+}
+
+#[test]
+fn test_load_config_first_valid_wins() {
+  let tmp1 = tempfile::TempDir::new().unwrap();
+  let tmp2 = tempfile::TempDir::new().unwrap();
+  let path1 = tmp1.path().join(".star-setup.json");
+  let path2 = tmp2.path().join(".star-setup.json");
+
+  let mut config1 = SetupConfig::new();
+  config1.path = Some(path1.clone());
+  insert_config(&mut config1, "first", sample_entry());
+  save_config(&mut config1).unwrap();
+
+  let mut config2 = SetupConfig::new();
+  config2.path = Some(path2.clone());
+  insert_config(&mut config2, "second", sample_entry());
+  save_config(&mut config2).unwrap();
+
+  let loaded = load_config(&[path1, path2], &mut sink());
+  assert!(loaded.configs.contains_key("first"));
+  assert!(!loaded.configs.contains_key("second"));
+}
+
+#[test]
+fn test_load_config_falls_through_invalid_to_valid() {
+  let tmp1 = tempfile::TempDir::new().unwrap();
+  let tmp2 = tempfile::TempDir::new().unwrap();
+  let path1 = tmp1.path().join(".star-setup.json");
+  let path2 = tmp2.path().join(".star-setup.json");
+
+  std::fs::write(&path1, "{invalid json").unwrap();
+
+  let mut config2 = SetupConfig::new();
+  config2.path = Some(path2.clone());
+  insert_config(&mut config2, "second", sample_entry());
+  save_config(&mut config2).unwrap();
+
+  let loaded = load_config(&[path1, path2], &mut sink());
+  assert!(loaded.configs.contains_key("second"));
 }
