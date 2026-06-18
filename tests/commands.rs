@@ -13,7 +13,6 @@ fn test_resolve_test_repo() {
     "git@github.com:user/repo.git",
     "git@github.com:user/repo",
   ];
-
   for input in cases {
     assert_eq!(
       resolve_test_repo(input),
@@ -35,7 +34,6 @@ fn test_resolve_test_repo_errors() {
       "Could not parse repository URL",
     ),
   ];
-
   for (input, error) in cases {
     assert_eq!(resolve_test_repo(input), Err(error.to_string()))
   }
@@ -44,30 +42,23 @@ fn test_resolve_test_repo_errors() {
 // create_mono_repo_cmakelists tests
 #[test]
 fn test_create_mono_repo_cmakelists_creates_file() {
-  let tmp = std::env::temp_dir().join("star_setup_test_cmakelists");
-  std::fs::create_dir_all(&tmp).ok();
+  let tmp = tempfile::TempDir::new().unwrap();
 
   let repos = vec!["user/lib1".to_string(), "user/lib2".to_string()];
-  create_mono_repo_cmakelists(&tmp, "user-testrepo", &repos, &mut sink()).unwrap();
+  create_mono_repo_cmakelists(&tmp.path(), "user-testrepo", &repos, &mut sink()).unwrap();
 
-  let cmake_file = tmp.join("CMakeLists.txt");
+  let cmake_file = tmp.path().join("CMakeLists.txt");
   assert!(cmake_file.exists());
 
   let content = std::fs::read_to_string(&cmake_file).unwrap();
   assert!(content.contains("user-testrepo"));
   assert!(content.contains("user-lib1"));
   assert!(content.contains("user-lib2"));
-
-  std::fs::remove_dir_all(&tmp).ok();
 }
 
 #[test]
 fn test_create_mono_repo_cmakelists_empty_repos() {
-  let tmp = std::env::temp_dir().join("star_setup_test_cmakelists_empty");
-  std::fs::create_dir_all(&tmp).ok();
-
-  create_mono_repo_cmakelists(&tmp, "user-testrepo", &[], &mut sink()).unwrap();
-  assert!(tmp.join("CMakeLists.txt").exists());
-
-  std::fs::remove_dir_all(&tmp).ok();
+  let tmp = tempfile::TempDir::new().unwrap();
+  create_mono_repo_cmakelists(&tmp.path(), "user-testrepo", &[], &mut sink()).unwrap();
+  assert!(tmp.path().join("CMakeLists.txt").exists());
 }

@@ -39,9 +39,8 @@ fn test_remove_profile_entry_missing() {
 
 #[test]
 fn test_add_profile_inserts_and_saves() {
-  let tmp = std::env::temp_dir().join("star_setup_test_add_profile");
-  std::fs::create_dir_all(&tmp).ok();
-  let path = tmp.join(".star-setup.json");
+  let tmp = tempfile::TempDir::new().unwrap();
+  let path = tmp.path().join(".star-setup.json");
   let mut config = SetupConfig::new();
   config.path = Some(path.clone());
 
@@ -50,15 +49,12 @@ fn test_add_profile_inserts_and_saves() {
     .unwrap();
   assert!(has_profile(&config, "myprofile"));
   assert!(path.exists());
-
-  std::fs::remove_dir_all(&tmp).ok();
 }
 
 #[test]
 fn test_remove_profile_removes_and_saves() {
-  let tmp = std::env::temp_dir().join("star_setup_test_remove_profile");
-  std::fs::create_dir_all(&tmp).ok();
-  let path = tmp.join(".star-setup.json");
+  let tmp = tempfile::TempDir::new().unwrap();
+  let path = tmp.path().join(".star-setup.json");
   let mut config = SetupConfig::new();
   config.path = Some(path.clone());
   insert_profile(&mut config, "myprofile", vec!["user/repo1".to_string()]);
@@ -73,8 +69,6 @@ fn test_remove_profile_removes_and_saves() {
   )
   .unwrap();
   assert!(!has_profile(&config, "myprofile"));
-
-  std::fs::remove_dir_all(&tmp).ok();
 }
 
 #[test]
@@ -109,26 +103,22 @@ fn test_add_profile_errors_on_empty_args() {
 
 #[test]
 fn test_add_profile_overwrites_existing() {
-  let tmp = std::env::temp_dir().join("star_setup_test_profile_overwrite");
-  std::fs::create_dir_all(&tmp).ok();
+  let tmp = tempfile::TempDir::new().unwrap();
   let mut config = SetupConfig::new();
-  config.path = Some(tmp.join(".star-setup.json"));
+  config.path = Some(tmp.path().join(".star-setup.json"));
   insert_profile(&mut config, "myprofile", vec!["old/repo".to_string()]);
 
   let args = vec!["myprofile".to_string(), "new/repo".to_string()];
   star_setup::profiles::add_profile(&mut config, &args, true, &mut empty_input(), &mut sink())
     .unwrap();
   assert_eq!(config.profiles["myprofile"], vec!["new/repo"]);
-
-  std::fs::remove_dir_all(&tmp).ok();
 }
 
 #[test]
 fn test_add_profile_multiple_repos() {
-  let tmp = std::env::temp_dir().join("star_setup_test_profile_multi");
-  std::fs::create_dir_all(&tmp).ok();
+  let tmp = tempfile::TempDir::new().unwrap();
   let mut config = SetupConfig::new();
-  config.path = Some(tmp.join(".star-setup.json"));
+  config.path = Some(tmp.path().join(".star-setup.json"));
 
   let args = vec![
     "myprofile".to_string(),
@@ -139,16 +129,13 @@ fn test_add_profile_multiple_repos() {
   star_setup::profiles::add_profile(&mut config, &args, true, &mut empty_input(), &mut sink())
     .unwrap();
   assert_eq!(config.profiles["myprofile"].len(), 3);
-
-  std::fs::remove_dir_all(&tmp).ok();
 }
 
 #[test]
 fn test_add_profile_aborts_when_exists_and_not_confirmed() {
-  let tmp = std::env::temp_dir().join("star_setup_test_add_profile_abort");
-  std::fs::create_dir_all(&tmp).ok();
+  let tmp = tempfile::TempDir::new().unwrap();
   let mut config = SetupConfig::new();
-  config.path = Some(tmp.join(".star-setup.json"));
+  config.path = Some(tmp.path().join(".star-setup.json"));
   insert_profile(&mut config, "myprofile", vec!["old/repo".to_string()]);
 
   let input = b"n\n";
@@ -156,8 +143,6 @@ fn test_add_profile_aborts_when_exists_and_not_confirmed() {
   star_setup::profiles::add_profile(&mut config, &args, false, &mut input.as_ref(), &mut sink())
     .unwrap();
   assert_eq!(config.profiles["myprofile"], vec!["old/repo"]);
-
-  std::fs::remove_dir_all(&tmp).ok();
 }
 
 #[test]

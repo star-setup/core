@@ -42,7 +42,7 @@ fn test_resolve_repo_url() {
     (
       "https://github.com/owner/repo.git",
       true,
-      "https://github.com/owner/repo.git"
+      "https://github.com/owner/repo.git",
     ),
     (
       "git@github.com:owner/repo.git",
@@ -63,15 +63,11 @@ fn test_resolve_repo_url() {
 
 #[test]
 fn test_clone_skips_existing_directory() {
-  let tmp = std::env::temp_dir().join("star_setup_test_clone");
-  std::fs::create_dir_all(&tmp).ok();
-
-  let repo_dir = tmp.join("owner-repo");
+  let tmp = tempfile::TempDir::new().unwrap();
+  let repo_dir = tmp.path().join("owner-repo");
   std::fs::create_dir_all(&repo_dir).unwrap();
 
-  let result = clone_repository("owner/repo", &tmp, false, false, &mut sink());
+  let result = clone_repository("owner/repo", &tmp.path(), false, false, &mut sink());
   assert!(result.is_ok());
   assert!(repo_dir.exists());
-
-  std::fs::remove_dir_all(&tmp).ok();
 }

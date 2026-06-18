@@ -80,9 +80,8 @@ fn test_format_entry_multiple_cmake_flags() {
 }
 #[test]
 fn test_save_and_load_roundtrip() {
-  let tmp = std::env::temp_dir().join("star_setup_test_roundtrip");
-  std::fs::create_dir_all(&tmp).ok();
-  let path = tmp.join(".star-setup.json");
+  let tmp = tempfile::TempDir::new().unwrap();
+  let path = tmp.path().join(".star-setup.json");
 
   let mut config = SetupConfig::new();
   config.path = Some(path.clone());
@@ -104,8 +103,6 @@ fn test_save_and_load_roundtrip() {
   let loaded = load_config(&[path], &mut sink());
   assert!(loaded.configs.contains_key("default"));
   assert!(loaded.configs["default"].ssh);
-
-  std::fs::remove_dir_all(&tmp).ok();
 }
 
 #[test]
@@ -116,15 +113,12 @@ fn test_load_config_skips_missing_local_file() {
 
 #[test]
 fn test_load_config_handles_invalid_json() {
-  let tmp = std::env::temp_dir().join("star_setup_test_invalid_json");
-  std::fs::create_dir_all(&tmp).ok();
-  let path = tmp.join(".star-setup.json");
+  let tmp = tempfile::TempDir::new().unwrap();
+  let path = tmp.path().join(".star-setup.json");
   std::fs::write(&path, "{invalid json").unwrap();
 
   let config = load_config(&[path], &mut sink());
   assert!(config.configs.is_empty());
-
-  std::fs::remove_dir_all(&tmp).ok();
 }
 
 #[test]
@@ -138,22 +132,18 @@ fn test_load_config_skips_nonexistent_path() {
 
 #[test]
 fn test_create_default_config_creates_file() {
-  let tmp = std::env::temp_dir().join("star_setup_test_create_default");
-  std::fs::create_dir_all(&tmp).ok();
-  let path = tmp.join(".star-setup.json");
+  let tmp = tempfile::TempDir::new().unwrap();
+  let path = tmp.path().join(".star-setup.json");
 
   star_setup::config::create_default_config(path.clone(), true, &mut empty_input(), &mut sink())
     .unwrap();
   assert!(path.exists());
-
-  std::fs::remove_dir_all(&tmp).ok();
 }
 
 #[test]
 fn test_add_config_inserts_and_saves() {
-  let tmp = std::env::temp_dir().join("star_setup_test_add_config");
-  std::fs::create_dir_all(&tmp).ok();
-  let path = tmp.join(".star-setup.json");
+  let tmp = tempfile::TempDir::new().unwrap();
+  let path = tmp.path().join(".star-setup.json");
   let mut config = SetupConfig::new();
   config.path = Some(path.clone());
 
@@ -168,15 +158,12 @@ fn test_add_config_inserts_and_saves() {
   .unwrap();
   assert!(has_config(&config, "myconfig"));
   assert!(path.exists());
-
-  std::fs::remove_dir_all(&tmp).ok();
 }
 
 #[test]
 fn test_remove_config_removes_and_saves() {
-  let tmp = std::env::temp_dir().join("star_setup_test_remove_config");
-  std::fs::create_dir_all(&tmp).ok();
-  let path = tmp.join(".star-setup.json");
+  let tmp = tempfile::TempDir::new().unwrap();
+  let path = tmp.path().join(".star-setup.json");
   let mut config = SetupConfig::new();
   config.path = Some(path.clone());
   insert_config(&mut config, "myconfig", sample_entry());
@@ -191,8 +178,6 @@ fn test_remove_config_removes_and_saves() {
   )
   .unwrap();
   assert!(!has_config(&config, "myconfig"));
-
-  std::fs::remove_dir_all(&tmp).ok();
 }
 
 #[test]
@@ -210,10 +195,9 @@ fn test_remove_config_not_found() {
 
 #[test]
 fn test_add_config_aborts_when_exists_and_not_confirmed() {
-  let tmp = std::env::temp_dir().join("star_setup_test_add_config_abort");
-  std::fs::create_dir_all(&tmp).ok();
+  let tmp = tempfile::TempDir::new().unwrap();
   let mut config = SetupConfig::new();
-  config.path = Some(tmp.join(".star-setup.json"));
+  config.path = Some(tmp.path().join(".star-setup.json"));
   insert_config(&mut config, "myconfig", sample_entry());
 
   let input = b"n\n";
@@ -227,16 +211,13 @@ fn test_add_config_aborts_when_exists_and_not_confirmed() {
   )
   .unwrap();
   assert!(config.configs["myconfig"].ssh);
-
-  std::fs::remove_dir_all(&tmp).ok();
 }
 
 #[test]
 fn test_remove_config_aborts_when_not_confirmed() {
-  let tmp = std::env::temp_dir().join("star_setup_test_remove_config_abort");
-  std::fs::create_dir_all(&tmp).ok();
+  let tmp = tempfile::TempDir::new().unwrap();
   let mut config = SetupConfig::new();
-  config.path = Some(tmp.join(".star-setup.json"));
+  config.path = Some(tmp.path().join(".star-setup.json"));
   insert_config(&mut config, "myconfig", sample_entry());
 
   let input = b"n\n";
@@ -248,24 +229,19 @@ fn test_remove_config_aborts_when_not_confirmed() {
     &mut sink(),
   )
   .unwrap();
-  assert!(has_config(&config, "myconfig")); // still exists
-
-  std::fs::remove_dir_all(&tmp).ok();
+  assert!(has_config(&config, "myconfig"));
 }
 
 #[test]
 fn test_create_default_config_aborts_when_exists_and_not_confirmed() {
-  let tmp = std::env::temp_dir().join("star_setup_test_create_default_abort");
-  std::fs::create_dir_all(&tmp).ok();
-  let path = tmp.join(".star-setup.json");
+  let tmp = tempfile::TempDir::new().unwrap();
+  let path = tmp.path().join(".star-setup.json");
   std::fs::write(&path, "original").unwrap();
 
   let input = b"n\n";
   star_setup::config::create_default_config(path.clone(), false, &mut input.as_ref(), &mut sink())
     .unwrap();
   assert_eq!(std::fs::read_to_string(&path).unwrap(), "original");
-
-  std::fs::remove_dir_all(&tmp).ok();
 }
 
 #[test]
