@@ -64,7 +64,7 @@ fn cmake_build(
     output,
   )?;
   if !args.build.no_build {
-    println!("Building project\n");
+    writeln!(output, "Building project\n").ok();
     run_command(
       &["cmake", "--build", ".", "--config", &args.build.build_type],
       Some(build_path),
