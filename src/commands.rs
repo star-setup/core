@@ -214,7 +214,7 @@ set_property(DIRECTORY ${{CMAKE_CURRENT_SOURCE_DIR}} PROPERTY VS_STARTUP_PROJECT
   Ok(())
 }
 
-fn resolve_repos_for_mono(
+pub fn resolve_repos_for_mono(
   args: &ResolvedArgs,
   config: &SetupConfig,
   test_repo: &str,

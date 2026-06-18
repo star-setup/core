@@ -1,4 +1,8 @@
-use star_setup::commands::{create_mono_repo_cmakelists, resolve_test_repo};
+use star_setup::cli::{
+  resolve_with_config, Args, BuildFlags, ConfigFlags, ConnectionFlags, MonoRepoFlags, ProfileFlags,
+};
+use star_setup::commands::{create_mono_repo_cmakelists, resolve_repos_for_mono, resolve_test_repo};
+use star_setup::config::SetupConfig;
 mod helpers;
 use helpers::sink;
 
@@ -61,4 +65,42 @@ fn test_create_mono_repo_cmakelists_empty_repos() {
   let tmp = tempfile::TempDir::new().unwrap();
   create_mono_repo_cmakelists(&tmp.path(), "user-testrepo", &[], &mut sink()).unwrap();
   assert!(tmp.path().join("CMakeLists.txt").exists());
+}
+
+fn default_resolved() -> star_setup::cli::ResolvedArgs {
+  let args = Args {
+    repo: Some("user/repo".to_string()),
+    cmake_flags: vec![],
+    yes: false,
+    connection: ConnectionFlags { ssh: false, https: false, verbose: false, no_verbose: false },
+    build: BuildFlags {
+      build_type: None,
+      build_dir: None,
+      no_build: false,
+      build: false,
+      clean: false,
+      no_clean: false,
+    },
+    mono: MonoRepoFlags { mono_repo: false, mono_dir: None, repos: None, profile: None },
+    config: ConfigFlags {
+      init_config: false,
+      config_name: None,
+      config_add: None,
+      config_remove: None,
+      list_configs: false,
+    },
+    profile: ProfileFlags { profile_add: None, profile_remove: None, list_profiles: false },
+  };
+  resolve_with_config(args, &SetupConfig::new()).unwrap()
+}
+
+#[test]
+fn test_resolve_repos_for_mono_empty_profile_errors() {
+  let mut config = SetupConfig::new();
+  config.profiles.insert("emptyprofile".to_string(), vec![]);
+  let mut args = default_resolved();
+  args.mono.profile = Some("emptyprofile".to_string());
+  let result = resolve_repos_for_mono(&args, &config, "user/repo", &mut sink());
+  assert!(result.is_err());
+  assert!(result.unwrap_err().contains("has no repositories"));
 }
