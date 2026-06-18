@@ -150,6 +150,9 @@ pub fn resolve_test_repo(repo_input: &str) -> Result<String, String> {
   if repo_input.starts_with("http") || repo_input.starts_with("git@") {
     if repo_input.contains("github.com/") || repo_input.contains("github.com:") {
       let parts: Vec<&str> = repo_input.split('/').collect();
+      if parts.len() < 2 {
+        return Err("Repository URL missing repository name".to_string());
+      }
       let user = parts[parts.len() - 2].split(':').next_back().unwrap_or("");
       let repo = parts[parts.len() - 1].trim_end_matches(".git");
       Ok(format!("{user}/{repo}"))
