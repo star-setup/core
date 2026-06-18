@@ -11,7 +11,7 @@ fn test_reoslve_test_repo() {
     "https://github.com/user/repo",
     "https://github.com/user/repo.git",
     "git@github.com:user/repo.git",
-    "git@github.com:user/repo"
+    "git@github.com:user/repo",
   ];
 
   for input in cases {
@@ -25,16 +25,19 @@ fn test_reoslve_test_repo() {
 
 #[test]
 fn test_reoslve_test_repo_errors() {
-  let cases = vec!{
-    ("repo", "Repository must be in format 'username/repo' for mono-repo mode"),
-    ("https://gitlab.com/user/repo", "Could not parse repository URL")
-  };
+  let cases = vec![
+    (
+      "repo",
+      "Repository must be in format 'username/repo' for mono-repo mode",
+    ),
+    (
+      "https://gitlab.com/user/repo",
+      "Could not parse repository URL",
+    ),
+  ];
 
   for (input, error) in cases {
-    assert_eq!(
-      resolve_test_repo(input),
-      Err(error.to_string())
-    )
+    assert_eq!(resolve_test_repo(input), Err(error.to_string()))
   }
 }
 

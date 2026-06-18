@@ -4,30 +4,68 @@ use star_setup::cli::{
 };
 use star_setup::config::{ConfigEntry, SetupConfig};
 
-// resolve_bool
 #[test]
-fn test_resolve_bool_negative_overrides_all() {
-  assert!(!resolve_bool(true, true, Some(true), true));
-}
+fn test_resolve_bool() {
+  struct Case {
+    flag_pos: bool,
+    flag_neg: bool,
+    config: Option<bool>,
+    default: bool,
+    expected: bool,
+    name: &'static str,
+  }
 
-#[test]
-fn test_resolve_bool_positive_overrides_config_and_default() {
-  assert!(resolve_bool(true, false, Some(false), false));
-}
+  let cases = [
+    Case {
+      flag_pos: true,
+      flag_neg: true,
+      config: Some(true),
+      default: true,
+      expected: false,
+      name: "negative override all",
+    },
+    Case {
+      flag_pos: true,
+      flag_neg: false,
+      config: Some(false),
+      default: false,
+      expected: true,
+      name: "positive override config and default",
+    },
+    Case {
+      flag_pos: false,
+      flag_neg: false,
+      config: Some(true),
+      default: false,
+      expected: true,
+      name: "use config when no flags",
+    },
+    Case {
+      flag_pos: false,
+      flag_neg: false,
+      config: None,
+      default: true,
+      expected: true,
+      name: "use default when no flags/config",
+    },
+    Case {
+      flag_pos: false,
+      flag_neg: false,
+      config: None,
+      default: false,
+      expected: false,
+      name: "default false when nothing set",
+    },
+  ];
 
-#[test]
-fn test_resolve_bool_uses_config_when_no_flags() {
-  assert!(resolve_bool(false, false, Some(true), false));
-}
-
-#[test]
-fn test_resolve_bool_uses_default_when_no_flags_no_config() {
-  assert!(resolve_bool(false, false, None, true));
-}
-
-#[test]
-fn test_resolve_bool_default_false_when_nothing_set() {
-  assert!(!resolve_bool(false, false, None, false));
+  for c in cases {
+    assert_eq!(
+      resolve_bool(c.flag_pos, c.flag_neg, c.config, c.default),
+      c.expected,
+      "Failed test: {}",
+      c.name
+    );
+  }
 }
 
 fn default_args() -> Args {
