@@ -7,7 +7,9 @@ use std::path::Path;
 use std::process::{Command, Stdio};
 use std::thread;
 
-/// Returns `true` if `yes` is set or the user enters `y`/`Y`
+/// Returns `true` if `yes` is set or the user enters `y`/`Y`.
+/// # Errors
+/// Returns an error if stdin reaches EOF unexpectedly.
 pub fn confirm(
   prompt: &str,
   yes: bool,

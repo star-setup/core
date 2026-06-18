@@ -119,3 +119,12 @@ fn test_interactive_mode_errors_on_eof() {
   assert!(result.is_err());
   assert!(result.unwrap_err().contains("unexpected end of input"));
 }
+
+#[test]
+fn test_interactive_mode_yes_word_not_accepted_for_ssh() {
+  let input = b"user/repo\nyes\nn\nn\n1\n\n\n\nn\n";
+  let mut output = Vec::new();
+  let mut args = default_resolved();
+  interactive_mode(&mut args, &mut input.as_ref(), &mut output).unwrap();
+  assert!(!args.connection.ssh);
+}

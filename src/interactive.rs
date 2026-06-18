@@ -50,14 +50,12 @@ fn ask_yesno(
     return Err("unexpected end of input".to_string());
   }
   let val = line.trim().to_lowercase();
-  Ok(if val.is_empty() {
-    default
-  } else {
-    val.starts_with('y')
-  })
+  Ok(if val.is_empty() { default } else { val.eq("y") })
 }
 
 /// Interactive CLI mode — prompts for any unset arguments.
+/// # Errors
+/// Returns an error if stdin reaches EOF unexpectedly.
 pub fn interactive_mode(
   args: &mut ResolvedArgs,
   input: &mut impl BufRead,
