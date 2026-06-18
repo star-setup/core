@@ -1,7 +1,9 @@
 use star_setup::cli::{
   resolve_with_config, Args, BuildFlags, ConfigFlags, ConnectionFlags, MonoRepoFlags, ProfileFlags,
 };
-use star_setup::commands::{create_mono_repo_cmakelists, resolve_repos_for_mono, resolve_test_repo};
+use star_setup::commands::{
+  create_mono_repo_cmakelists, resolve_repos_for_mono, resolve_test_repo,
+};
 use star_setup::config::SetupConfig;
 mod helpers;
 use helpers::sink;
@@ -72,7 +74,12 @@ fn default_resolved() -> star_setup::cli::ResolvedArgs {
     repo: Some("user/repo".to_string()),
     cmake_flags: vec![],
     yes: false,
-    connection: ConnectionFlags { ssh: false, https: false, verbose: false, no_verbose: false },
+    connection: ConnectionFlags {
+      ssh: false,
+      https: false,
+      verbose: false,
+      no_verbose: false,
+    },
     build: BuildFlags {
       build_type: None,
       build_dir: None,
@@ -81,7 +88,12 @@ fn default_resolved() -> star_setup::cli::ResolvedArgs {
       clean: false,
       no_clean: false,
     },
-    mono: MonoRepoFlags { mono_repo: false, mono_dir: None, repos: None, profile: None },
+    mono: MonoRepoFlags {
+      mono_repo: false,
+      mono_dir: None,
+      repos: None,
+      profile: None,
+    },
     config: ConfigFlags {
       init_config: false,
       config_name: None,
@@ -89,7 +101,11 @@ fn default_resolved() -> star_setup::cli::ResolvedArgs {
       config_remove: None,
       list_configs: false,
     },
-    profile: ProfileFlags { profile_add: None, profile_remove: None, list_profiles: false },
+    profile: ProfileFlags {
+      profile_add: None,
+      profile_remove: None,
+      list_profiles: false,
+    },
   };
   resolve_with_config(args, &SetupConfig::new()).unwrap()
 }
