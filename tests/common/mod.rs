@@ -1,4 +1,3 @@
-
 #![allow(dead_code)]
 
 pub fn sink() -> Vec<u8> {
