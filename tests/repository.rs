@@ -1,6 +1,6 @@
 use star_setup::repository::{clone_repository, repo_dir_name, resolve_repo_url};
-mod helpers;
-use helpers::sink;
+mod common;
+use common::sink;
 
 #[test]
 fn test_repo_dir_name() {

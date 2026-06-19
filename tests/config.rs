@@ -3,8 +3,8 @@ use star_setup::config::{
   ConfigEntry, SetupConfig,
 };
 use std::path::PathBuf;
-mod helpers;
-use helpers::{empty_input, sink};
+mod common;
+use common::{empty_input, sink};
 
 fn sample_entry() -> ConfigEntry {
   ConfigEntry {

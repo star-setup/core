@@ -1,7 +1,7 @@
 use star_setup::config::{save_config, SetupConfig};
 use star_setup::profiles::{has_profile, insert_profile, remove_profile_entry};
-mod helpers;
-use helpers::{empty_input, sink};
+mod common;
+use common::{empty_input, sink};
 
 #[test]
 fn test_insert_profile() {

@@ -1,5 +1,5 @@
-mod helpers;
-use helpers::sink;
+mod common;
+use common::sink;
 use star_setup::utils::{confirm, run_command};
 
 #[test]

@@ -5,8 +5,8 @@ use star_setup::commands::{
   create_mono_repo_cmakelists, resolve_repos_for_mono, resolve_test_repo,
 };
 use star_setup::config::SetupConfig;
-mod helpers;
-use helpers::sink;
+mod common;
+use common::sink;
 
 // resolve_test_repo tests
 #[test]
