@@ -11,10 +11,10 @@ fn test_confirm_input_cases() {
     (b"n\n", false, "n rejects"),
     (b"yes\n", false, "yes rejects"),
   ];
-  for (input, expected, name) in cases {
+  for (mut input, expected, name) in cases {
     let mut output = sink();
     assert_eq!(
-      confirm("prompt", false, &mut input.as_ref(), &mut output).unwrap(),
+      confirm("prompt", false, &mut input, &mut output).unwrap(),
       expected,
       "Failed: {name}"
     );
