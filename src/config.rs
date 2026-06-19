@@ -1,109 +1,147 @@
-//! Configuration file management for star-setup.
+//! Configuration file management.
 
 use crate::utils::confirm;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::fmt::Write as FmtWrite;
 use std::fs;
 use std::io;
+use std::io::{BufRead, Write};
 use std::path::PathBuf;
 
 /// Represents a single named configuration entry.
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Serialize, Deserialize, Default)]
 pub struct ConfigEntry {
+  /// Use SSH instead of HTTPS for cloning.
   pub ssh: bool,
+  /// `CMake` build type (e.g. `Debug`, `Release`).
   pub build_type: String,
+  /// Build directory name.
   pub build_dir: String,
+  /// Mono-repo build directory name.
   pub mono_dir: String,
+  /// Skip the build step, only configure.
   pub no_build: bool,
+  /// Clean the build directory before configuring.
   pub clean: bool,
+  /// Show detailed command output.
   pub verbose: bool,
+  /// Additional `CMake` arguments.
   pub cmake_flags: Vec<String>,
 }
 
 /// Top-level configuration structure.
 #[derive(Serialize, Deserialize, Default)]
 pub struct SetupConfig {
+  /// Named configuration entries.
   #[serde(default)]
   pub configs: HashMap<String, ConfigEntry>,
+  /// Named profile entries mapping profile names to repository lists.
   #[serde(default)]
   pub profiles: HashMap<String, Vec<String>>,
+  /// Path to the config file this was loaded from, if any.
   #[serde(skip)]
   pub path: Option<PathBuf>,
 }
 
 impl SetupConfig {
+  /// Creates a new empty `SetupConfig`.
+  #[must_use]
   pub fn new() -> Self {
     Self::default()
   }
 }
 
-fn print_entry(e: &ConfigEntry) {
-  println!("  SSH: {}", e.ssh);
-  println!("  Build Type: {}", e.build_type);
-  println!("  Build Directory: {}", e.build_dir);
-  println!("  Mono-build Directory: {}", e.mono_dir);
-  println!("  No-build flag: {}", e.no_build);
-  println!("  Clean flag: {}", e.clean);
-  println!("  Verbose flag: {}", e.verbose);
-  if e.cmake_flags.is_empty() {
-    println!();
-  } else if e.cmake_flags.len() == 1 {
-    println!("  CMake argument: {}", e.cmake_flags[0]);
-  } else {
-    println!("  CMake arguments:");
-    for arg in &e.cmake_flags {
-      println!("    {arg}");
-    }
-  }
+/// Inserts or overwrites a named configuration entry.
+pub fn insert_config(config: &mut SetupConfig, name: &str, entry: ConfigEntry) {
+  config.configs.insert(name.to_string(), entry);
 }
 
-pub fn load_config() -> SetupConfig {
-  let mut locations = vec![PathBuf::from(".star-setup.json")];
-  if let Some(home) = dirs::home_dir() {
-    locations.push(home.join(".star-setup.json"));
-  }
+/// Removes a named configuration entry. Returns `true` if it existed.
+pub fn remove_config_entry(config: &mut SetupConfig, name: &str) -> bool {
+  config.configs.remove(name).is_some()
+}
 
+/// Returns `true` if a configuration with the given name exists.
+#[must_use]
+pub fn has_config(config: &SetupConfig, name: &str) -> bool {
+  config.configs.contains_key(name)
+}
+
+/// Formats a `ConfigEntry` as a human-readable string.
+#[must_use]
+pub fn format_entry(e: &ConfigEntry) -> String {
+  let mut out = String::new();
+  writeln!(out, "  SSH: {}", e.ssh).ok();
+  writeln!(out, "  Build Type: {}", e.build_type).ok();
+  writeln!(out, "  Build Directory: {}", e.build_dir).ok();
+  writeln!(out, "  Mono-build Directory: {}", e.mono_dir).ok();
+  writeln!(out, "  No-build flag: {}", e.no_build).ok();
+  writeln!(out, "  Clean flag: {}", e.clean).ok();
+  writeln!(out, "  Verbose flag: {}", e.verbose).ok();
+  if e.cmake_flags.is_empty() {
+    out.push('\n');
+  } else if e.cmake_flags.len() == 1 {
+    writeln!(out, "  CMake argument: {}", e.cmake_flags[0]).ok();
+  } else {
+    out.push_str("  CMake arguments:\n");
+    for arg in &e.cmake_flags {
+      writeln!(out, "    {arg}").ok();
+    }
+  }
+  out
+}
+
+/// Loads configuration from the first valid JSON file in `locations`.
+pub fn load_config(locations: &[PathBuf], output: &mut impl Write) -> SetupConfig {
   let mut invalid_count = 0;
 
   for path in locations {
     if !path.exists() {
       continue;
     }
-    match fs::read_to_string(&path) {
+    match fs::read_to_string(path) {
       Ok(contents) => match serde_json::from_str::<SetupConfig>(&contents) {
         Ok(mut config) => {
-          config.path = Some(path);
+          config.path = Some(path.clone());
           return config;
         }
         Err(e) => {
-          println!("Warning: Invalid JSON in {}: {e}", path.display());
+          writeln!(output, "Warning: Invalid JSON in {}: {e}", path.display()).ok();
           invalid_count += 1;
         }
       },
       Err(e) if e.kind() == io::ErrorKind::PermissionDenied => {
-        println!("Error: No permission to read {}", path.display());
+        writeln!(output, "Error: No permission to read {}", path.display()).ok();
         invalid_count += 1;
       }
       Err(e) => {
-        println!(
+        writeln!(
+          output,
           "An unexpected error occurred reading {}: {e}",
           path.display()
-        );
+        )
+        .ok();
         invalid_count += 1;
       }
     }
   }
 
   if invalid_count != 0 {
-    println!(
+    writeln!(
+      output,
       "Found {invalid_count} config file{} that had errors",
       if invalid_count == 1 { "" } else { "s" }
-    );
+    )
+    .ok();
   }
   SetupConfig::new()
 }
 
+/// Serializes the configuration and writes it to the path stored in `config.path`.
+/// # Errors
+/// Returns an error if serialization fails or if the file cannot be written.
 pub fn save_config(config: &mut SetupConfig) -> Result<PathBuf, String> {
   let path = config
     .path
@@ -131,16 +169,23 @@ pub fn save_config(config: &mut SetupConfig) -> Result<PathBuf, String> {
 }
 
 /// Creates a default configuration file in the current directory.
-pub fn create_default_config(yes: bool) -> Result<(), String> {
-  let path = PathBuf::from(".star-setup.json");
-
+/// # Errors
+/// Returns an error if the config file cannot be written.
+pub fn create_default_config(
+  path: PathBuf,
+  yes: bool,
+  input: &mut impl BufRead,
+  output: &mut impl Write,
+) -> Result<(), String> {
   if path.exists()
     && !confirm(
       &format!("{} already exists. Overwrite?", path.display()),
       yes,
-    )
+      input,
+      output,
+    )?
   {
-    println!("Aborted.");
+    writeln!(output, "Aborted.").ok();
     return Ok(());
   }
 
@@ -162,83 +207,110 @@ pub fn create_default_config(yes: bool) -> Result<(), String> {
 
   save_config(&mut config)?;
 
-  println!(
+  writeln!(
+    output,
     "Created config file: {}",
     dunce::canonicalize(&path).unwrap_or(path).display()
-  );
-  println!("Edit this file to customize your defaults.");
-  println!("\nConfig files are checked in this order:");
-  println!("  1. ./.star-setup.json (current directory)");
-  println!("  2. ~/.star-setup.json (home directory)");
+  )
+  .ok();
+  writeln!(output, "Edit this file to customize your defaults.").ok();
+  writeln!(output, "\nConfig files are checked in this order:").ok();
+  writeln!(output, "  1. ./.star-setup.json (current directory)").ok();
+  writeln!(output, "  2. ~/.star-setup.json (home directory)").ok();
 
   Ok(())
 }
 
 /// Adds a new named configuration entry.
+/// # Errors
+/// Returns an error if saving the config file fails.
 pub fn add_config(
   config: &mut SetupConfig,
   name: &str,
   entry: ConfigEntry,
   yes: bool,
+  input: &mut impl BufRead,
+  output: &mut impl Write,
 ) -> Result<(), String> {
-  if config.configs.contains_key(name)
+  if has_config(config, name)
     && !confirm(
       &format!("Warning: Configuration '{name}' already exists. Overwrite?"),
       yes,
-    )
+      input,
+      output,
+    )?
   {
-    println!("Aborted.");
+    writeln!(output, "Aborted.").ok();
     return Ok(());
   }
 
-  config.configs.insert(name.to_string(), entry);
+  insert_config(config, name, entry);
   let path = save_config(config)?;
 
   let e = &config.configs[name];
-  println!(
+  writeln!(
+    output,
     "Configuration '{name}' added successfully to {}",
     path.display()
-  );
-  println!("Configuration details:");
-  print_entry(e);
+  )
+  .ok();
+  writeln!(output, "Configuration details:").ok();
+  write!(output, "{}", format_entry(e)).ok();
 
   Ok(())
 }
 
 /// Removes a named configuration entry.
-pub fn remove_config(config: &mut SetupConfig, name: &str, yes: bool) -> Result<(), String> {
+/// # Errors
+/// Returns an error if saving the config file fails.
+pub fn remove_config(
+  config: &mut SetupConfig,
+  name: &str,
+  yes: bool,
+  input: &mut impl BufRead,
+  output: &mut impl Write,
+) -> Result<(), String> {
   let Some(e) = config.configs.get(name) else {
-    println!("\nWarning: Config '{name}' not found.\n");
+    writeln!(output, "\nWarning: Config '{name}' not found.\n").ok();
     return Ok(());
   };
 
-  println!("Config {name}");
-  println!("Configuration details:");
-  print_entry(e);
+  writeln!(output, "Config {name}").ok();
+  writeln!(output, "Configuration details:").ok();
+  write!(output, "{}", format_entry(e)).ok();
 
-  if !confirm("\nAre you sure you want to remove this config?", yes) {
-    println!("Aborted.");
+  if !confirm(
+    "\nAre you sure you want to remove this config?",
+    yes,
+    input,
+    output,
+  )? {
+    writeln!(output, "Aborted.").ok();
     return Ok(());
   }
 
-  config.configs.remove(name);
+  remove_config_entry(config, name);
   let path = save_config(config)?;
-  println!("\nConfig '{name}' was successfully removed");
-  println!("Configuration saved to: {}\n", path.display());
+  writeln!(output, "\nConfig '{name}' was successfully removed").ok();
+  writeln!(output, "Configuration saved to: {}\n", path.display()).ok();
   Ok(())
 }
 
 /// Lists all saved configuration entries.
-pub fn list_configs(config: &SetupConfig) {
+pub fn list_configs(config: &SetupConfig, output: &mut impl Write) {
   if config.configs.is_empty() {
-    println!("  No configurations created.");
-    println!("  Run with --init-config to create a default configuration.");
+    writeln!(output, "  No configurations created.").ok();
+    writeln!(
+      output,
+      "  Run with --init-config to create a default configuration."
+    )
+    .ok();
     return;
   }
 
-  println!("Configurations:");
+  writeln!(output, "Configurations:").ok();
   for (name, e) in &config.configs {
-    println!("\n{name}:");
-    print_entry(e);
+    writeln!(output, "\n{name}:").ok();
+    write!(output, "{}", format_entry(e)).ok();
   }
 }

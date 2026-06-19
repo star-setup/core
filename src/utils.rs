@@ -1,30 +1,39 @@
-//! Utility functions for star-setup.
+//! Utility functions.
 
 use std::io::BufRead;
-use std::io::IsTerminal;
 use std::io::Read;
 use std::io::Write;
 use std::path::Path;
 use std::process::{Command, Stdio};
 use std::thread;
 
-pub fn confirm(prompt: &str, yes: bool) -> bool {
-  if yes || !std::io::stdin().is_terminal() {
-    return yes;
+/// Returns `true` if `yes` is set or the user enters `y`/`Y`.
+/// # Errors
+/// Returns an error if stdin reaches EOF unexpectedly.
+pub fn confirm(
+  prompt: &str,
+  yes: bool,
+  input: &mut impl BufRead,
+  output: &mut impl Write,
+) -> Result<bool, String> {
+  if yes {
+    return Ok(true);
   }
-  print!("{prompt} (y/n): ");
-  std::io::stdout().flush().ok();
-  let mut input = String::new();
-  if std::io::stdin().lock().read_line(&mut input).unwrap_or(0) == 0 {
-    eprintln!("\nError: unexpected end of input");
-    std::process::exit(1);
+
+  write!(output, "{prompt} (y/n): ").ok();
+  output.flush().ok();
+  let mut line = String::new();
+  if input.read_line(&mut line).unwrap_or(0) == 0 {
+    return Err("unexpected end of input".to_string());
   }
-  input.trim().eq_ignore_ascii_case("y")
+  Ok(line.trim().eq_ignore_ascii_case("y"))
 }
 
 /// Checks if required tools are available on PATH.
 /// Returns Result.
-pub fn check_prerequisites(verbose: bool) -> Result<(), String> {
+/// # Errors
+/// Returns an error if any required tool is missing from PATH.
+pub fn check_prerequisites(verbose: bool, output: &mut impl Write) -> Result<(), String> {
   let mut missing: Vec<&str> = Vec::new();
   for tool in &["git", "cmake"] {
     if Command::new(tool)
@@ -34,7 +43,7 @@ pub fn check_prerequisites(verbose: bool) -> Result<(), String> {
     {
       missing.push(tool);
     } else if verbose {
-      println!("Found {tool}");
+      writeln!(output, "Found {tool}").ok();
     }
   }
   if !missing.is_empty() {
@@ -45,15 +54,22 @@ pub fn check_prerequisites(verbose: bool) -> Result<(), String> {
 
 /// Runs a shell command with optional working directory.
 /// Returns Result.
-pub fn run_command(cmd: &[&str], cwd: Option<&Path>, verbose: bool) -> Result<(), String> {
+/// # Errors
+/// Returns an error if the command is empty, fails to spawn, or exits with a non-zero status.
+pub fn run_command(
+  cmd: &[&str],
+  cwd: Option<&Path>,
+  verbose: bool,
+  output: &mut impl Write,
+) -> Result<(), String> {
   if cmd.is_empty() {
     return Err("No command provided".to_string());
   }
 
   if verbose {
-    println!("Running: {}", cmd.join(" "));
+    writeln!(output, "Running: {}", cmd.join(" ")).ok();
     if let Some(dir) = cwd {
-      println!("  in directory: {}", dir.display());
+      writeln!(output, "  in directory: {}", dir.display()).ok();
     }
   }
 

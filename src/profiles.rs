@@ -1,11 +1,36 @@
-//! Profile management for star-setup.
+//! Profile management.
 
 use crate::config::{save_config, SetupConfig};
 use crate::utils::confirm;
+use std::io::{BufRead, Write};
+
+/// Inserts or overwrites a named profile.
+pub fn insert_profile(config: &mut SetupConfig, name: &str, repos: Vec<String>) {
+  config.profiles.insert(name.to_string(), repos);
+}
+
+/// Removes a named profile. Returns `true` if it existed.
+pub fn remove_profile_entry(config: &mut SetupConfig, name: &str) -> bool {
+  config.profiles.remove(name).is_some()
+}
+
+/// Returns `true` if a profile with the given name exists.
+#[must_use]
+pub fn has_profile(config: &SetupConfig, name: &str) -> bool {
+  config.profiles.contains_key(name)
+}
 
 /// Adds a new profile to the configuration.
 /// args: [name, repo1, repo2, ...]
-pub fn add_profile(config: &mut SetupConfig, args: &[String], yes: bool) -> Result<(), String> {
+/// # Errors
+/// Returns an error if fewer than two arguments are provided or if saving fails.
+pub fn add_profile(
+  config: &mut SetupConfig,
+  args: &[String],
+  yes: bool,
+  input: &mut impl BufRead,
+  output: &mut impl Write,
+) -> Result<(), String> {
   if args.len() < 2 {
     return Err("--profile-add requires NAME REPO1 [REPO2 ...]".to_string());
   }
@@ -13,79 +38,98 @@ pub fn add_profile(config: &mut SetupConfig, args: &[String], yes: bool) -> Resu
   let name = args[0].clone();
   let repos = args[1..].to_vec();
 
-  if config.profiles.contains_key(&name)
+  if has_profile(config, &name)
     && !confirm(
       &format!("Warning: Profile '{name}' already exists. Overwrite?"),
       yes,
-    )
+      input,
+      output,
+    )?
   {
-    println!("Aborted.");
+    writeln!(output, "Aborted.").ok();
     return Ok(());
   }
 
-  config.profiles.insert(name.clone(), repos.clone());
+  insert_profile(config, &name, repos.clone());
   let path = save_config(config)?;
 
-  println!("Profile '{name}' added successfully");
-  println!("Configuration saved to: {}", path.display());
-  println!("Profile details:");
-  println!("  Repositories ({}):", repos.len());
+  writeln!(output, "Profile '{name}' added successfully").ok();
+  writeln!(output, "Configuration saved to: {}", path.display()).ok();
+  writeln!(output, "Profile details:").ok();
+  writeln!(output, "  Repositories ({}):", repos.len()).ok();
   for repo in repos {
-    println!("    - {repo}");
+    writeln!(output, "    - {repo}").ok();
   }
-  println!("\nUsage: star-setup username/test-repo --profile {name}");
-
+  writeln!(
+    output,
+    "\nUsage: star-setup username/test-repo --profile {name}"
+  )
+  .ok();
   Ok(())
 }
 
 /// Removes a profile from the configuration.
-pub fn remove_profile(config: &mut SetupConfig, name: &str, yes: bool) -> Result<(), String> {
+/// # Errors
+/// Returns an error if saving the config file fails.
+pub fn remove_profile(
+  config: &mut SetupConfig,
+  name: &str,
+  yes: bool,
+  input: &mut impl BufRead,
+  output: &mut impl Write,
+) -> Result<(), String> {
   let repos = match config.profiles.get(name) {
     None => {
-      println!("Warning: Profile '{name}' not found.");
+      writeln!(output, "Warning: Profile '{name}' not found.").ok();
       return Ok(());
     }
     Some(r) => r.clone(),
   };
 
-  println!("Profile '{name}'");
-  println!("  Libraries: {}", repos.len());
+  writeln!(output, "Profile '{name}'").ok();
+  writeln!(output, "  Libraries: {}", repos.len()).ok();
   for repo in &repos {
-    println!("    - {repo}");
+    writeln!(output, "    - {repo}").ok();
   }
 
   if !confirm(
     &format!("Are you sure you want to remove profile '{name}'?"),
     yes,
-  ) {
-    println!("Aborted.");
+    input,
+    output,
+  )? {
+    writeln!(output, "Aborted.").ok();
     return Ok(());
   }
 
-  config.profiles.remove(name);
+  remove_profile_entry(config, name);
   let path = save_config(config)?;
-  println!("\nProfile '{name}' removed successfully");
-  println!("Configuration saved to: {}\n", path.display());
+  writeln!(output, "\nProfile '{name}' removed successfully").ok();
+  writeln!(output, "Configuration saved to: {}\n", path.display()).ok();
   Ok(())
 }
 
 /// Lists all configured profiles.
-pub fn list_profiles(config: &SetupConfig) {
-  println!("Available profiles:");
+pub fn list_profiles(config: &SetupConfig, output: &mut impl Write) {
+  writeln!(output, "Available profiles:").ok();
 
   if config.profiles.is_empty() {
-    println!("  No profiles configured.");
-    println!("  Run with --init-config to create a default configuration.");
+    writeln!(output, "  No profiles configured.").ok();
+    writeln!(
+      output,
+      "  Run with --init-config to create a default configuration."
+    )
+    .ok();
     return;
   }
 
-  println!("Configured profiles:\n");
+  writeln!(output, "Configured profiles:\n").ok();
   for (name, repos) in &config.profiles {
-    println!("  {name}");
-    println!("  Repositories ({}):", repos.len());
+    writeln!(output, "  {name}").ok();
+    writeln!(output, "  Repositories ({}):", repos.len()).ok();
     for repo in repos {
-      println!("      - {repo}");
+      writeln!(output, "      - {repo}").ok();
     }
-    println!();
+    writeln!(output).ok();
   }
 }

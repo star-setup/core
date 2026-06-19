@@ -1,6 +1,8 @@
 # Rust
 /target/
 Cargo.lock
+tarpaulin-report.*
+/coverage/
 
 # VS
 .vs/
