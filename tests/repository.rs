@@ -67,7 +67,7 @@ fn test_clone_skips_existing_directory() {
   let repo_dir = tmp.path().join("owner-repo");
   std::fs::create_dir_all(&repo_dir).unwrap();
 
-  let result = clone_repository("owner/repo", &tmp.path(), false, false, &mut sink());
+  let result = clone_repository("owner/repo", tmp.path(), false, false, &mut sink());
   assert!(result.is_ok());
   assert!(repo_dir.exists());
 }

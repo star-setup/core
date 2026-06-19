@@ -55,7 +55,7 @@ fn test_create_mono_repo_cmakelists_creates_file() {
   let tmp = tempfile::TempDir::new().unwrap();
 
   let repos = vec!["user/lib1".to_string(), "user/lib2".to_string()];
-  create_mono_repo_cmakelists(&tmp.path(), "user-testrepo", &repos, &mut sink()).unwrap();
+  create_mono_repo_cmakelists(tmp.path(), "user-testrepo", &repos, &mut sink()).unwrap();
 
   let cmake_file = tmp.path().join("CMakeLists.txt");
   assert!(cmake_file.exists());
@@ -69,7 +69,7 @@ fn test_create_mono_repo_cmakelists_creates_file() {
 #[test]
 fn test_create_mono_repo_cmakelists_empty_repos() {
   let tmp = tempfile::TempDir::new().unwrap();
-  create_mono_repo_cmakelists(&tmp.path(), "user-testrepo", &[], &mut sink()).unwrap();
+  create_mono_repo_cmakelists(tmp.path(), "user-testrepo", &[], &mut sink()).unwrap();
   assert!(tmp.path().join("CMakeLists.txt").exists());
 }
 
