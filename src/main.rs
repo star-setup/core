@@ -92,7 +92,7 @@ fn main() {
 
   if args.repo.is_none() {
     if std::io::stdin().is_terminal() {
-      if let Err(e) = interactive_mode(&mut args, &mut io::stdin().lock(), &mut io::stdout()) {
+      if let Err(e) = interactive_mode(&mut args, &mut stdin, &mut io::stdout()) {
         eprintln!("Error: {e}");
         std::process::exit(1);
       }
