@@ -24,12 +24,35 @@ star-setup username/repo --repos user/lib1 user/lib2
 
 ## Installation
 
-Download the latest binary from [Releases](https://github.com/star-setup/core/releases), or build from source:
+Download the latest binary from [Releases](https://github.com/star-setup/core/releases), or:
 
+### Homebrew (macOS/Linux)
+```bash
+brew install star-setup/tap/star-setup
+```
+
+### npm
+```bash
+npm install -g @star-setup/star-setup
+```
+
+### Shell (Linux/macOS)
+```bash
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/star-setup/core/releases/latest/download/star-setup-installer.sh | sh
+```
+
+### PowerShell (Windows)
+```powershell
+powershell -ExecutionPolicy Bypass -c "irm https://github.com/star-setup/core/releases/latest/download/star-setup-installer.ps1 | iex"
+```
+
+### Windows Installer
+Download the `.msi` from [Releases](https://github.com/star-setup/core/releases).
+
+### Build from source
 ```bash
 cargo install --git https://github.com/star-setup/core
 ```
-
 
 ## Usage
 
