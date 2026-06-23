@@ -46,6 +46,11 @@ curl --proto '=https' --tlsv1.2 -LsSf https://github.com/star-setup/core/release
 powershell -ExecutionPolicy Bypass -c "irm https://github.com/star-setup/core/releases/latest/download/star-setup-installer.ps1 | iex"
 ```
 
+### pip
+```bash
+pip install star-setup
+```
+
 ### Windows Installer
 Download the `.msi` from [Releases](https://github.com/star-setup/core/releases).
 
