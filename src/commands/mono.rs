@@ -1,187 +1,12 @@
-//! Command handlers for single and mono-repo modes.
-
 use crate::cli::ResolvedArgs;
+use crate::commands::build::cmake_build;
+use crate::commands::header::{print_mode_header, ModeHeader};
 use crate::config::SetupConfig;
 use crate::profiles::list_profiles;
-use crate::repository::{clone_repository, repo_dir_name, resolve_repo_url};
-use crate::utils::{confirm, run_command};
+use crate::repository::{clone_repository, repo_dir_name};
 use std::fs;
-use std::io::{BufRead, Write};
+use std::io::Write;
 use std::path::{Path, PathBuf};
-
-/// Header information printed at the start of each command mode.
-struct ModeHeader<'a> {
-  mode: &'a str,
-  test_repo: Option<&'a str>,
-  repo_name: Option<&'a str>,
-  use_ssh: bool,
-  mono_dir: Option<&'a str>,
-  profile: Option<&'a str>,
-  lib_count: Option<usize>,
-}
-
-/// Prints a formatted header summarizing the current mode and configuration.
-fn print_mode_header(header: &ModeHeader<'_>, output: &mut impl Write) {
-  writeln!(output, "Star Setup: {}", header.mode).ok();
-  if let Some(p) = header.profile {
-    writeln!(output, "  Profile: {p}").ok();
-  }
-  if let Some(r) = header.test_repo {
-    writeln!(output, "  Test Repository: {r}").ok();
-  } else if let Some(r) = header.repo_name {
-    writeln!(output, "  Repository: {r}").ok();
-  }
-  writeln!(
-    output,
-    "  Clone Method: {}",
-    if header.use_ssh { "SSH" } else { "HTTPS" }
-  )
-  .ok();
-  if let Some(d) = header.mono_dir {
-    writeln!(output, "  Directory: {d}").ok();
-  }
-  if let Some(c) = header.lib_count {
-    writeln!(output, "  Libraries: {c}").ok();
-  }
-  writeln!(output).ok();
-}
-
-/// Runs `CMake` configuration and optionally builds the project in `build_path`.
-/// # Errors
-/// Returns an error if any `CMake` command fails.
-fn cmake_build(
-  args: &ResolvedArgs,
-  build_path: &Path,
-  mono: bool,
-  output: &mut impl Write,
-) -> Result<(), String> {
-  let build_type_flag = format!("-DCMAKE_BUILD_TYPE={}", args.build.build_type.to_cmake());
-  let mut cmake_cmd = if mono {
-    vec!["cmake", "-DBUILD_LOCAL=ON", &build_type_flag, ".."]
-  } else {
-    vec!["cmake", "..", &build_type_flag]
-  };
-  cmake_cmd.extend(args.cmake_flags.iter().map(String::as_str));
-  run_command(
-    &cmake_cmd,
-    Some(build_path),
-    args.connection.verbose,
-    output,
-  )?;
-  if !args.build.no_build {
-    writeln!(output, "Building project\n").ok();
-    run_command(
-      &[
-        "cmake",
-        "--build",
-        ".",
-        "--config",
-        args.build.build_type.to_cmake(),
-      ],
-      Some(build_path),
-      args.connection.verbose,
-      output,
-    )?;
-  }
-  Ok(())
-}
-
-/// Clones and configures a single repository.
-/// # Errors
-/// Returns an error if no repository is specified, or if any git or `CMake` command fails.
-pub fn single_repo_mode(
-  args: &ResolvedArgs,
-  input: &mut impl BufRead,
-  output: &mut impl Write,
-) -> Result<(), String> {
-  let repo = args.repo.as_deref().ok_or("No repository specified")?;
-  let repo_url = resolve_repo_url(repo, args.connection.ssh);
-  let dir_name = repo_dir_name(repo);
-
-  print_mode_header(
-    &ModeHeader {
-      mode: "Single Repository Mode",
-      test_repo: None,
-      repo_name: Some(&dir_name),
-      use_ssh: args.connection.ssh,
-      mono_dir: None,
-      profile: None,
-      lib_count: None,
-    },
-    output,
-  );
-
-  let repo_path = Path::new(&dir_name);
-  if repo_path.exists() {
-    writeln!(output, "Repository {dir_name} already exists").ok();
-    if confirm("Update existing repository?", args.yes, input, output)? {
-      writeln!(output, "Updating {dir_name}\n").ok();
-      run_command(
-        &["git", "pull"],
-        Some(Path::new(&dir_name)),
-        args.connection.verbose,
-        output,
-      )?;
-    }
-  } else {
-    writeln!(output, "Cloning {dir_name}\n").ok();
-    run_command(
-      &["git", "clone", &repo_url, &dir_name],
-      None,
-      args.connection.verbose,
-      output,
-    )?;
-  }
-
-  let build_path = PathBuf::from(&dir_name).join(&args.build.build_dir);
-  if args.build.clean && build_path.exists() {
-    writeln!(output, "Cleaning build directory\n").ok();
-    fs::remove_dir_all(&build_path).map_err(|e| e.to_string())?;
-  }
-
-  writeln!(
-    output,
-    "Creating build directory: {}\n",
-    args.build.build_dir
-  )
-  .ok();
-  fs::create_dir_all(&build_path).map_err(|e| e.to_string())?;
-
-  writeln!(output, "Configuring with CMake\n").ok();
-  cmake_build(args, build_path.as_path(), false, output)?;
-
-  writeln!(
-    output,
-    "Project finished in {dir_name}/{}",
-    args.build.build_dir
-  )
-  .ok();
-  Ok(())
-}
-
-/// Normalizes a repository input to `username/repo` format.
-/// # Errors
-/// Returns an error if the input is not a recognizable GitHub URL or `username/repo` format.
-pub fn resolve_test_repo(repo_input: &str) -> Result<String, String> {
-  let repo_input = repo_input.trim_end_matches('/');
-  if repo_input.starts_with("http") || repo_input.starts_with("git@") {
-    if repo_input.contains("github.com/") || repo_input.contains("github.com:") {
-      let parts: Vec<&str> = repo_input.split('/').collect();
-      if parts.len() < 2 {
-        return Err("Repository URL missing repository name".to_string());
-      }
-      let user = parts[parts.len() - 2].split(':').next_back().unwrap_or("");
-      let repo = parts[parts.len() - 1].trim_end_matches(".git");
-      Ok(format!("{user}/{repo}"))
-    } else {
-      Err("Could not parse repository URL".to_string())
-    }
-  } else if repo_input.contains('/') {
-    Ok(repo_input.to_string())
-  } else {
-    Err("Repository must be in format 'username/repo' for mono-repo mode".to_string())
-  }
-}
 
 /// Generates a root `CMakeLists.txt` wiring all repositories as subdirectories.
 /// # Errors
@@ -283,6 +108,30 @@ pub fn resolve_repos_for_mono(
     Ok(r.clone())
   } else {
     Err("No repos or profile specified for mono-repo mode".to_string())
+  }
+}
+
+/// Normalizes a repository input to `username/repo` format.
+/// # Errors
+/// Returns an error if the input is not a recognizable GitHub URL or `username/repo` format.
+pub fn resolve_test_repo(repo_input: &str) -> Result<String, String> {
+  let repo_input = repo_input.trim_end_matches('/');
+  if repo_input.starts_with("http") || repo_input.starts_with("git@") {
+    if repo_input.contains("github.com/") || repo_input.contains("github.com:") {
+      let parts: Vec<&str> = repo_input.split('/').collect();
+      if parts.len() < 2 {
+        return Err("Repository URL missing repository name".to_string());
+      }
+      let user = parts[parts.len() - 2].split(':').next_back().unwrap_or("");
+      let repo = parts[parts.len() - 1].trim_end_matches(".git");
+      Ok(format!("{user}/{repo}"))
+    } else {
+      Err("Could not parse repository URL".to_string())
+    }
+  } else if repo_input.contains('/') {
+    Ok(repo_input.to_string())
+  } else {
+    Err("Repository must be in format 'username/repo' for mono-repo mode".to_string())
   }
 }
 

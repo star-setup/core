@@ -76,7 +76,6 @@ fn test_create_mono_repo_cmakelists_empty_repos() {
 fn default_resolved() -> star_setup::cli::ResolvedArgs {
   let args = Args {
     repo: Some("user/repo".to_string()),
-    cmake_flags: vec![],
     yes: false,
     connection: ConnectionFlags {
       ssh: false,
@@ -91,6 +90,7 @@ fn default_resolved() -> star_setup::cli::ResolvedArgs {
       build: false,
       clean: false,
       no_clean: false,
+      cmake_flags: vec![],
     },
     mono: MonoRepoFlags {
       mono_repo: false,

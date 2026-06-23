@@ -67,7 +67,7 @@ fn main() {
       no_build: args.build.no_build,
       clean: args.build.clean,
       verbose: args.connection.verbose,
-      cmake_flags: args.cmake_flags.clone(),
+      cmake_flags: args.build.cmake_flags.clone(),
     };
     if let Err(e) = add_config(&mut config, name, entry, args.yes, &mut stdin, &mut stdout) {
       eprintln!("Error: {e}");

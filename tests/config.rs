@@ -1,6 +1,10 @@
-use star_setup::{cli::BuildType, config::{
-  ConfigEntry, SetupConfig, format_entry, has_config, insert_config, load_config, remove_config_entry, save_config,
-}};
+use star_setup::{
+  cli::BuildType,
+  config::{
+    format_entry, has_config, insert_config, load_config, remove_config_entry, save_config,
+    ConfigEntry, SetupConfig,
+  },
+};
 use std::path::PathBuf;
 mod common;
 use common::{empty_input, sink};

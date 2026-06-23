@@ -1,8 +1,8 @@
 //! Interactive CLI mode.
 
 use crate::cli::{BuildType, ResolvedArgs};
+use crate::prompts::{ask, ask_default, ask_yesno};
 use std::io::{BufRead, Write};
-use crate::prompts::{ask, ask_yesno, ask_default};
 
 /// Interactive CLI mode — prompts for any unset arguments.
 /// # Errors
@@ -94,10 +94,10 @@ pub fn interactive_mode(
   args.build.build_type = build_type_str.parse::<BuildType>()?;
   args.build.build_dir = ask_default("Build directory", &args.build.build_dir, input, output)?;
 
-  if args.cmake_flags.is_empty() {
+  if args.build.cmake_flags.is_empty() {
     let cmake_extra = ask_default("Additional CMake args (space separated)", "", input, output)?;
     if !cmake_extra.is_empty() {
-      args.cmake_flags = cmake_extra.split_whitespace().map(String::from).collect();
+      args.build.cmake_flags = cmake_extra.split_whitespace().map(String::from).collect();
     }
   }
 

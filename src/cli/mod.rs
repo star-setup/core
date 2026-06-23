@@ -18,10 +18,6 @@ pub struct Args {
   /// Repository name (username/repo) or full GitHub URL
   pub repo: Option<String>,
 
-  /// Additional `CMake` arguments
-  #[arg(long = "cmake-arg", action = clap::ArgAction::Append)]
-  pub cmake_flags: Vec<String>,
-
   /// Skip confirmation prompts (non-interactive mode)
   #[arg(short = 'y', long)]
   pub yes: bool,
@@ -92,8 +88,8 @@ pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<Resol
     default.map(|e| e.clean),
     false,
   );
-  if args.cmake_flags.is_empty() {
-    args.cmake_flags = default.map_or_else(Vec::new, |e| e.cmake_flags.clone());
+  if args.build.cmake_flags.is_empty() {
+    args.build.cmake_flags = default.map_or_else(Vec::new, |e| e.cmake_flags.clone());
   }
 
   let repos = args.mono.repos.take();
@@ -102,7 +98,6 @@ pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<Resol
 
   Ok(ResolvedArgs {
     repo: args.repo,
-    cmake_flags: args.cmake_flags,
     yes: args.yes,
     connection: ResolvedConnectionFlags { ssh, verbose },
     build: ResolvedBuildFlags {
@@ -118,6 +113,7 @@ pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<Resol
         .unwrap_or_else(|| "build".to_string()),
       no_build,
       clean,
+      cmake_flags: args.build.cmake_flags,
     },
     mono: ResolvedMonoFlags {
       mono_repo,

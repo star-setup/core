@@ -13,6 +13,7 @@ pub struct ResolvedBuildFlags {
   pub build_dir: String,
   pub no_build: bool,
   pub clean: bool,
+  pub cmake_flags: Vec<String>,
 }
 
 /// Resolved mono-repo flags after applying config and CLI overrides.
@@ -26,7 +27,6 @@ pub struct ResolvedMonoFlags {
 /// Fully resolved arguments ready for command execution.
 pub struct ResolvedArgs {
   pub repo: Option<String>,
-  pub cmake_flags: Vec<String>,
   pub yes: bool,
   pub connection: ResolvedConnectionFlags,
   pub build: ResolvedBuildFlags,

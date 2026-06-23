@@ -1,5 +1,6 @@
 use star_setup::cli::{
-  Args, BuildFlags, BuildType, ConfigFlags, ConnectionFlags, MonoRepoFlags, ProfileFlags, resolve_bool, resolve_with_config,
+  resolve_bool, resolve_with_config, Args, BuildFlags, BuildType, ConfigFlags, ConnectionFlags,
+  MonoRepoFlags, ProfileFlags,
 };
 use star_setup::config::{ConfigEntry, SetupConfig};
 
@@ -71,7 +72,6 @@ fn test_resolve_bool() {
 fn default_args() -> Args {
   Args {
     repo: None,
-    cmake_flags: vec![],
     yes: false,
     connection: ConnectionFlags {
       ssh: false,
@@ -86,6 +86,7 @@ fn default_args() -> Args {
       build: false,
       clean: false,
       no_clean: false,
+      cmake_flags: vec![],
     },
     mono: MonoRepoFlags {
       mono_repo: false,
@@ -145,7 +146,7 @@ fn test_resolve_with_config_applies_config_defaults() {
   assert_eq!(resolved.build.build_dir, "out");
   assert!(resolved.build.no_build);
   assert!(resolved.build.clean);
-  assert_eq!(resolved.cmake_flags, vec!["-DTEST=ON"]);
+  assert_eq!(resolved.build.cmake_flags, vec!["-DTEST=ON"]);
 }
 
 #[test]
@@ -241,9 +242,9 @@ fn test_resolve_with_config_cli_cmake_flags_not_overwritten_by_config() {
     },
   );
   let mut args = default_args();
-  args.cmake_flags = vec!["-DCLI_FLAG=ON".to_string()];
+  args.build.cmake_flags = vec!["-DCLI_FLAG=ON".to_string()];
   let resolved = resolve_with_config(args, &config).unwrap();
-  assert_eq!(resolved.cmake_flags, vec!["-DCLI_FLAG=ON"]);
+  assert_eq!(resolved.build.cmake_flags, vec!["-DCLI_FLAG=ON"]);
 }
 
 #[test]

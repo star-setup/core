@@ -42,6 +42,10 @@ pub struct BuildFlags {
   /// Do not clean build directory
   #[arg(long, conflicts_with = "clean")]
   pub no_clean: bool,
+
+  /// Additional `CMake` arguments
+  #[arg(long = "cmake-arg", action = clap::ArgAction::Append)]
+  pub cmake_flags: Vec<String>,
 }
 
 #[derive(ClapArgs)]

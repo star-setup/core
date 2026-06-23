@@ -5,7 +5,11 @@ use std::io::{BufRead, Write};
 /// Prompts the user for a required string value.
 /// # Errors
 /// Returns an error if stdin reaches EOF unexpectedly.
-pub fn ask(prompt: &str, input: &mut impl BufRead, output: &mut impl Write) -> Result<String, String> {
+pub fn ask(
+  prompt: &str,
+  input: &mut impl BufRead,
+  output: &mut impl Write,
+) -> Result<String, String> {
   write!(output, "{prompt}: ").ok();
   output.flush().ok();
   let mut line = String::new();
