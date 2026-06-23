@@ -1,6 +1,6 @@
 //! Interactive CLI mode.
 
-use crate::cli::ResolvedArgs;
+use crate::cli::{BuildType, ResolvedArgs};
 use std::io::{BufRead, Write};
 
 /// Prompts the user for a required string value.
@@ -134,7 +134,13 @@ pub fn interactive_mode(
     }
   }
 
-  args.build.build_type = ask_default("Build type", &args.build.build_type, input, output)?;
+  let build_type_str = ask_default(
+    "Build type",
+    args.build.build_type.to_cmake(),
+    input,
+    output,
+  )?;
+  args.build.build_type = build_type_str.parse::<BuildType>()?;
   args.build.build_dir = ask_default("Build directory", &args.build.build_dir, input, output)?;
 
   if args.cmake_flags.is_empty() {

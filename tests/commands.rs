@@ -24,7 +24,7 @@ fn test_resolve_test_repo() {
       resolve_test_repo(input),
       Ok("user/repo".to_string()),
       "Failed for input: {input}"
-    )
+    );
   }
 }
 
@@ -45,7 +45,7 @@ fn test_resolve_test_repo_errors() {
     ),
   ];
   for (input, error) in cases {
-    assert_eq!(resolve_test_repo(input), Err(error.to_string()))
+    assert_eq!(resolve_test_repo(input), Err(error.to_string()));
   }
 }
 

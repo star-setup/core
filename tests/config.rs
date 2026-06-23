@@ -1,7 +1,6 @@
-use star_setup::config::{
-  format_entry, has_config, insert_config, load_config, remove_config_entry, save_config,
-  ConfigEntry, SetupConfig,
-};
+use star_setup::{cli::BuildType, config::{
+  ConfigEntry, SetupConfig, format_entry, has_config, insert_config, load_config, remove_config_entry, save_config,
+}};
 use std::path::PathBuf;
 mod common;
 use common::{empty_input, sink};
@@ -9,7 +8,7 @@ use common::{empty_input, sink};
 fn sample_entry() -> ConfigEntry {
   ConfigEntry {
     ssh: true,
-    build_type: "Release".to_string(),
+    build_type: BuildType::Release,
     build_dir: "build".to_string(),
     mono_dir: "mono".to_string(),
     no_build: false,
@@ -91,7 +90,7 @@ fn test_save_and_load_roundtrip() {
     "default".to_string(),
     ConfigEntry {
       ssh: true,
-      build_type: "Release".to_string(),
+      build_type: BuildType::Release,
       build_dir: "build".to_string(),
       mono_dir: "mono".to_string(),
       no_build: false,
@@ -105,7 +104,7 @@ fn test_save_and_load_roundtrip() {
   let loaded = load_config(&[path], &mut sink());
   assert!(loaded.configs.contains_key("default"));
   assert!(loaded.configs["default"].ssh);
-  assert_eq!(loaded.configs["default"].build_type, "Release");
+  assert_eq!(loaded.configs["default"].build_type, BuildType::Release);
   assert_eq!(loaded.configs["default"].mono_dir, "mono");
   assert_eq!(loaded.configs["default"].cmake_flags, Vec::<String>::new());
 }
@@ -211,7 +210,7 @@ fn test_add_config_aborts_when_exists_and_not_confirmed() {
     "myconfig",
     ConfigEntry {
       ssh: false, // different from sample_entry's ssh: true
-      build_type: "Debug".to_string(),
+      build_type: BuildType::Debug,
       build_dir: "build".to_string(),
       mono_dir: "mono".to_string(),
       no_build: false,

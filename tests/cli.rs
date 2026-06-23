@@ -1,11 +1,11 @@
 use star_setup::cli::{
-  resolve_bool, resolve_with_config, Args, BuildFlags, ConfigFlags, ConnectionFlags, MonoRepoFlags,
-  ProfileFlags,
+  Args, BuildFlags, BuildType, ConfigFlags, ConnectionFlags, MonoRepoFlags, ProfileFlags, resolve_bool, resolve_with_config,
 };
 use star_setup::config::{ConfigEntry, SetupConfig};
 
 #[test]
 fn test_resolve_bool() {
+  #[allow(clippy::struct_excessive_bools)]
   struct Case {
     flag_pos: bool,
     flag_neg: bool,
@@ -115,7 +115,7 @@ fn test_resolve_with_config_defaults_when_no_config() {
   let resolved = resolve_with_config(default_args(), &config).unwrap();
   assert!(!resolved.connection.ssh);
   assert!(!resolved.connection.verbose);
-  assert_eq!(resolved.build.build_type, "Debug");
+  assert_eq!(resolved.build.build_type, BuildType::Debug);
   assert_eq!(resolved.build.build_dir, "build");
   assert_eq!(resolved.mono.mono_dir, "build-mono");
   assert!(!resolved.build.no_build);
@@ -130,7 +130,7 @@ fn test_resolve_with_config_applies_config_defaults() {
     ConfigEntry {
       ssh: true,
       verbose: true,
-      build_type: "Release".to_string(),
+      build_type: BuildType::Release,
       build_dir: "out".to_string(),
       mono_dir: "mono".to_string(),
       no_build: true,
@@ -141,7 +141,7 @@ fn test_resolve_with_config_applies_config_defaults() {
   let resolved = resolve_with_config(default_args(), &config).unwrap();
   assert!(resolved.connection.ssh);
   assert!(resolved.connection.verbose);
-  assert_eq!(resolved.build.build_type, "Release");
+  assert_eq!(resolved.build.build_type, BuildType::Release);
   assert_eq!(resolved.build.build_dir, "out");
   assert!(resolved.build.no_build);
   assert!(resolved.build.clean);
@@ -156,7 +156,7 @@ fn test_resolve_with_config_cli_overrides_config() {
     ConfigEntry {
       ssh: false,
       verbose: false,
-      build_type: "Debug".to_string(),
+      build_type: BuildType::Debug,
       build_dir: "build".to_string(),
       mono_dir: "build-mono".to_string(),
       no_build: false,
@@ -169,7 +169,7 @@ fn test_resolve_with_config_cli_overrides_config() {
   args.build.build_type = Some("Release".to_string());
   let resolved = resolve_with_config(args, &config).unwrap();
   assert!(resolved.connection.ssh);
-  assert_eq!(resolved.build.build_type, "Release");
+  assert_eq!(resolved.build.build_type, BuildType::Release);
 }
 
 #[test]
@@ -207,7 +207,7 @@ fn test_resolve_with_config_named_config_pulls_correct_values() {
     ConfigEntry {
       ssh: true,
       verbose: false,
-      build_type: "RelWithDebInfo".to_string(),
+      build_type: BuildType::RelWithDebInfo,
       build_dir: "out".to_string(),
       mono_dir: "mono".to_string(),
       no_build: false,
@@ -219,7 +219,7 @@ fn test_resolve_with_config_named_config_pulls_correct_values() {
   args.config.config_name = Some("myconfig".to_string());
   let resolved = resolve_with_config(args, &config).unwrap();
   assert!(resolved.connection.ssh);
-  assert_eq!(resolved.build.build_type, "RelWithDebInfo");
+  assert_eq!(resolved.build.build_type, BuildType::RelWithDebInfo);
   assert_eq!(resolved.build.build_dir, "out");
   assert!(resolved.build.clean);
 }
@@ -232,7 +232,7 @@ fn test_resolve_with_config_cli_cmake_flags_not_overwritten_by_config() {
     ConfigEntry {
       ssh: false,
       verbose: false,
-      build_type: "Debug".to_string(),
+      build_type: BuildType::Debug,
       build_dir: "build".to_string(),
       mono_dir: "build-mono".to_string(),
       no_build: false,
@@ -254,7 +254,7 @@ fn test_resolve_with_config_negative_flags_override_config() {
     ConfigEntry {
       ssh: true,
       verbose: true,
-      build_type: "Debug".to_string(),
+      build_type: BuildType::Debug,
       build_dir: "build".to_string(),
       mono_dir: "build-mono".to_string(),
       no_build: true,

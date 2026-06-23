@@ -55,7 +55,7 @@ fn cmake_build(
   mono: bool,
   output: &mut impl Write,
 ) -> Result<(), String> {
-  let build_type_flag = format!("-DCMAKE_BUILD_TYPE={}", args.build.build_type);
+  let build_type_flag = format!("-DCMAKE_BUILD_TYPE={}", args.build.build_type.to_cmake());
   let mut cmake_cmd = if mono {
     vec!["cmake", "-DBUILD_LOCAL=ON", &build_type_flag, ".."]
   } else {
@@ -71,7 +71,13 @@ fn cmake_build(
   if !args.build.no_build {
     writeln!(output, "Building project\n").ok();
     run_command(
-      &["cmake", "--build", ".", "--config", &args.build.build_type],
+      &[
+        "cmake",
+        "--build",
+        ".",
+        "--config",
+        args.build.build_type.to_cmake(),
+      ],
       Some(build_path),
       args.connection.verbose,
       output,

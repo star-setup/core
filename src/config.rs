@@ -1,5 +1,6 @@
 //! Configuration file management.
 
+use crate::cli::BuildType;
 use crate::utils::confirm;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -15,8 +16,8 @@ use std::path::PathBuf;
 pub struct ConfigEntry {
   /// Use SSH instead of HTTPS for cloning.
   pub ssh: bool,
-  /// `CMake` build type (e.g. `Debug`, `Release`).
-  pub build_type: String,
+  /// Build type (e.g. `Debug`, `Release`).
+  pub build_type: BuildType,
   /// Build directory name.
   pub build_dir: String,
   /// Mono-repo build directory name.
@@ -74,7 +75,7 @@ pub fn has_config(config: &SetupConfig, name: &str) -> bool {
 pub fn format_entry(e: &ConfigEntry) -> String {
   let mut out = String::new();
   writeln!(out, "  SSH: {}", e.ssh).ok();
-  writeln!(out, "  Build Type: {}", e.build_type).ok();
+  writeln!(out, "  Build Type: {}", e.build_type.to_cmake()).ok();
   writeln!(out, "  Build Directory: {}", e.build_dir).ok();
   writeln!(out, "  Mono-build Directory: {}", e.mono_dir).ok();
   writeln!(out, "  No-build flag: {}", e.no_build).ok();
@@ -195,7 +196,7 @@ pub fn create_default_config(
     "default".to_string(),
     ConfigEntry {
       ssh: false,
-      build_type: "Debug".to_string(),
+      build_type: BuildType::Debug,
       build_dir: "build".to_string(),
       mono_dir: "build-mono".to_string(),
       no_build: false,

@@ -1,7 +1,9 @@
 use clap::Parser;
+pub mod build;
 pub mod flags;
 pub mod resolved;
 use crate::config::SetupConfig;
+pub use build::{detect_build_system, BuildSystem, BuildType};
 pub use flags::{BuildFlags, ConfigFlags, ConnectionFlags, MonoRepoFlags, ProfileFlags};
 pub use resolved::{ResolvedArgs, ResolvedBuildFlags, ResolvedConnectionFlags, ResolvedMonoFlags};
 
@@ -104,11 +106,11 @@ pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<Resol
     yes: args.yes,
     connection: ResolvedConnectionFlags { ssh, verbose },
     build: ResolvedBuildFlags {
-      build_type: args
-        .build
-        .build_type
-        .or_else(|| default.map(|e| e.build_type.clone()))
-        .unwrap_or_else(|| "Debug".to_string()),
+      build_type: if let Some(s) = args.build.build_type {
+        s.parse::<BuildType>()?
+      } else {
+        default.map(|e| e.build_type.clone()).unwrap_or_default()
+      },
       build_dir: args
         .build
         .build_dir
