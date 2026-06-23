@@ -2,56 +2,7 @@
 
 use crate::cli::{BuildType, ResolvedArgs};
 use std::io::{BufRead, Write};
-
-/// Prompts the user for a required string value.
-fn ask(prompt: &str, input: &mut impl BufRead, output: &mut impl Write) -> Result<String, String> {
-  write!(output, "{prompt}: ").ok();
-  output.flush().ok();
-  let mut line = String::new();
-  if input.read_line(&mut line).unwrap_or(0) == 0 {
-    return Err("unexpected end of input".to_string());
-  }
-  Ok(line.trim().to_string())
-}
-
-/// Prompts the user for a string value, returning `default` if the input is empty.
-fn ask_default(
-  prompt: &str,
-  default: &str,
-  input: &mut impl BufRead,
-  output: &mut impl Write,
-) -> Result<String, String> {
-  write!(output, "{prompt} [{default}]: ").ok();
-  output.flush().ok();
-  let mut line = String::new();
-  if input.read_line(&mut line).unwrap_or(0) == 0 {
-    return Err("unexpected end of input".to_string());
-  }
-  let val = line.trim().to_string();
-  Ok(if val.is_empty() {
-    default.to_string()
-  } else {
-    val
-  })
-}
-
-/// Prompts the user for a yes/no answer, returning `default` if the input is empty.
-fn ask_yesno(
-  prompt: &str,
-  default: bool,
-  input: &mut impl BufRead,
-  output: &mut impl Write,
-) -> Result<bool, String> {
-  let default_char = if default { "Y" } else { "N" };
-  write!(output, "{prompt} (y/n) [{default_char}]: ").ok();
-  output.flush().ok();
-  let mut line = String::new();
-  if input.read_line(&mut line).unwrap_or(0) == 0 {
-    return Err("unexpected end of input".to_string());
-  }
-  let val = line.trim().to_lowercase();
-  Ok(if val.is_empty() { default } else { val.eq("y") })
-}
+use crate::prompts::{ask, ask_yesno, ask_default};
 
 /// Interactive CLI mode — prompts for any unset arguments.
 /// # Errors

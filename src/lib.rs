@@ -7,3 +7,4 @@ pub mod interactive;
 pub mod profiles;
 pub mod repository;
 pub mod utils;
+pub mod prompts;
