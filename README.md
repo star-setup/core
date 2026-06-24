@@ -1,6 +1,6 @@
 # Star Setup
 
-A lightweight CLI to clone, configure, and wire single or multi-repo CMake ecosystems.
+A lightweight CLI to clone, configure, and wire single or multi-repo ecosystems.
 
 [![CI](https://github.com/star-setup/core/actions/workflows/ci.yml/badge.svg)](https://github.com/star-setup/core/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/github/license/star-setup/core)](./LICENSE)
@@ -20,7 +20,9 @@ star-setup username/repo --repos user/lib1 user/lib2
 
 ## Prerequisites
 - Git
-- CMake
+- At least one supported build system:
+  - CMake
+  - Meson
 
 ## Installation
 
@@ -74,6 +76,7 @@ Select mode: (1) Single Repo (2) Mono-Repo: 1
 Build type [Debug]:
 Build directory [build]:
 Additional CMake args (space separated):
+Additional Meson args (space separated):
 Configure only (skip build)? (y/n) [N]:
 
 Interactive mode complete
@@ -94,10 +97,12 @@ star-setup username/repo --no-build
 star-setup username/repo --clean
 star-setup username/repo --verbose
 star-setup username/repo --cmake-arg=-DCMAKE_CXX_COMPILER=clang++
+star-setup username/repo --meson-arg=-Db_lto=true
 ```
 
 ### Mono-Repo Mode
-Clones multiple repositories into a single workspace and generates a root `CMakeLists.txt` that wires them together as subdirectories.
+Clones multiple repositories into a single workspace and auto-detects the build system. For CMake projects, generates a root `CMakeLists.txt` wiring all repositories as subdirectories. For Meson projects, generates a root `meson.build` and auto-generates local `.wrap` files bridging canonical dependency names to cloned directories.
+
 ```bash
 # Manual repo list
 star-setup username/repo --repos user/lib1 user/lib2
@@ -109,28 +114,42 @@ star-setup username/repo --profile myprofile
 star-setup username/repo --repos user/lib1 user/lib2 --ssh --mono-dir my-workspace
 ```
 
-#### Workspace Structure
+#### Workspace Structure (CMake)
 ```
 build-mono/
-├── CMakeLists.txt # Auto-generated root project
-├── lib1/
-├── lib2/
-├── my-repo/       # Test repository
-└── build/         # Build output
+├── CMakeLists.txt  # Auto-generated root project
+├── repos/
+│   ├── user-my-repo/ # Test repository
+│   ├── user-lib1/
+│   └── user-lib2/
+└── build/          # Build output
 ```
 
-#### BUILD_LOCAL
+##### BUILD_LOCAL
 Mono-repo mode sets `-DBUILD_LOCAL=ON` when configuring CMake. This flag tells your test repository to link against local module directories instead of fetching them remotely via FetchContent:
 ```cmake
 # In your test repo's CMakeLists.txt
 if(NOT BUILD_LOCAL)
-    FetchContent_Declare(mylib
-        GIT_REPOSITORY https://github.com/user/mylib.git
-        GIT_TAG main
-    )
+  FetchContent_Declare(mylib
+    GIT_REPOSITORY https://github.com/user/mylib.git
+    GIT_TAG main
+  )
 endif()
 ```
 This allows the same repository to work both standalone (fetching dependencies automatically) and inside a mono-repo workspace (linking locally for full cross-module debugging).
+
+#### Workspace Structure (Meson)
+```
+build-mono/
+├── meson.build     # Auto-generated root project
+├── repos/
+│   ├── user-my-repo/ # Test repository
+│   ├── user-lib1/
+│   ├── user-lib2/
+│   ├── lib1.wrap     # Auto-generated local wrap
+│   └── lib2.wrap     # Auto-generated local wrap
+└── build/          # Build output
+```
 
 ### Profile Mode
 Profiles represent a saved ecosystem of libraries commonly used together.
@@ -152,6 +171,7 @@ star-setup username/repo --profile myprofile
 Config files are checked in this order:
 - `./.star-setup.json` (current directory)
 - `~/.star-setup.json` (home directory)
+
 ```bash
 # Initialize a default config file
 star-setup --init-config
