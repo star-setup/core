@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 
 /// Parses the `project()` name from `meson.build` content.
 /// Returns the name with hyphens replaced by underscores, or `None` if not found.
+#[must_use]
 pub fn parse_project_name(content: &str) -> Option<String> {
   let needle = b"project(";
   let bytes = content.as_bytes();
@@ -30,6 +31,7 @@ pub fn parse_project_name(content: &str) -> Option<String> {
 }
 
 /// Parses `[provide]` key-value pairs from wrap file content.
+#[must_use]
 pub fn parse_provide_pairs(content: &str) -> HashMap<String, String> {
   let mut in_provide = false;
   let mut pairs = HashMap::new();

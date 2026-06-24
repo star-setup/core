@@ -63,6 +63,7 @@ fn generate_mono_config(
   }
 }
 
+#[must_use]
 pub fn build_repo_list(test_repo: &str, deps: &[String]) -> Vec<String> {
   let mut seen = std::collections::HashSet::new();
   std::iter::once(test_repo.to_string())

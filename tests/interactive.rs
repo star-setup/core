@@ -135,3 +135,40 @@ fn test_interactive_mode_yes_word_not_accepted_for_ssh() {
   interactive_mode(&mut args, &mut input.as_ref(), &mut output).unwrap();
   assert!(!args.connection.ssh);
 }
+
+#[test]
+fn test_interactive_mode_cmake_flags_set() {
+  let input = b"user/repo\nn\nn\nn\n1\n\n\n-DFOO=ON\n\nn\n".to_vec();
+  let mut output = Vec::new();
+  let mut args = default_resolved();
+  interactive_mode(&mut args, &mut input.as_ref(), &mut output).unwrap();
+  assert_eq!(args.build.cmake_flags, vec!["-DFOO=ON"]);
+}
+
+#[test]
+fn test_interactive_mode_meson_flags_set() {
+  let input = b"user/repo\nn\nn\nn\n1\n\n\n\n-Dfoo=true\nn\n".to_vec();
+  let mut output = Vec::new();
+  let mut args = default_resolved();
+  interactive_mode(&mut args, &mut input.as_ref(), &mut output).unwrap();
+  assert_eq!(args.build.meson_flags, vec!["-Dfoo=true"]);
+}
+
+#[test]
+fn test_interactive_mode_invalid_mode_then_valid() {
+  let input = input_with_suffix(b"user/repo\nn\nn\nn\nfoo\n1");
+  let mut output = Vec::new();
+  let mut args = default_resolved();
+  interactive_mode(&mut args, &mut input.as_ref(), &mut output).unwrap();
+  assert!(!args.mono.mono_repo);
+}
+
+#[test]
+fn test_interactive_mode_invalid_mono_choice_then_valid() {
+  let input = input_with_suffix(b"user/repo\nn\nn\nn\n2\nfoo\n1\nmyprofile");
+  let mut output = Vec::new();
+  let mut args = default_resolved();
+  interactive_mode(&mut args, &mut input.as_ref(), &mut output).unwrap();
+  assert!(args.mono.mono_repo);
+  assert_eq!(args.mono.profile, Some("myprofile".to_string()));
+}
