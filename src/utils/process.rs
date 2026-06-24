@@ -91,7 +91,7 @@ pub fn run_command(
   #[cfg(target_os = "windows")]
   if std::path::Path::new(&cmd[0])
     .file_stem()
-    .map_or(false, |s| s.to_string_lossy().eq_ignore_ascii_case("meson"))
+    .is_some_and(|s| s.to_string_lossy().eq_ignore_ascii_case("meson"))
     && std::env::var("VSINSTALLDIR").is_err()
   {
     if let Ok(env) = get_msvc_env() {
