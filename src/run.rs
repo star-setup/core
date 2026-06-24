@@ -62,6 +62,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
       clean: args.build.clean,
       verbose: args.connection.verbose,
       cmake_flags: args.build.cmake_flags.clone(),
+      meson_flags: args.build.meson_flags.clone(),
     };
     add_config(&mut config, name, entry, args.yes, &mut stdin, &mut stdout)?;
     return Ok(());
@@ -78,7 +79,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
   }
 
   if args.repo.is_none() {
-    if std::io::stdin().is_terminal() {
+    if io::stdin().is_terminal() {
       interactive_mode(&mut args, &mut stdin, &mut stdout)?;
     } else {
       return Err("no repository specified".into());

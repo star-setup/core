@@ -138,6 +138,7 @@ fn test_resolve_with_config_applies_config_defaults() {
       no_build: true,
       clean: true,
       cmake_flags: vec!["-DTEST=ON".to_string()],
+      meson_flags: vec![],
     },
   );
   let resolved = resolve_with_config(default_args(), &config).unwrap();
@@ -164,6 +165,7 @@ fn test_resolve_with_config_cli_overrides_config() {
       no_build: false,
       clean: false,
       cmake_flags: vec![],
+      meson_flags: vec![],
     },
   );
   let mut args = default_args();
@@ -215,6 +217,7 @@ fn test_resolve_with_config_named_config_pulls_correct_values() {
       no_build: false,
       clean: true,
       cmake_flags: vec![],
+      meson_flags: vec![],
     },
   );
   let mut args = default_args();
@@ -240,6 +243,7 @@ fn test_resolve_with_config_cli_cmake_flags_not_overwritten_by_config() {
       no_build: false,
       clean: false,
       cmake_flags: vec!["-DCONFIG_FLAG=ON".to_string()],
+      meson_flags: vec![],
     },
   );
   let mut args = default_args();
@@ -262,6 +266,7 @@ fn test_resolve_with_config_negative_flags_override_config() {
       no_build: true,
       clean: true,
       cmake_flags: vec![],
+      meson_flags: vec![],
     },
   );
 

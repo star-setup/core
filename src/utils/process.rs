@@ -1,8 +1,9 @@
-use std::io::Read;
-use std::io::Write;
-use std::path::Path;
-use std::process::{Command, Stdio};
-use std::thread;
+use std::{
+  io::{Read, Write},
+  path::Path,
+  process::{Command, Stdio},
+  thread
+};
 
 /// Finds vcvars64.bat using vswhere.exe.
 /// Returns None if vswhere is not found or no VS installation exists.

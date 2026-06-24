@@ -60,6 +60,9 @@ pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<Resol
   if args.build.cmake_flags.is_empty() {
     args.build.cmake_flags = default.map_or_else(Vec::new, |e| e.cmake_flags.clone());
   }
+  if args.build.meson_flags.is_empty() {
+    args.build.meson_flags = default.map_or_else(Vec::new, |e| e.meson_flags.clone());
+  }
 
   let repos = args.mono.repos.take();
   let profile = args.mono.profile.take();

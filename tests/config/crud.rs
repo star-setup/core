@@ -67,6 +67,7 @@ fn test_add_config_aborts_when_exists_and_not_confirmed() {
       clean: false,
       verbose: false,
       cmake_flags: vec![],
+      meson_flags: vec![],
     },
     false,
     &mut input.as_ref(),

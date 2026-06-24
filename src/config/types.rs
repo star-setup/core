@@ -22,6 +22,8 @@ pub struct ConfigEntry {
   pub verbose: bool,
   /// Additional `CMake` arguments.
   pub cmake_flags: Vec<String>,
+  /// Additional `Meson` arguments.
+  pub meson_flags: Vec<String>,
 }
 
 /// Top-level configuration structure.

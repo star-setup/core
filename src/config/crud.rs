@@ -62,6 +62,7 @@ pub fn create_default_config(
       clean: false,
       verbose: false,
       cmake_flags: vec![],
+      meson_flags: vec![],
     },
   );
 

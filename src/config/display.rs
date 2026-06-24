@@ -22,5 +22,15 @@ pub fn format_entry(e: &ConfigEntry) -> String {
       writeln!(out, "    {arg}").ok();
     }
   }
+  if e.meson_flags.is_empty() {
+    out.push('\n');
+  } else if e.meson_flags.len() == 1 {
+    writeln!(out, "  Meson argument: {}", e.meson_flags[0]).ok();
+  } else {
+    out.push_str("  Meson arguments:\n");
+    for arg in &e.meson_flags {
+      writeln!(out, "    {arg}").ok();
+    }
+  }
   out
 }
