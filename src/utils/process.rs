@@ -87,8 +87,13 @@ pub fn run_command(
       command.env("GIT_SSH_COMMAND", "ssh -o BatchMode=yes");
     }
   }
+
   #[cfg(target_os = "windows")]
-  if cmd[0] == "meson" && std::env::var("VSINSTALLDIR").is_err() {
+  if std::path::Path::new(&cmd[0])
+    .file_stem()
+    .map_or(false, |s| s.to_string_lossy().eq_ignore_ascii_case("meson"))
+    && std::env::var("VSINSTALLDIR").is_err()
+  {
     if let Ok(env) = get_msvc_env() {
       for (k, v) in env {
         command.env(k, v);
