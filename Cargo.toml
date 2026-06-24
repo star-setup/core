@@ -1,6 +1,6 @@
 [package]
 name = "star-setup"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 repository = "https://github.com/star-setup/core"
 description = "Lightweight CLI to clone, configure, and wire single or multi-repo CMake ecosystems"

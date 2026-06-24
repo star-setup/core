@@ -2,6 +2,7 @@
 
 A lightweight CLI to clone, configure, and wire single or multi-repo ecosystems.
 
+[![GitHub Release](https://img.shields.io/github/v/release/star-setup/core?include_prereleases&sort=semver)](https://github.com/star-setup/core/releases)
 [![CI](https://github.com/star-setup/core/actions/workflows/ci.yml/badge.svg)](https://github.com/star-setup/core/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/github/license/star-setup/core)](./LICENSE)
 
