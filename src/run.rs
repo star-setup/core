@@ -78,7 +78,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
   if args.repo.is_none() {
     if std::io::stdin().is_terminal() {
-      interactive_mode(&mut args, &mut stdin, &mut io::stdout())?;
+      interactive_mode(&mut args, &mut stdin, &mut stdout)?;
     } else {
       return Err("no repository specified".into());
     }

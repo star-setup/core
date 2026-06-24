@@ -37,6 +37,7 @@ pub fn detect_mono_build_system(
   input: &mut impl BufRead,
   output: &mut impl Write,
 ) -> Result<BuildSystem, String> {
+  writeln!(output, "Detecting build system\n").ok();
   let all_cmake = dirs.iter().all(|d| d.join("CMakeLists.txt").exists());
   let all_meson = dirs.iter().all(|d| d.join("meson.build").exists());
   match (all_cmake, all_meson) {

@@ -19,6 +19,7 @@ fn clone_mono_repos(
   verbose: bool,
   output: &mut impl Write,
 ) -> Result<(), String> {
+  writeln!(output, "Cloning repositories").ok();
   for repo in repos {
     clone_repository(repo, repos_path, ssh, verbose, output)?;
   }
@@ -39,6 +40,7 @@ fn generate_mono_config(
   repos: &[String],
   output: &mut impl Write,
 ) -> Result<Option<std::collections::HashMap<String, String>>, String> {
+  writeln!(output, "Creating mono-repo configuration").ok();
   match build_system {
     BuildSystem::Cmake => {
       create_mono_repo_cmakelists(mono_repo_path, repos, output)?;
@@ -96,7 +98,6 @@ pub fn mono_repo_mode(
   let repos_path = mono_repo_path.join("repos");
   fs::create_dir_all(&repos_path).map_err(|e| e.to_string())?;
 
-  writeln!(output, "Cloning repositories").ok();
   clone_mono_repos(
     &repos,
     &repos_path,
@@ -110,10 +111,8 @@ pub fn mono_repo_mode(
     .map(|r| repos_path.join(repo_dir_name(r)))
     .collect();
 
-  writeln!(output, "Detecting build system\n").ok();
   let build_system = detect_mono_build_system(&repo_dirs, input, output)?;
 
-  writeln!(output, "Creating mono-repo configuration").ok();
   let canonical_map = generate_mono_config(
     &build_system,
     &mono_repo_path,
@@ -123,14 +122,13 @@ pub fn mono_repo_mode(
     output,
   )?;
 
-  writeln!(output, "Creating build directory\n").ok();
   let build_path = mono_repo_path.join(&args.build.build_dir);
-
   if args.build.clean && build_path.exists() {
     writeln!(output, "Cleaning build directory\n").ok();
     fs::remove_dir_all(&build_path).map_err(|e| e.to_string())?;
   }
 
+  writeln!(output, "Creating build directory\n").ok();
   fs::create_dir_all(&build_path).map_err(|e| e.to_string())?;
 
   writeln!(output, "Configuring project in {}\n", build_path.display()).ok();

@@ -40,6 +40,7 @@ pub fn create_mono_repo_cmakelists(
   repos: &[String],
   output: &mut impl Write,
 ) -> Result<(), String> {
+  writeln!(output, "  Creating CMake configuration").ok();
   write_mono_repo_config(
     mono_dir,
     repos,
@@ -81,6 +82,7 @@ pub fn create_mono_repo_mesonbuild(
   repos: &[String],
   output: &mut impl Write,
 ) -> Result<(), String> {
+  writeln!(output, "  Creating Meson configuration").ok();
   write_mono_repo_config(
     mono_dir,
     repos,
