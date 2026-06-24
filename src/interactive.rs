@@ -1,57 +1,10 @@
 //! Interactive CLI mode.
 
-use crate::cli::ResolvedArgs;
+use crate::{
+  cli::{build::BuildType, ResolvedArgs},
+  prompts::{ask, ask_default, ask_yesno},
+};
 use std::io::{BufRead, Write};
-
-/// Prompts the user for a required string value.
-fn ask(prompt: &str, input: &mut impl BufRead, output: &mut impl Write) -> Result<String, String> {
-  write!(output, "{prompt}: ").ok();
-  output.flush().ok();
-  let mut line = String::new();
-  if input.read_line(&mut line).unwrap_or(0) == 0 {
-    return Err("unexpected end of input".to_string());
-  }
-  Ok(line.trim().to_string())
-}
-
-/// Prompts the user for a string value, returning `default` if the input is empty.
-fn ask_default(
-  prompt: &str,
-  default: &str,
-  input: &mut impl BufRead,
-  output: &mut impl Write,
-) -> Result<String, String> {
-  write!(output, "{prompt} [{default}]: ").ok();
-  output.flush().ok();
-  let mut line = String::new();
-  if input.read_line(&mut line).unwrap_or(0) == 0 {
-    return Err("unexpected end of input".to_string());
-  }
-  let val = line.trim().to_string();
-  Ok(if val.is_empty() {
-    default.to_string()
-  } else {
-    val
-  })
-}
-
-/// Prompts the user for a yes/no answer, returning `default` if the input is empty.
-fn ask_yesno(
-  prompt: &str,
-  default: bool,
-  input: &mut impl BufRead,
-  output: &mut impl Write,
-) -> Result<bool, String> {
-  let default_char = if default { "Y" } else { "N" };
-  write!(output, "{prompt} (y/n) [{default_char}]: ").ok();
-  output.flush().ok();
-  let mut line = String::new();
-  if input.read_line(&mut line).unwrap_or(0) == 0 {
-    return Err("unexpected end of input".to_string());
-  }
-  let val = line.trim().to_lowercase();
-  Ok(if val.is_empty() { default } else { val.eq("y") })
-}
 
 /// Interactive CLI mode — prompts for any unset arguments.
 /// # Errors
@@ -134,15 +87,14 @@ pub fn interactive_mode(
     }
   }
 
-  args.build.build_type = ask_default("Build type", &args.build.build_type, input, output)?;
+  let build_type_str = ask_default(
+    "Build type",
+    args.build.build_type.to_cmake(),
+    input,
+    output,
+  )?;
+  args.build.build_type = build_type_str.parse::<BuildType>()?;
   args.build.build_dir = ask_default("Build directory", &args.build.build_dir, input, output)?;
-
-  if args.cmake_flags.is_empty() {
-    let cmake_extra = ask_default("Additional CMake args (space separated)", "", input, output)?;
-    if !cmake_extra.is_empty() {
-      args.cmake_flags = cmake_extra.split_whitespace().map(String::from).collect();
-    }
-  }
 
   if !args.build.no_build {
     args.build.no_build = ask_yesno("Configure only (skip build)?", false, input, output)?;

@@ -1,8 +1,7 @@
 //! Repository functions including cloning and URL resolution.
 
-use crate::utils::run_command;
-use std::io::Write;
-use std::path::Path;
+use crate::utils::process::run_command;
+use std::{io::Write, path::Path};
 
 /// Converts a repository path or URL to a local directory name (`owner-repo`).
 #[must_use]

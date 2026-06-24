@@ -1,4 +1,5 @@
-use star_setup::config::{save_config, SetupConfig};
+use star_setup::config::io::{load_config, save_config};
+use star_setup::config::types::SetupConfig;
 use star_setup::profiles::{has_profile, insert_profile, remove_profile_entry};
 mod common;
 use common::{empty_input, sink};
@@ -195,7 +196,7 @@ fn test_save_and_load_profile_roundtrip() {
   );
   save_config(&mut config).unwrap();
 
-  let loaded = star_setup::config::load_config(&[path], &mut sink());
+  let loaded = load_config(&[path], &mut sink());
   assert!(loaded.profiles.contains_key("myprofile"));
   assert_eq!(
     loaded.profiles["myprofile"],

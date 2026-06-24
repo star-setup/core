@@ -370,15 +370,3 @@ jobs:
         with:
           persist-credentials: false
           submodules: recursive
-
-      - name: Trigger py-wrapper release
-        if: ${{ !github.event.pull_request }}
-        run: |
-          VERSION="${{ needs.plan.outputs.tag }}"
-          VERSION="${VERSION#v}"
-          gh api repos/star-setup/py-wrapper/dispatches \
-            --method POST \
-            --field event_type=core-release \
-            --field "client_payload[version]=${VERSION}"
-        env:
-          GH_TOKEN: ${{ secrets.PY_WRAPPER_DISPATCH_TOKEN }}

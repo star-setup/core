@@ -1,55 +1,61 @@
-//! Utility functions.
+use std::{
+  io::{Read, Write},
+  path::Path,
+  process::{Command, Stdio},
+  thread,
+};
 
-use std::io::BufRead;
-use std::io::Read;
-use std::io::Write;
-use std::path::Path;
-use std::process::{Command, Stdio};
-use std::thread;
+/// Finds vcvars64.bat using vswhere.exe.
+/// Returns None if vswhere is not found or no VS installation exists.
+#[cfg(target_os = "windows")]
+fn find_vcvars() -> Option<std::path::PathBuf> {
+  let vswhere = std::path::PathBuf::from(
+    std::env::var("ProgramFiles(x86)").unwrap_or_else(|_| r"C:\Program Files (x86)".to_string()),
+  )
+  .join(r"Microsoft Visual Studio\Installer\vswhere.exe");
 
-/// Returns `true` if `yes` is set or the user enters `y`/`Y`.
-/// # Errors
-/// Returns an error if stdin reaches EOF unexpectedly.
-pub fn confirm(
-  prompt: &str,
-  yes: bool,
-  input: &mut impl BufRead,
-  output: &mut impl Write,
-) -> Result<bool, String> {
-  if yes {
-    return Ok(true);
+  if !vswhere.exists() {
+    return None;
   }
 
-  write!(output, "{prompt} (y/n): ").ok();
-  output.flush().ok();
-  let mut line = String::new();
-  if input.read_line(&mut line).unwrap_or(0) == 0 {
-    return Err("unexpected end of input".to_string());
-  }
-  Ok(line.trim().eq_ignore_ascii_case("y"))
+  let output = Command::new(&vswhere)
+    .args(["-latest", "-property", "installationPath"])
+    .output()
+    .ok()?;
+
+  let install_path = String::from_utf8(output.stdout).ok()?;
+  let vcvars =
+    std::path::PathBuf::from(install_path.trim()).join(r"VC\Auxiliary\Build\vcvars64.bat");
+
+  vcvars.exists().then_some(vcvars)
 }
 
-/// Checks if required tools are available on PATH.
-/// Returns Result.
+/// Runs vcvars64.bat and captures the resulting environment variables.
 /// # Errors
-/// Returns an error if any required tool is missing from PATH.
-pub fn check_prerequisites(verbose: bool, output: &mut impl Write) -> Result<(), String> {
-  let mut missing: Vec<&str> = Vec::new();
-  for tool in &["git", "cmake"] {
-    if Command::new(tool)
-      .arg("--version")
-      .output()
-      .map_or(true, |o| !o.status.success())
-    {
-      missing.push(tool);
-    } else if verbose {
-      writeln!(output, "Found {tool}").ok();
-    }
-  }
-  if !missing.is_empty() {
-    return Err(format!("Missing required tools: {}", missing.join(", ")));
-  }
-  Ok(())
+/// Returns an error if vcvars64.bat cannot be found or run.
+#[cfg(target_os = "windows")]
+fn get_msvc_env() -> Result<std::collections::HashMap<String, String>, String> {
+  let vcvars = find_vcvars().ok_or("Could not find vcvars64.bat via vswhere")?;
+  let output = Command::new("cmd")
+    .args([
+      "/c",
+      vcvars.to_str().ok_or("Invalid vcvars path")?,
+      "&&",
+      "set",
+    ])
+    .output()
+    .map_err(|e| format!("Failed to run vcvars64.bat: {e}"))?;
+
+  let stdout = String::from_utf8_lossy(&output.stdout);
+  Ok(
+    stdout
+      .lines()
+      .filter_map(|line| {
+        let mut parts = line.splitn(2, '=');
+        Some((parts.next()?.to_string(), parts.next()?.to_string()))
+      })
+      .collect(),
+  )
 }
 
 /// Runs a shell command with optional working directory.
@@ -79,6 +85,19 @@ pub fn run_command(
     command.env("GIT_TERMINAL_PROMPT", "0");
     if std::env::var("GIT_SSH_COMMAND").is_err() {
       command.env("GIT_SSH_COMMAND", "ssh -o BatchMode=yes");
+    }
+  }
+
+  #[cfg(target_os = "windows")]
+  if std::path::Path::new(&cmd[0])
+    .file_stem()
+    .is_some_and(|s| s.to_string_lossy().eq_ignore_ascii_case("meson"))
+    && std::env::var("VSINSTALLDIR").is_err()
+  {
+    if let Ok(env) = get_msvc_env() {
+      for (k, v) in env {
+        command.env(k, v);
+      }
     }
   }
 

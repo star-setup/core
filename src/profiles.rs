@@ -1,7 +1,9 @@
 //! Profile management.
 
-use crate::config::{save_config, SetupConfig};
-use crate::utils::confirm;
+use crate::{
+  config::{io::save_config, types::SetupConfig},
+  prompts::confirm,
+};
 use std::io::{BufRead, Write};
 
 /// Inserts or overwrites a named profile.
@@ -18,6 +20,14 @@ pub fn remove_profile_entry(config: &mut SetupConfig, name: &str) -> bool {
 #[must_use]
 pub fn has_profile(config: &SetupConfig, name: &str) -> bool {
   config.profiles.contains_key(name)
+}
+
+fn print_profile_details(output: &mut impl Write, title: &str, label: &str, repos: &[String]) {
+  writeln!(output, "  {title}").ok();
+  writeln!(output, "    {label}: {}", repos.len()).ok();
+  for repo in repos {
+    writeln!(output, "      - {repo}").ok();
+  }
 }
 
 /// Adds a new profile to the configuration.
@@ -55,11 +65,7 @@ pub fn add_profile(
 
   writeln!(output, "Profile '{name}' added successfully").ok();
   writeln!(output, "Configuration saved to: {}", path.display()).ok();
-  writeln!(output, "Profile details:").ok();
-  writeln!(output, "  Repositories ({}):", repos.len()).ok();
-  for repo in repos {
-    writeln!(output, "    - {repo}").ok();
-  }
+  print_profile_details(output, "Profile details:", "Repositories", &repos);
   writeln!(
     output,
     "\nUsage: star-setup username/test-repo --profile {name}"
@@ -86,11 +92,7 @@ pub fn remove_profile(
     Some(r) => r.clone(),
   };
 
-  writeln!(output, "Profile '{name}'").ok();
-  writeln!(output, "  Libraries: {}", repos.len()).ok();
-  for repo in &repos {
-    writeln!(output, "    - {repo}").ok();
-  }
+  print_profile_details(output, &format!("Profile '{name}'"), "Repositories", &repos);
 
   if !confirm(
     &format!("Are you sure you want to remove profile '{name}'?"),
@@ -111,13 +113,10 @@ pub fn remove_profile(
 
 /// Lists all configured profiles.
 pub fn list_profiles(config: &SetupConfig, output: &mut impl Write) {
-  writeln!(output, "Available profiles:").ok();
-
   if config.profiles.is_empty() {
-    writeln!(output, "  No profiles configured.").ok();
     writeln!(
       output,
-      "  Run with --init-config to create a default configuration."
+      "No profiles configured. Run with --init-config to create a default configuration."
     )
     .ok();
     return;
@@ -125,11 +124,7 @@ pub fn list_profiles(config: &SetupConfig, output: &mut impl Write) {
 
   writeln!(output, "Configured profiles:\n").ok();
   for (name, repos) in &config.profiles {
-    writeln!(output, "  {name}").ok();
-    writeln!(output, "  Repositories ({}):", repos.len()).ok();
-    for repo in repos {
-      writeln!(output, "      - {repo}").ok();
-    }
+    print_profile_details(output, name, "Repositories", repos);
     writeln!(output).ok();
   }
 }
