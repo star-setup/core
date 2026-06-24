@@ -1,7 +1,8 @@
-use crate::cli::build::BuildSystem;
-use crate::prompts::ask_choice;
-use std::io::{BufRead, Write};
-use std::path::{Path, PathBuf};
+use crate::{cli::build::BuildSystem, prompts::ask_choice};
+use std::{
+  io::{BufRead, Write},
+  path::{Path, PathBuf},
+};
 
 /// Detects the build system in use by inspecting the given directory.
 /// # Errors

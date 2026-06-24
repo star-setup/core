@@ -1,15 +1,16 @@
-use crate::cli::Args;
-use crate::commands::{mono_repo_mode, single_repo_mode};
-use crate::config::crud::{add_config, create_default_config, list_configs, remove_config};
-use crate::config::io::load_config;
-use crate::config::types::ConfigEntry;
-use crate::interactive::interactive_mode;
-use crate::profiles::{add_profile, list_profiles, remove_profile};
-use crate::utils::prerequisites::check_prerequisites;
-use std::error::Error;
-use std::io;
-use std::io::IsTerminal;
-use std::path::PathBuf;
+use crate::{
+  cli::Args,
+  commands::{mono_repo_mode, single_repo_mode},
+  config::{
+    crud::{add_config, create_default_config, list_configs, remove_config},
+    io::load_config,
+    types::ConfigEntry,
+  },
+  interactive::interactive_mode,
+  profiles::{add_profile, list_profiles, remove_profile},
+  utils::prerequisites::check_prerequisites,
+};
+use std::{error::Error, io, io::IsTerminal, path::PathBuf};
 
 /// Runs the setup process.
 /// # Errors

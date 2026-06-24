@@ -1,8 +1,5 @@
 use crate::config::types::SetupConfig;
-use std::fs;
-use std::io;
-use std::io::Write;
-use std::path::PathBuf;
+use std::{fs, io, io::Write, path::PathBuf};
 
 /// Loads configuration from the first valid JSON file in `locations`.
 pub fn load_config(locations: &[PathBuf], output: &mut impl Write) -> SetupConfig {

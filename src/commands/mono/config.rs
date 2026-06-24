@@ -1,7 +1,5 @@
 use crate::repository::repo_dir_name;
-use std::fs;
-use std::io::Write;
-use std::path::Path;
+use std::{fs, io::Write, path::Path};
 
 /// Shared helper to generate, write, and log monorepo build configuration files.
 fn write_mono_repo_config(

@@ -1,7 +1,6 @@
 use crate::cli::build::BuildType;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use std::path::PathBuf;
+use std::{collections::HashMap, path::PathBuf};
 
 /// Represents a single named configuration entry.
 #[allow(clippy::struct_excessive_bools)]

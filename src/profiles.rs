@@ -1,8 +1,9 @@
 //! Profile management.
 
-use crate::config::io::save_config;
-use crate::config::types::SetupConfig;
-use crate::utils::confirm::confirm;
+use crate::{
+  config::{io::save_config, types::SetupConfig},
+  prompts::confirm,
+};
 use std::io::{BufRead, Write};
 
 /// Inserts or overwrites a named profile.
@@ -84,11 +85,11 @@ pub fn remove_profile(
   output: &mut impl Write,
 ) -> Result<(), String> {
   let repos = match config.profiles.get(name) {
-     None => {
-       writeln!(output, "Warning: Profile '{name}' not found.").ok();
-       return Ok(());
-     }
-     Some(r) => r.clone(),
+    None => {
+      writeln!(output, "Warning: Profile '{name}' not found.").ok();
+      return Ok(());
+    }
+    Some(r) => r.clone(),
   };
 
   print_profile_details(output, &format!("Profile '{name}'"), "Repositories", &repos);

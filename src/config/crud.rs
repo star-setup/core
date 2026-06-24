@@ -1,10 +1,16 @@
-use crate::cli::build::BuildType;
-use crate::config::display::format_entry;
-use crate::config::io::save_config;
-use crate::config::types::{ConfigEntry, SetupConfig};
-use crate::utils::confirm::confirm;
-use std::io::{BufRead, Write};
-use std::path::PathBuf;
+use crate::{
+  cli::build::BuildType,
+  config::{
+    display::format_entry,
+    io::save_config,
+    types::{ConfigEntry, SetupConfig},
+  },
+  prompts::confirm,
+};
+use std::{
+  io::{BufRead, Write},
+  path::PathBuf,
+};
 
 /// Inserts or overwrites a named configuration entry.
 pub fn insert_config(config: &mut SetupConfig, name: &str, entry: ConfigEntry) {

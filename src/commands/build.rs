@@ -1,10 +1,14 @@
 //! Build system dispatch and per-system build functions.
 
-use crate::cli::build::{detect_build_system, BuildSystem};
-use crate::cli::ResolvedArgs;
-use crate::utils::process::run_command;
-use std::io::{BufRead, Write};
-use std::path::Path;
+use crate::{
+  cli::build::{detect_build_system, BuildSystem},
+  cli::ResolvedArgs,
+  utils::process::run_command,
+};
+use std::{
+  io::{BufRead, Write},
+  path::Path,
+};
 
 /// Runs `CMake` configuration and optionally builds the project in `build_path`.
 /// # Errors

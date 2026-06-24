@@ -1,9 +1,11 @@
-use crate::cli::args::Args;
-use crate::cli::build::BuildType;
-use crate::cli::resolved::{
-  ResolvedArgs, ResolvedBuildFlags, ResolvedConnectionFlags, ResolvedMonoFlags,
+use crate::{
+  cli::{
+    args::Args,
+    build::BuildType,
+    resolved::{ResolvedArgs, ResolvedBuildFlags, ResolvedConnectionFlags, ResolvedMonoFlags},
+  },
+  config::types::SetupConfig,
 };
-use crate::config::types::SetupConfig;
 
 /// Resolves a boolean flag from CLI positive/negative flags, config value, and a default.
 /// Negative flag takes highest priority, then positive, then config, then default.

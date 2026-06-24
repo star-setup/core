@@ -1,7 +1,9 @@
-use std::collections::HashMap;
-use std::fs;
-use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::{
+  collections::HashMap,
+  fs,
+  io::Write,
+  path::{Path, PathBuf},
+};
 
 /// Parses the `project()` name from `meson.build` content.
 /// Returns the name with hyphens replaced by underscores, or `None` if not found.

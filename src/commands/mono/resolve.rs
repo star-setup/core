@@ -1,7 +1,9 @@
-use crate::cli::ResolvedArgs;
-use crate::commands::header::{print_mode_header, ModeHeader};
-use crate::config::types::SetupConfig;
-use crate::profiles::list_profiles;
+use crate::{
+  cli::ResolvedArgs,
+  commands::header::{print_mode_header, ModeHeader},
+  config::types::SetupConfig,
+  profiles::list_profiles,
+};
 use std::io::Write;
 
 /// Resolves the list of repositories for mono-repo mode from a profile or explicit repo list.

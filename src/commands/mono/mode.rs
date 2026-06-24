@@ -1,16 +1,22 @@
-use crate::cli::{
-  build::{detect_mono_build_system, BuildSystem},
-  ResolvedArgs,
+use crate::{
+  cli::{
+    build::{detect_mono_build_system, BuildSystem},
+    ResolvedArgs,
+  },
+  commands::{
+    build::{cmake_build, meson_build},
+    mono::config::{create_mono_repo_cmakelists, create_mono_repo_mesonbuild},
+    mono::resolve::{resolve_repos_for_mono, resolve_test_repo},
+    mono::wraps::hoist_wraps,
+  },
+  config::types::SetupConfig,
+  repository::{clone_repository, repo_dir_name},
 };
-use crate::commands::build::{cmake_build, meson_build};
-use crate::commands::mono::config::{create_mono_repo_cmakelists, create_mono_repo_mesonbuild};
-use crate::commands::mono::resolve::{resolve_repos_for_mono, resolve_test_repo};
-use crate::commands::mono::wraps::hoist_wraps;
-use crate::config::types::SetupConfig;
-use crate::repository::{clone_repository, repo_dir_name};
-use std::fs;
-use std::io::{BufRead, Write};
-use std::path::PathBuf;
+use std::{
+  fs,
+  io::{BufRead, Write},
+  path::PathBuf,
+};
 
 fn clone_mono_repos(
   repos: &[String],

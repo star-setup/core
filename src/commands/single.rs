@@ -1,12 +1,18 @@
-use crate::cli::ResolvedArgs;
-use crate::commands::build::build_project;
-use crate::commands::header::{print_mode_header, ModeHeader};
-use crate::repository::{repo_dir_name, resolve_repo_url};
-use crate::utils::confirm::confirm;
-use crate::utils::process::run_command;
-use std::fs;
-use std::io::{BufRead, Write};
-use std::path::{Path, PathBuf};
+use crate::{
+  cli::ResolvedArgs,
+  commands::{
+    build::build_project,
+    header::{print_mode_header, ModeHeader},
+  },
+  prompts::confirm,
+  repository::{repo_dir_name, resolve_repo_url},
+  utils::process::run_command,
+};
+use std::{
+  fs,
+  io::{BufRead, Write},
+  path::{Path, PathBuf},
+};
 
 /// Clones and configures a single repository.
 /// # Errors
