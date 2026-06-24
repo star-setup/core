@@ -76,15 +76,10 @@ pub fn mono_repo_mode(
   let repo_input = repo_input.trim_end_matches('/');
 
   let test_repo = resolve_test_repo(repo_input)?;
-  let test_repo_name = repo_dir_name(&test_repo);
-
-  let mut repos: Vec<String> = resolve_repos_for_mono(args, config, &test_repo, output)?
-    .iter()
-    .filter(|r| repo_dir_name(r) != test_repo_name)
-    .cloned()
+  let mut repos: Vec<String> = std::iter::once(test_repo.clone())
+    .chain(resolve_repos_for_mono(args, config, &test_repo, output)?)
     .collect();
   repos.dedup_by(|a, b| repo_dir_name(a) == repo_dir_name(b));
-  repos.insert(0, test_repo.clone());
   writeln!(output, "Total repositories: {}\n", repos.len()).ok();
 
   let mono_repo_path = PathBuf::from(&args.mono.mono_dir);
@@ -147,6 +142,7 @@ pub fn mono_repo_mode(
   )
   .ok();
   if let Some(map) = canonical_map {
+    let test_repo_name = repo_dir_name(&test_repo);
     if let Some((canonical, _)) = map.iter().find(|(_, v)| *v == &test_repo_name) {
       let exe_name = if cfg!(windows) {
         format!("{canonical}.exe")
