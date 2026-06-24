@@ -2,7 +2,7 @@
 
 use crate::config::io::save_config;
 use crate::config::types::SetupConfig;
-use crate::utils::confirm;
+use crate::utils::confirm::confirm;
 use std::io::{BufRead, Write};
 
 /// Inserts or overwrites a named profile.

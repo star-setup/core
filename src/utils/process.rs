@@ -1,33 +1,8 @@
-//! Utility functions.
-
-use std::io::BufRead;
 use std::io::Read;
 use std::io::Write;
 use std::path::Path;
 use std::process::{Command, Stdio};
 use std::thread;
-
-/// Returns `true` if `yes` is set or the user enters `y`/`Y`.
-/// # Errors
-/// Returns an error if stdin reaches EOF unexpectedly.
-pub fn confirm(
-  prompt: &str,
-  yes: bool,
-  input: &mut impl BufRead,
-  output: &mut impl Write,
-) -> Result<bool, String> {
-  if yes {
-    return Ok(true);
-  }
-
-  write!(output, "{prompt} (y/n): ").ok();
-  output.flush().ok();
-  let mut line = String::new();
-  if input.read_line(&mut line).unwrap_or(0) == 0 {
-    return Err("unexpected end of input".to_string());
-  }
-  Ok(line.trim().eq_ignore_ascii_case("y"))
-}
 
 /// Finds vcvars64.bat using vswhere.exe.
 /// Returns None if vswhere is not found or no VS installation exists.
@@ -80,29 +55,6 @@ fn get_msvc_env() -> Result<std::collections::HashMap<String, String>, String> {
       })
       .collect(),
   )
-}
-
-/// Checks if required tools are available on PATH.
-/// Returns Result.
-/// # Errors
-/// Returns an error if any required tool is missing from PATH.
-pub fn check_prerequisites(verbose: bool, output: &mut impl Write) -> Result<(), String> {
-  let mut missing: Vec<&str> = Vec::new();
-  for tool in &["git", "cmake", "meson"] {
-    if Command::new(tool)
-      .arg("--version")
-      .output()
-      .map_or(true, |o| !o.status.success())
-    {
-      missing.push(tool);
-    } else if verbose {
-      writeln!(output, "Found {tool}").ok();
-    }
-  }
-  if !missing.is_empty() {
-    return Err(format!("Missing required tools: {}", missing.join(", ")));
-  }
-  Ok(())
 }
 
 /// Runs a shell command with optional working directory.

@@ -7,7 +7,7 @@ use star_setup::config::io::load_config;
 use star_setup::config::types::ConfigEntry;
 use star_setup::interactive::interactive_mode;
 use star_setup::profiles::{add_profile, list_profiles, remove_profile};
-use star_setup::utils::check_prerequisites;
+use star_setup::utils::prerequisites::check_prerequisites;
 use std::io;
 use std::io::IsTerminal;
 use std::path::PathBuf;

@@ -2,7 +2,7 @@ use crate::cli::BuildType;
 use crate::config::display::format_entry;
 use crate::config::io::save_config;
 use crate::config::types::{ConfigEntry, SetupConfig};
-use crate::utils::confirm;
+use crate::utils::confirm::confirm;
 use std::io::{BufRead, Write};
 use std::path::PathBuf;
 
