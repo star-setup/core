@@ -1,6 +1,6 @@
 use star_setup::cli::{
-  resolve_bool, resolve_with_config, Args, BuildFlags, BuildType, ConfigFlags, ConnectionFlags,
-  MonoRepoFlags, ProfileFlags,
+  build::BuildType, resolve_bool, resolve_with_config, Args, BuildFlags, ConfigFlags,
+  ConnectionFlags, MonoRepoFlags, ProfileFlags,
 };
 use star_setup::config::types::{ConfigEntry, SetupConfig};
 

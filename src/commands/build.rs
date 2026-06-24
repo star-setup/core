@@ -1,7 +1,6 @@
 //! Build system dispatch and per-system build functions.
 
-use crate::cli::detect_build_system;
-use crate::cli::BuildSystem;
+use crate::cli::build::{detect_build_system, BuildSystem};
 use crate::cli::ResolvedArgs;
 use crate::utils::process::run_command;
 use std::io::{BufRead, Write};

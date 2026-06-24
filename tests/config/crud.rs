@@ -3,7 +3,7 @@ use super::{
   fixtures::sample_entry,
 };
 use star_setup::{
-  cli::BuildType,
+  cli::build::BuildType,
   config::{
     crud::{
       add_config, create_default_config, has_config, insert_config, list_configs, remove_config,

@@ -1,4 +1,4 @@
-use crate::cli::BuildType;
+use crate::cli::build::BuildType;
 use crate::config::display::format_entry;
 use crate::config::io::save_config;
 use crate::config::types::{ConfigEntry, SetupConfig};

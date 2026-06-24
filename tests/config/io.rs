@@ -1,6 +1,6 @@
 use super::{common::sink, fixtures::sample_entry};
 use star_setup::{
-  cli::BuildType,
+  cli::build::BuildType,
   config::{
     crud::insert_config,
     io::{load_config, save_config},

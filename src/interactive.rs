@@ -1,6 +1,6 @@
 //! Interactive CLI mode.
 
-use crate::cli::{BuildType, ResolvedArgs};
+use crate::cli::{build::BuildType, ResolvedArgs};
 use crate::prompts::{ask, ask_default, ask_yesno};
 use std::io::{BufRead, Write};
 
