@@ -1,0 +1,96 @@
+use crate::cli::Args;
+use crate::commands::{mono_repo_mode, single_repo_mode};
+use crate::config::crud::{add_config, create_default_config, list_configs, remove_config};
+use crate::config::io::load_config;
+use crate::config::types::ConfigEntry;
+use crate::interactive::interactive_mode;
+use crate::profiles::{add_profile, list_profiles, remove_profile};
+use crate::utils::prerequisites::check_prerequisites;
+use std::error::Error;
+use std::io;
+use std::io::IsTerminal;
+use std::path::PathBuf;
+
+/// Runs the setup process.
+/// # Errors
+/// Returns an error if the configuration file is missing or corrupted.
+pub fn run() -> Result<(), Box<dyn Error>> {
+  let mut stdin = io::stdin().lock();
+  let mut stdout = io::stdout();
+
+  let mut locations = vec![PathBuf::from(".star-setup.json")];
+  if let Some(home) = dirs::home_dir() {
+    locations.push(home.join(".star-setup.json"));
+  }
+
+  let mut config = load_config(&locations, &mut stdout);
+  let mut args = Args::parse_with_config(&config)?;
+
+  if args.config.init_config {
+    create_default_config(
+      PathBuf::from(".star-setup.json"),
+      args.yes,
+      &mut stdin,
+      &mut stdout,
+    )?;
+    return Ok(());
+  }
+
+  if args.config.list_configs {
+    list_configs(&config, &mut stdout);
+    return Ok(());
+  }
+
+  if args.profile.list_profiles {
+    list_profiles(&config, &mut stdout);
+    return Ok(());
+  }
+
+  if let Some(name) = args.config.config_remove.as_deref() {
+    remove_config(&mut config, name, args.yes, &mut stdin, &mut stdout)?;
+    return Ok(());
+  }
+
+  if let Some(name) = args.config.config_add.as_deref() {
+    let entry = ConfigEntry {
+      ssh: args.connection.ssh,
+      build_type: args.build.build_type.clone(),
+      build_dir: args.build.build_dir.clone(),
+      mono_dir: args.mono.mono_dir.clone(),
+      no_build: args.build.no_build,
+      clean: args.build.clean,
+      verbose: args.connection.verbose,
+      cmake_flags: args.build.cmake_flags.clone(),
+    };
+    add_config(&mut config, name, entry, args.yes, &mut stdin, &mut stdout)?;
+    return Ok(());
+  }
+
+  if let Some(name) = args.profile.profile_remove.as_deref() {
+    remove_profile(&mut config, name, args.yes, &mut stdin, &mut stdout)?;
+    return Ok(());
+  }
+
+  if let Some(vals) = args.profile.profile_add.as_ref() {
+    add_profile(&mut config, vals, args.yes, &mut stdin, &mut stdout)?;
+    return Ok(());
+  }
+
+  if args.repo.is_none() {
+    if std::io::stdin().is_terminal() {
+      interactive_mode(&mut args, &mut stdin, &mut io::stdout())?;
+    } else {
+      return Err("no repository specified".into());
+    }
+  }
+
+  check_prerequisites(args.connection.verbose, &mut stdout)?;
+
+  if args.mono.mono_repo {
+    mono_repo_mode(&args, &config, &mut stdin, &mut stdout)?;
+  } else {
+    single_repo_mode(&args, &mut stdin, &mut stdout)?;
+  }
+
+  Ok(())
+}
