@@ -2,7 +2,7 @@ use std::{
   io::{Read, Write},
   path::Path,
   process::{Command, Stdio},
-  thread
+  thread,
 };
 
 /// Finds vcvars64.bat using vswhere.exe.

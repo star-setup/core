@@ -1,7 +1,4 @@
-use star_setup::commands::mono::{
-  hoist_wraps,
-  wraps::{parse_project_name, parse_provide_pairs},
-};
+use star_setup::commands::{hoist_wraps, parse_project_name, parse_provide_pairs};
 use tempfile::TempDir;
 
 #[test]

@@ -1,4 +1,4 @@
-use star_setup::commands::mono::build_repo_list;
+use star_setup::commands::build_repo_list;
 
 #[test]
 fn test_build_repo_list_test_repo_first() {
