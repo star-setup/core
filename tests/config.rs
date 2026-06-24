@@ -1,8 +1,13 @@
 use star_setup::{
   cli::BuildType,
   config::{
-    format_entry, has_config, insert_config, load_config, remove_config_entry, save_config,
-    ConfigEntry, SetupConfig,
+    crud::{
+      add_config, create_default_config, has_config, insert_config, list_configs, remove_config,
+      remove_config_entry,
+    },
+    display::format_entry,
+    io::{load_config, save_config},
+    types::{ConfigEntry, SetupConfig},
   },
 };
 use std::path::PathBuf;
@@ -143,8 +148,7 @@ fn test_create_default_config_creates_file() {
   let tmp = tempfile::TempDir::new().unwrap();
   let path = tmp.path().join(".star-setup.json");
 
-  star_setup::config::create_default_config(path.clone(), true, &mut empty_input(), &mut sink())
-    .unwrap();
+  create_default_config(path.clone(), true, &mut empty_input(), &mut sink()).unwrap();
   assert!(path.exists());
 }
 
@@ -155,7 +159,7 @@ fn test_add_config_inserts_and_saves() {
   let mut config = SetupConfig::new();
   config.path = Some(path.clone());
 
-  star_setup::config::add_config(
+  add_config(
     &mut config,
     "myconfig",
     sample_entry(),
@@ -177,7 +181,7 @@ fn test_remove_config_removes_and_saves() {
   insert_config(&mut config, "myconfig", sample_entry());
   save_config(&mut config).unwrap();
 
-  star_setup::config::remove_config(
+  remove_config(
     &mut config,
     "myconfig",
     true,
@@ -191,7 +195,7 @@ fn test_remove_config_removes_and_saves() {
 #[test]
 fn test_remove_config_not_found() {
   let mut config = SetupConfig::new();
-  star_setup::config::remove_config(
+  remove_config(
     &mut config,
     "nonexistent",
     true,
@@ -209,7 +213,7 @@ fn test_add_config_aborts_when_exists_and_not_confirmed() {
   insert_config(&mut config, "myconfig", sample_entry());
 
   let input = b"n\n";
-  star_setup::config::add_config(
+  add_config(
     &mut config,
     "myconfig",
     ConfigEntry {
@@ -238,7 +242,7 @@ fn test_remove_config_aborts_when_not_confirmed() {
   insert_config(&mut config, "myconfig", sample_entry());
 
   let input = b"n\n";
-  star_setup::config::remove_config(
+  remove_config(
     &mut config,
     "myconfig",
     false,
@@ -256,8 +260,7 @@ fn test_create_default_config_aborts_when_exists_and_not_confirmed() {
   std::fs::write(&path, "original").unwrap();
 
   let input = b"n\n";
-  star_setup::config::create_default_config(path.clone(), false, &mut input.as_ref(), &mut sink())
-    .unwrap();
+  create_default_config(path.clone(), false, &mut input.as_ref(), &mut sink()).unwrap();
   assert_eq!(std::fs::read_to_string(&path).unwrap(), "original");
 }
 
@@ -265,7 +268,7 @@ fn test_create_default_config_aborts_when_exists_and_not_confirmed() {
 fn test_list_configs_empty() {
   let config = SetupConfig::new();
   let mut output = sink();
-  star_setup::config::list_configs(&config, &mut output);
+  list_configs(&config, &mut output);
   let out = String::from_utf8(output).unwrap();
   assert!(out.contains("No configurations created"));
 }
@@ -275,7 +278,7 @@ fn test_list_configs_with_entries() {
   let mut config = SetupConfig::new();
   insert_config(&mut config, "myconfig", sample_entry());
   let mut output = sink();
-  star_setup::config::list_configs(&config, &mut output);
+  list_configs(&config, &mut output);
   let out = String::from_utf8(output).unwrap();
   assert!(out.contains("myconfig"));
   assert!(out.contains("Configurations:"));

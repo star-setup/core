@@ -1,6 +1,7 @@
 //! Profile management.
 
-use crate::config::{save_config, SetupConfig};
+use crate::config::io::save_config;
+use crate::config::types::SetupConfig;
 use crate::utils::confirm;
 use std::io::{BufRead, Write};
 

@@ -1,7 +1,7 @@
 use star_setup::cli::{
   resolve_with_config, Args, BuildFlags, ConfigFlags, ConnectionFlags, MonoRepoFlags, ProfileFlags,
 };
-use star_setup::config::SetupConfig;
+use star_setup::config::types::SetupConfig;
 use star_setup::interactive::interactive_mode;
 
 fn default_resolved() -> star_setup::cli::ResolvedArgs {

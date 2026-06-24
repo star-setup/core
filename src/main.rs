@@ -2,9 +2,9 @@
 
 use star_setup::cli::Args;
 use star_setup::commands::{mono_repo_mode, single_repo_mode};
-use star_setup::config::{
-  add_config, create_default_config, list_configs, load_config, remove_config, ConfigEntry,
-};
+use star_setup::config::crud::{add_config, create_default_config, list_configs, remove_config};
+use star_setup::config::io::load_config;
+use star_setup::config::types::ConfigEntry;
 use star_setup::interactive::interactive_mode;
 use star_setup::profiles::{add_profile, list_profiles, remove_profile};
 use star_setup::utils::check_prerequisites;

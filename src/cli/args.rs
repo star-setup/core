@@ -1,7 +1,7 @@
 use crate::cli::flags::{BuildFlags, ConfigFlags, ConnectionFlags, MonoRepoFlags, ProfileFlags};
 use crate::cli::resolve::resolve_with_config;
 use crate::cli::resolved::ResolvedArgs;
-use crate::config::SetupConfig;
+use crate::config::types::SetupConfig;
 use clap::Parser;
 
 /// Top-level CLI arguments for star-setup.

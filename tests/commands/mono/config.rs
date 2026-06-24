@@ -1,7 +1,5 @@
 use star_setup::commands::create_mono_repo_cmakelists;
-#[path = "../../common/mod.rs"]
-mod common;
-use common::sink;
+use super::common::sink;
 
 // create_mono_repo_cmakelists tests
 #[test]

@@ -3,7 +3,7 @@ use crate::commands::build::{cmake_build, meson_build};
 use crate::commands::mono::config::{create_mono_repo_cmakelists, create_mono_repo_mesonbuild};
 use crate::commands::mono::resolve::{resolve_repos_for_mono, resolve_test_repo};
 use crate::commands::mono::wraps::hoist_wraps;
-use crate::config::SetupConfig;
+use crate::config::types::SetupConfig;
 use crate::repository::{clone_repository, repo_dir_name};
 use std::fs;
 use std::io::{BufRead, Write};

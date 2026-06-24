@@ -1,6 +1,6 @@
 use crate::cli::ResolvedArgs;
 use crate::commands::header::{print_mode_header, ModeHeader};
-use crate::config::SetupConfig;
+use crate::config::types::SetupConfig;
 use crate::profiles::list_profiles;
 use std::io::Write;
 
