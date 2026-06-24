@@ -94,20 +94,6 @@ pub fn interactive_mode(
   args.build.build_type = build_type_str.parse::<BuildType>()?;
   args.build.build_dir = ask_default("Build directory", &args.build.build_dir, input, output)?;
 
-  if args.build.cmake_flags.is_empty() {
-    let cmake_extra = ask_default("Additional CMake args (space separated)", "", input, output)?;
-    if !cmake_extra.is_empty() {
-      args.build.cmake_flags = cmake_extra.split_whitespace().map(String::from).collect();
-    }
-  }
-
-  if args.build.meson_flags.is_empty() {
-    let meson_extra = ask_default("Additional Meson args (space separated)", "", input, output)?;
-    if !meson_extra.is_empty() {
-      args.build.meson_flags = meson_extra.split_whitespace().map(String::from).collect();
-    }
-  }
-
   if !args.build.no_build {
     args.build.no_build = ask_yesno("Configure only (skip build)?", false, input, output)?;
   }

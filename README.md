@@ -75,8 +75,6 @@ Clean build directory if exists? (y/n) [N]:
 Select mode: (1) Single Repo (2) Mono-Repo: 1
 Build type [Debug]:
 Build directory [build]:
-Additional CMake args (space separated):
-Additional Meson args (space separated):
 Configure only (skip build)? (y/n) [N]:
 
 Interactive mode complete
