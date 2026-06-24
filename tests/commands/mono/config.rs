@@ -1,5 +1,5 @@
-use star_setup::commands::create_mono_repo_cmakelists;
 use super::common::sink;
+use star_setup::commands::create_mono_repo_cmakelists;
 
 // create_mono_repo_cmakelists tests
 #[test]

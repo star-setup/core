@@ -1,5 +1,5 @@
-use star_setup::config::display::format_entry;
 use super::fixtures::sample_entry;
+use star_setup::config::display::format_entry;
 
 #[test]
 fn test_format_entry_contains_fields() {

@@ -1,3 +1,7 @@
+use super::{
+  common::{empty_input, sink},
+  fixtures::sample_entry,
+};
 use star_setup::{
   cli::BuildType,
   config::{
@@ -5,13 +9,9 @@ use star_setup::{
       add_config, create_default_config, has_config, insert_config, list_configs, remove_config,
       remove_config_entry,
     },
-    io::{save_config},
+    io::save_config,
     types::{ConfigEntry, SetupConfig},
   },
-};
-use super::{
-  common::{empty_input, sink},
-  fixtures::sample_entry
 };
 
 #[test]

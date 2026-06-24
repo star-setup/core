@@ -1,6 +1,8 @@
+#[path = "../common/mod.rs"]
+mod common;
 #[path = "mono/config.rs"]
 mod config;
 #[path = "mono/resolve.rs"]
 mod resolve;
-#[path = "../common/mod.rs"]
-mod common;
+#[path = "mono/wraps.rs"]
+mod wraps;

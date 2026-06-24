@@ -1,3 +1,4 @@
+use super::{common::sink, fixtures::sample_entry};
 use star_setup::{
   cli::BuildType,
   config::{
@@ -7,10 +8,6 @@ use star_setup::{
   },
 };
 use std::path::PathBuf;
-use super::{
-  common::{sink},
-  fixtures::sample_entry
-};
 
 #[test]
 fn test_save_and_load_roundtrip() {
@@ -66,7 +63,6 @@ fn test_load_config_skips_nonexistent_path() {
   );
   assert!(config.configs.is_empty());
 }
-
 
 #[test]
 fn test_load_config_first_valid_wins() {

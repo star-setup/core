@@ -1,9 +1,9 @@
+use super::common::sink;
 use star_setup::cli::{
   resolve_with_config, Args, BuildFlags, ConfigFlags, ConnectionFlags, MonoRepoFlags, ProfileFlags,
 };
 use star_setup::commands::{resolve_repos_for_mono, resolve_test_repo};
 use star_setup::config::types::SetupConfig;
-use super::common::sink;
 
 // resolve_test_repo tests
 #[test]
