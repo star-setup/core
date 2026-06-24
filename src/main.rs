@@ -108,7 +108,7 @@ fn main() {
   }
 
   let result = if args.mono.mono_repo {
-    mono_repo_mode(&args, &config, &mut stdout)
+    mono_repo_mode(&args, &config, &mut stdin, &mut stdout)
   } else {
     single_repo_mode(&args, &mut stdin, &mut stdout)
   };

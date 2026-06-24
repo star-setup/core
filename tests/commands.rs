@@ -54,8 +54,12 @@ fn test_resolve_test_repo_errors() {
 fn test_create_mono_repo_cmakelists_creates_file() {
   let tmp = tempfile::TempDir::new().unwrap();
 
-  let repos = vec!["user/lib1".to_string(), "user/lib2".to_string()];
-  create_mono_repo_cmakelists(tmp.path(), "user-testrepo", &repos, &mut sink()).unwrap();
+  let repos = vec![
+    "user-testrepo".to_string(),
+    "user/lib1".to_string(),
+    "user/lib2".to_string(),
+  ];
+  create_mono_repo_cmakelists(tmp.path(), &repos, &mut sink()).unwrap();
 
   let cmake_file = tmp.path().join("CMakeLists.txt");
   assert!(cmake_file.exists());
@@ -69,7 +73,8 @@ fn test_create_mono_repo_cmakelists_creates_file() {
 #[test]
 fn test_create_mono_repo_cmakelists_empty_repos() {
   let tmp = tempfile::TempDir::new().unwrap();
-  create_mono_repo_cmakelists(tmp.path(), "user-testrepo", &[], &mut sink()).unwrap();
+  let repos = vec!["user-testrepo".to_string()];
+  create_mono_repo_cmakelists(tmp.path(), &repos, &mut sink()).unwrap();
   assert!(tmp.path().join("CMakeLists.txt").exists());
 }
 
@@ -91,6 +96,7 @@ fn default_resolved() -> star_setup::cli::ResolvedArgs {
       clean: false,
       no_clean: false,
       cmake_flags: vec![],
+      meson_flags: vec![],
     },
     mono: MonoRepoFlags {
       mono_repo: false,

@@ -1,8 +1,10 @@
 //! Build system dispatch and per-system build functions.
 
+use crate::cli::detect_build_system;
+use crate::cli::BuildSystem;
 use crate::cli::ResolvedArgs;
 use crate::utils::run_command;
-use std::io::Write;
+use std::io::{BufRead, Write};
 use std::path::Path;
 
 /// Runs `CMake` configuration and optionally builds the project in `build_path`.
@@ -43,4 +45,54 @@ pub fn cmake_build(
     )?;
   }
   Ok(())
+}
+
+/// Runs Meson configuration and optionally builds the project in `build_path`.
+/// # Errors
+/// Returns an error if any Meson command fails.
+pub fn meson_build(
+  args: &ResolvedArgs,
+  build_path: &Path,
+  source_path: &Path,
+  output: &mut impl Write,
+) -> Result<(), String> {
+  let buildtype_flag = format!("--buildtype={}", args.build.build_type.to_meson());
+  let mut meson_cmd = vec!["meson", "setup"];
+  meson_cmd.push(&buildtype_flag);
+  meson_cmd.push(build_path.to_str().ok_or("Invalid build path")?);
+  meson_cmd.push(source_path.to_str().ok_or("Invalid source path")?);
+  meson_cmd.extend(args.build.meson_flags.iter().map(String::as_str));
+  run_command(&meson_cmd, None, args.connection.verbose, output)?;
+  if !args.build.no_build {
+    writeln!(output, "Building project\n").ok();
+    run_command(
+      &[
+        "meson",
+        "compile",
+        "-C",
+        build_path.to_str().ok_or("Invalid build path")?,
+      ],
+      None,
+      args.connection.verbose,
+      output,
+    )?;
+  }
+  Ok(())
+}
+
+/// Detects and dispatches to the appropriate build system.
+/// # Errors
+/// Returns an error if detection or the build system command fails.
+pub fn build_project(
+  args: &ResolvedArgs,
+  build_path: &Path,
+  source_path: &Path,
+  mono: bool,
+  input: &mut impl BufRead,
+  output: &mut impl Write,
+) -> Result<(), String> {
+  match detect_build_system(source_path, input, output)? {
+    BuildSystem::Cmake => cmake_build(args, build_path, mono, output),
+    BuildSystem::Meson => meson_build(args, build_path, source_path, output),
+  }
 }

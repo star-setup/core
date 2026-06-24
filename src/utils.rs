@@ -29,13 +29,66 @@ pub fn confirm(
   Ok(line.trim().eq_ignore_ascii_case("y"))
 }
 
+/// Finds vcvars64.bat using vswhere.exe.
+/// Returns None if vswhere is not found or no VS installation exists.
+#[cfg(target_os = "windows")]
+fn find_vcvars() -> Option<std::path::PathBuf> {
+  let vswhere = std::path::PathBuf::from(
+    std::env::var("ProgramFiles(x86)").unwrap_or_else(|_| r"C:\Program Files (x86)".to_string()),
+  )
+  .join(r"Microsoft Visual Studio\Installer\vswhere.exe");
+
+  if !vswhere.exists() {
+    return None;
+  }
+
+  let output = Command::new(&vswhere)
+    .args(["-latest", "-property", "installationPath"])
+    .output()
+    .ok()?;
+
+  let install_path = String::from_utf8(output.stdout).ok()?;
+  let vcvars =
+    std::path::PathBuf::from(install_path.trim()).join(r"VC\Auxiliary\Build\vcvars64.bat");
+
+  vcvars.exists().then_some(vcvars)
+}
+
+/// Runs vcvars64.bat and captures the resulting environment variables.
+/// # Errors
+/// Returns an error if vcvars64.bat cannot be found or run.
+#[cfg(target_os = "windows")]
+fn get_msvc_env() -> Result<std::collections::HashMap<String, String>, String> {
+  let vcvars = find_vcvars().ok_or("Could not find vcvars64.bat via vswhere")?;
+  let output = Command::new("cmd")
+    .args([
+      "/c",
+      vcvars.to_str().ok_or("Invalid vcvars path")?,
+      "&&",
+      "set",
+    ])
+    .output()
+    .map_err(|e| format!("Failed to run vcvars64.bat: {e}"))?;
+
+  let stdout = String::from_utf8_lossy(&output.stdout);
+  Ok(
+    stdout
+      .lines()
+      .filter_map(|line| {
+        let mut parts = line.splitn(2, '=');
+        Some((parts.next()?.to_string(), parts.next()?.to_string()))
+      })
+      .collect(),
+  )
+}
+
 /// Checks if required tools are available on PATH.
 /// Returns Result.
 /// # Errors
 /// Returns an error if any required tool is missing from PATH.
 pub fn check_prerequisites(verbose: bool, output: &mut impl Write) -> Result<(), String> {
   let mut missing: Vec<&str> = Vec::new();
-  for tool in &["git", "cmake"] {
+  for tool in &["git", "cmake", "meson"] {
     if Command::new(tool)
       .arg("--version")
       .output()
@@ -79,6 +132,14 @@ pub fn run_command(
     command.env("GIT_TERMINAL_PROMPT", "0");
     if std::env::var("GIT_SSH_COMMAND").is_err() {
       command.env("GIT_SSH_COMMAND", "ssh -o BatchMode=yes");
+    }
+  }
+  #[cfg(target_os = "windows")]
+  if cmd[0] == "meson" && std::env::var("VSINSTALLDIR").is_err() {
+    if let Ok(env) = get_msvc_env() {
+      for (k, v) in env {
+        command.env(k, v);
+      }
     }
   }
 

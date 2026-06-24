@@ -1,5 +1,5 @@
 use crate::cli::ResolvedArgs;
-use crate::commands::build::cmake_build;
+use crate::commands::build::build_project;
 use crate::commands::header::{print_mode_header, ModeHeader};
 use crate::repository::{repo_dir_name, resolve_repo_url};
 use crate::utils::{confirm, run_command};
@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 
 /// Clones and configures a single repository.
 /// # Errors
-/// Returns an error if no repository is specified, or if any git or `CMake` command fails.
+/// Returns an error if no repository is specified, or if any git or build system fails.
 pub fn single_repo_mode(
   args: &ResolvedArgs,
   input: &mut impl BufRead,
@@ -68,8 +68,15 @@ pub fn single_repo_mode(
   .ok();
   fs::create_dir_all(&build_path).map_err(|e| e.to_string())?;
 
-  writeln!(output, "Configuring with CMake\n").ok();
-  cmake_build(args, build_path.as_path(), false, output)?;
+  writeln!(output, "Configuring project\n").ok();
+  build_project(
+    args,
+    build_path.as_path(),
+    Path::new(&dir_name),
+    false,
+    input,
+    output,
+  )?;
 
   writeln!(
     output,

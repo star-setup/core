@@ -61,3 +61,33 @@ pub fn ask_yesno(
   let val = line.trim().to_lowercase();
   Ok(if val.is_empty() { default } else { val.eq("y") })
 }
+
+/// Prompts the user to select from a numbered list of options.
+/// Returns the zero-based index of the selected option.
+/// # Errors
+/// Returns an error on EOF or if the selection is out of range.
+pub fn ask_choice(
+  prompt: &str,
+  options: &[&str],
+  input: &mut impl BufRead,
+  output: &mut impl Write,
+) -> Result<usize, String> {
+  writeln!(output, "{prompt}").ok();
+  for (i, opt) in options.iter().enumerate() {
+    writeln!(output, "  {}) {opt}", i + 1).ok();
+  }
+  loop {
+    write!(output, "Select: ").ok();
+    output.flush().ok();
+    let mut line = String::new();
+    if input.read_line(&mut line).unwrap_or(0) == 0 {
+      return Err("unexpected end of input".to_string());
+    }
+    let val = line.trim();
+    if let Ok(n) = val.parse::<usize>() {
+      if n >= 1 && n <= options.len() {
+        return Ok(n - 1);
+      }
+    }
+  }
+}

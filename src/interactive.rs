@@ -101,6 +101,13 @@ pub fn interactive_mode(
     }
   }
 
+  if args.build.meson_flags.is_empty() {
+    let meson_extra = ask_default("Additional Meson args (space separated)", "", input, output)?;
+    if !meson_extra.is_empty() {
+      args.build.meson_flags = meson_extra.split_whitespace().map(String::from).collect();
+    }
+  }
+
   if !args.build.no_build {
     args.build.no_build = ask_yesno("Configure only (skip build)?", false, input, output)?;
   }

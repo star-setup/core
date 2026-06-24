@@ -87,6 +87,7 @@ fn default_args() -> Args {
       clean: false,
       no_clean: false,
       cmake_flags: vec![],
+      meson_flags: vec![],
     },
     mono: MonoRepoFlags {
       mono_repo: false,

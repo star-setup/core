@@ -14,6 +14,7 @@ pub struct ResolvedBuildFlags {
   pub no_build: bool,
   pub clean: bool,
   pub cmake_flags: Vec<String>,
+  pub meson_flags: Vec<String>,
 }
 
 /// Resolved mono-repo flags after applying config and CLI overrides.

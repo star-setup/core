@@ -46,6 +46,10 @@ pub struct BuildFlags {
   /// Additional `CMake` arguments
   #[arg(long = "cmake-arg", action = clap::ArgAction::Append)]
   pub cmake_flags: Vec<String>,
+
+  /// Additional Meson arguments
+  #[arg(long = "meson-arg", action = clap::ArgAction::Append)]
+  pub meson_flags: Vec<String>,
 }
 
 #[derive(ClapArgs)]
