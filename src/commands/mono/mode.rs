@@ -63,6 +63,14 @@ fn generate_mono_config(
   }
 }
 
+pub fn build_repo_list(test_repo: &str, deps: &[String]) -> Vec<String> {
+  let mut seen = std::collections::HashSet::new();
+  std::iter::once(test_repo.to_string())
+    .chain(deps.iter().cloned())
+    .filter(|r| seen.insert(repo_dir_name(r)))
+    .collect()
+}
+
 /// Clones and configures a mono-repo ecosystem from a profile or explicit repository list.
 /// # Errors
 /// Returns an error if no repository is specified, directory creation fails, or any build system command fails.
@@ -76,10 +84,8 @@ pub fn mono_repo_mode(
   let repo_input = repo_input.trim_end_matches('/');
 
   let test_repo = resolve_test_repo(repo_input)?;
-  let mut repos: Vec<String> = std::iter::once(test_repo.clone())
-    .chain(resolve_repos_for_mono(args, config, &test_repo, output)?)
-    .collect();
-  repos.dedup_by(|a, b| repo_dir_name(a) == repo_dir_name(b));
+  let deps = resolve_repos_for_mono(args, config, &test_repo, output)?;
+  let repos = build_repo_list(&test_repo, &deps);
   writeln!(output, "Total repositories: {}\n", repos.len()).ok();
 
   let mono_repo_path = PathBuf::from(&args.mono.mono_dir);
