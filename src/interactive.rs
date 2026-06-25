@@ -2,23 +2,19 @@
 
 use crate::{
   cli::{build::BuildType, ResolvedArgs},
+  ctx::IoCtx,
   prompts::{ask, ask_default, ask_yesno},
 };
-use std::io::{BufRead, Write};
 
 /// Interactive CLI mode — prompts for any unset arguments.
 /// # Errors
 /// Returns an error if stdin reaches EOF unexpectedly.
-pub fn interactive_mode(
-  args: &mut ResolvedArgs,
-  input: &mut impl BufRead,
-  output: &mut impl Write,
-) -> Result<(), String> {
-  writeln!(output, "Star Setup Interactive Mode").ok();
+pub fn interactive_mode(args: &mut ResolvedArgs, io: &mut IoCtx<'_>) -> Result<(), String> {
+  writeln!(io.output, "Star Setup Interactive Mode").ok();
 
   if args.repo.is_none() {
     loop {
-      let repo = ask("Enter repository (user/repo or URL)", input, output)?;
+      let repo = ask("Enter repository (user/repo or URL)", io.input, io.output)?;
       if !repo.is_empty() {
         args.repo = Some(repo);
         break;
@@ -27,21 +23,30 @@ pub fn interactive_mode(
   }
 
   if !args.connection.ssh {
-    args.connection.ssh = ask_yesno("Use SSH?", false, input, output)?;
+    args.connection.ssh = ask_yesno("Use SSH?", false, io.input, io.output)?;
   }
   if !args.connection.verbose {
-    args.connection.verbose = ask_yesno("Verbose?", false, input, output)?;
+    args.connection.verbose = ask_yesno("Verbose?", false, io.input, io.output)?;
   }
   if !args.diagnostic.timing {
-    args.diagnostic.timing = ask_yesno("Show timing?", false, input, output)?;
+    args.diagnostic.timing = ask_yesno("Show timing?", false, io.input, io.output)?;
   }
   if !args.build.clean {
-    args.build.clean = ask_yesno("Clean build directory if exists?", false, input, output)?;
+    args.build.clean = ask_yesno(
+      "Clean build directory if exists?",
+      false,
+      io.input,
+      io.output,
+    )?;
   }
 
   if !args.mono.mono_repo {
     loop {
-      let mode = ask("Select mode: (1) Single Repo (2) Mono-Repo", input, output)?;
+      let mode = ask(
+        "Select mode: (1) Single Repo (2) Mono-Repo",
+        io.input,
+        io.output,
+      )?;
       match mode.as_str() {
         "1" => break,
         "2" => {
@@ -57,13 +62,13 @@ pub fn interactive_mode(
     loop {
       let choice = ask(
         "Mono-repo: (1) Use profile (2) Manual repo list",
-        input,
-        output,
+        io.input,
+        io.output,
       )?;
       match choice.as_str() {
         "1" => {
           loop {
-            let profile = ask("Profile name", input, output)?;
+            let profile = ask("Profile name", io.input, io.output)?;
             if !profile.is_empty() {
               args.mono.profile = Some(profile);
               break;
@@ -75,8 +80,8 @@ pub fn interactive_mode(
           loop {
             let repo_list = ask(
               "Enter repos (space separated 'username/lib1 username/lib2')",
-              input,
-              output,
+              io.input,
+              io.output,
             )?;
             if !repo_list.is_empty() {
               args.mono.repos = Some(repo_list.split_whitespace().map(String::from).collect());
@@ -93,16 +98,21 @@ pub fn interactive_mode(
   let build_type_str = ask_default(
     "Build type",
     args.build.build_type.to_cmake(),
-    input,
-    output,
+    io.input,
+    io.output,
   )?;
   args.build.build_type = build_type_str.parse::<BuildType>()?;
-  args.build.build_dir = ask_default("Build directory", &args.build.build_dir, input, output)?;
+  args.build.build_dir = ask_default(
+    "Build directory",
+    &args.build.build_dir,
+    io.input,
+    io.output,
+  )?;
 
   if !args.build.no_build {
-    args.build.no_build = ask_yesno("Configure only (skip build)?", false, input, output)?;
+    args.build.no_build = ask_yesno("Configure only (skip build)?", false, io.input, io.output)?;
   }
 
-  writeln!(output, "\nInteractive mode complete").ok();
+  writeln!(io.output, "\nInteractive mode complete").ok();
   Ok(())
 }

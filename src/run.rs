@@ -87,21 +87,22 @@ pub fn run() -> Result<(), Box<dyn Error>> {
   let mut config = load_config(&locations, &mut stdout);
   let mut args = Args::parse_with_config(&config)?;
 
-  let mut early_io = IoCtx {
-    input: &mut stdin,
-    output: &mut stdout,
-    verbose: false,
-    timing: false,
-  };
-  if handle_early_commands(&args, &mut config, &mut early_io)? {
-    return Ok(());
-  }
-
-  if args.repo.is_none() {
-    if io::stdin().is_terminal() {
-      interactive_mode(&mut args, &mut stdin, &mut stdout)?;
-    } else {
-      return Err("no repository specified".into());
+  {
+    let mut early_io = IoCtx {
+      input: &mut stdin,
+      output: &mut stdout,
+      verbose: false,
+      timing: false,
+    };
+    if handle_early_commands(&args, &mut config, &mut early_io)? {
+      return Ok(());
+    }
+    if args.repo.is_none() {
+      if io::stdin().is_terminal() {
+        interactive_mode(&mut args, &mut early_io)?;
+      } else {
+        return Err("no repository specified".into());
+      }
     }
   }
 
