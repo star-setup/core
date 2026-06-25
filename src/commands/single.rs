@@ -22,6 +22,7 @@ pub fn single_repo_mode(
   input: &mut impl BufRead,
   output: &mut impl Write,
 ) -> Result<(), String> {
+  let total = std::time::Instant::now();
   let repo = args.repo.as_deref().ok_or("No repository specified")?;
   let repo_url = resolve_repo_url(repo, args.connection.ssh);
   let dir_name = repo_dir_name(repo);
@@ -44,27 +45,33 @@ pub fn single_repo_mode(
     writeln!(output, "Repository {dir_name} already exists").ok();
     if confirm("Update existing repository?", args.yes, input, output)? {
       writeln!(output, "Updating {dir_name}\n").ok();
-      run_command(
-        &["git", "pull"],
-        Some(Path::new(&dir_name)),
-        args.connection.verbose,
-        output,
-      )?;
+      crate::time!(args.diagnostic.timing, output, "Update", {
+        run_command(
+          &["git", "pull"],
+          Some(Path::new(&dir_name)),
+          args.connection.verbose,
+          output,
+        )?;
+      });
     }
   } else {
     writeln!(output, "Cloning {dir_name}\n").ok();
-    run_command(
-      &["git", "clone", &repo_url, &dir_name],
-      None,
-      args.connection.verbose,
-      output,
-    )?;
+    crate::time!(args.diagnostic.timing, output, "Clone", {
+      run_command(
+        &["git", "clone", &repo_url, &dir_name],
+        None,
+        args.connection.verbose,
+        output,
+      )?;
+    });
   }
 
   let build_path = PathBuf::from(&dir_name).join(&args.build.build_dir);
-  if args.build.clean && build_path.exists() {
-    writeln!(output, "Cleaning build directory\n").ok();
-    fs::remove_dir_all(&build_path).map_err(|e| e.to_string())?;
+    if args.build.clean && build_path.exists() {
+      writeln!(output, "Cleaning build directory\n").ok();
+      crate::time!(args.diagnostic.timing, output, "Clean", {
+        fs::remove_dir_all(&build_path).map_err(|e| e.to_string())?;
+      });
   }
 
   writeln!(
@@ -73,7 +80,9 @@ pub fn single_repo_mode(
     args.build.build_dir
   )
   .ok();
-  fs::create_dir_all(&build_path).map_err(|e| e.to_string())?;
+  crate::time!(args.diagnostic.timing, output, "Create build directory", {
+    fs::create_dir_all(&build_path).map_err(|e| e.to_string())?;
+  });
 
   writeln!(output, "Configuring project\n").ok();
   build_project(
@@ -92,5 +101,9 @@ pub fn single_repo_mode(
     args.build.build_dir
   )
   .ok();
+
+  if args.diagnostic.timing {
+    writeln!(output, "[timing] Total: {:.2?}", total.elapsed()).ok();
+  }
   Ok(())
 }
