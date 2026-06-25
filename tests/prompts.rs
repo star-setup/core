@@ -48,7 +48,11 @@ fn test_confirm_input_cases() {
     let mut input = input;
     let mut output = Vec::new();
     let mut io = make_io(&mut input, &mut output);
-    assert_eq!(confirm("prompt", false, &mut io).unwrap(), expected, "Failed: {name}");
+    assert_eq!(
+      confirm("prompt", false, &mut io).unwrap(),
+      expected,
+      "Failed: {name}"
+    );
   }
 }
 
