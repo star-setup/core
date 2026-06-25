@@ -1,5 +1,7 @@
 pub mod build;
+pub use build::{build_project, cmake_build, meson_build};
 pub mod header;
+pub use header::{print_mode_header, ModeHeader};
 pub mod mono;
 pub use mono::{
   build_repo_list, create_mono_repo_cmakelists, create_mono_repo_mesonbuild, hoist_wraps,

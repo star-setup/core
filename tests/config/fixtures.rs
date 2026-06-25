@@ -1,4 +1,4 @@
-use star_setup::{cli::build::BuildType, config::types::ConfigEntry};
+use star_setup::{cli::BuildType, config::ConfigEntry};
 
 pub fn sample_entry() -> ConfigEntry {
   ConfigEntry {

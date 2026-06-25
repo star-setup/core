@@ -1,5 +1,5 @@
 use star_setup::{
-  cli::build::{detect_build_system, detect_mono_build_system, BuildSystem},
+  cli::{detect_build_system, detect_mono_build_system, BuildSystem},
   ctx::{IoCtx, ProcessRunner, RunCtx},
 };
 use tempfile::TempDir;

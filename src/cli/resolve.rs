@@ -1,13 +1,9 @@
 use crate::{
   cli::{
-    args::Args,
-    build::BuildType,
-    resolved::{
-      ResolvedArgs, ResolvedBuildFlags, ResolvedConnectionFlags, ResolvedDiagnosticFlags,
-      ResolvedMonoFlags,
-    },
+    Args, BuildType, ResolvedArgs, ResolvedBuildFlags, ResolvedConnectionFlags,
+    ResolvedDiagnosticFlags, ResolvedMonoFlags,
   },
-  config::types::SetupConfig,
+  config::SetupConfig,
 };
 
 /// Resolves a boolean flag from CLI positive/negative flags, config value, and a default.

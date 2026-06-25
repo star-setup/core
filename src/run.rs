@@ -2,15 +2,13 @@ use crate::{
   cli::{Args, ResolvedArgs},
   commands::{mono_repo_mode, single_repo_mode},
   config::{
-    crud::{add_config, create_default_config, remove_config},
-    display::list_configs,
-    io::load_config,
-    types::{ConfigEntry, SetupConfig},
+    add_config, create_default_config, list_configs, load_config, remove_config, ConfigEntry,
+    SetupConfig,
   },
   ctx::{IoCtx, ProcessRunner, RunCtx},
   interactive::interactive_mode,
   profile::{add_profile, list_profiles, remove_profile},
-  utils::prerequisites::check_prerequisites,
+  utils::check_prerequisites,
 };
 use std::{
   error::Error,

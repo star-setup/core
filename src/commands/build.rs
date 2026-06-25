@@ -1,10 +1,7 @@
 //! Build system dispatch and per-system build functions.
 
 use crate::{
-  cli::{
-    build::{detect_build_system, BuildSystem},
-    ResolvedArgs,
-  },
+  cli::{detect_build_system, BuildSystem, ResolvedArgs},
   ctx::RunCtx,
 };
 use std::path::Path;

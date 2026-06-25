@@ -1,4 +1,4 @@
-use crate::cli::build::BuildType;
+use crate::cli::BuildType;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf};
 

@@ -1,17 +1,10 @@
 use crate::{
-  cli::{
-    build::{detect_mono_build_system, BuildSystem},
-    ResolvedArgs,
-  },
+  cli::{detect_mono_build_system, BuildSystem, ResolvedArgs},
   commands::{
-    build::build_project,
-    mono::{
-      config::{create_mono_repo_cmakelists, create_mono_repo_mesonbuild},
-      resolve::{resolve_repos_for_mono, resolve_test_repo},
-      wraps::hoist_wraps,
-    },
+    build_project, create_mono_repo_cmakelists, create_mono_repo_mesonbuild, hoist_wraps,
+    resolve_repos_for_mono, resolve_test_repo,
   },
-  config::types::SetupConfig,
+  config::SetupConfig,
   ctx::RunCtx,
   repository::{clone_repository, repo_dir_name},
 };

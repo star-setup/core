@@ -1,4 +1,4 @@
-use crate::{cli::build::BuildSystem, ctx::RunCtx, prompts::ask_choice};
+use crate::{cli::BuildSystem, ctx::RunCtx, prompts::ask_choice};
 use std::path::{Path, PathBuf};
 
 fn pick_build_system(

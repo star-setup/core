@@ -1,6 +1,5 @@
-use std::io::Write;
-
 use crate::config::types::SetupConfig;
+use std::io::Write;
 
 pub fn print_profile_details(
   output: &mut (impl Write + ?Sized),

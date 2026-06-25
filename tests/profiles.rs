@@ -1,7 +1,8 @@
-use star_setup::config::io::{load_config, save_config};
-use star_setup::config::types::SetupConfig;
-use star_setup::profile::{
-  add_profile, has_profile, insert_profile, list_profiles, remove_profile, remove_profile_entry,
+use star_setup::{
+  config::{load_config, save_config, SetupConfig},
+  profile::{
+    add_profile, has_profile, insert_profile, list_profiles, remove_profile, remove_profile_entry,
+  },
 };
 mod common;
 use common::{empty_input, make_io, sink};

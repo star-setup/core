@@ -1,9 +1,11 @@
-use star_setup::cli::flags::DiagnosticFlags;
-use star_setup::cli::{
-  resolve_with_config, Args, BuildFlags, ConfigFlags, ConnectionFlags, MonoRepoFlags, ProfileFlags,
+use star_setup::{
+  cli::{
+    resolve_with_config, Args, BuildFlags, ConfigFlags, ConnectionFlags, DiagnosticFlags,
+    MonoRepoFlags, ProfileFlags,
+  },
+  config::SetupConfig,
+  interactive::interactive_mode,
 };
-use star_setup::config::types::SetupConfig;
-use star_setup::interactive::interactive_mode;
 mod common;
 use common::make_io;
 

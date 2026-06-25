@@ -1,7 +1,7 @@
-use crate::profile::display::print_profile_details;
 use crate::{
-  config::{io::save_config, types::SetupConfig},
+  config::{save_config, SetupConfig},
   ctx::IoCtx,
+  profile::print_profile_details,
   prompts::confirm,
 };
 

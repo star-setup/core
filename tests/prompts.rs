@@ -1,5 +1,4 @@
-use star_setup::prompts::confirm;
-use star_setup::prompts::{ask, ask_default, ask_yesno};
+use star_setup::prompts::{ask, ask_default, ask_yesno, confirm};
 mod common;
 use common::make_io;
 

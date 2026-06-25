@@ -1,10 +1,12 @@
 use super::common::sink;
-use star_setup::cli::flags::DiagnosticFlags;
-use star_setup::cli::{
-  resolve_with_config, Args, BuildFlags, ConfigFlags, ConnectionFlags, MonoRepoFlags, ProfileFlags,
+use star_setup::{
+  cli::{
+    resolve_with_config, Args, BuildFlags, ConfigFlags, ConnectionFlags, DiagnosticFlags,
+    MonoRepoFlags, ProfileFlags,
+  },
+  commands::{resolve_repos_for_mono, resolve_test_repo},
+  config::SetupConfig,
 };
-use star_setup::commands::{resolve_repos_for_mono, resolve_test_repo};
-use star_setup::config::types::SetupConfig;
 
 // resolve_test_repo tests
 #[test]

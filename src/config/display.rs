@@ -1,4 +1,4 @@
-use crate::config::types::{ConfigEntry, SetupConfig};
+use crate::config::{ConfigEntry, SetupConfig};
 use std::{fmt::Write as FmtWrite, io::Write};
 
 /// Formats a `ConfigEntry` as a human-readable string.

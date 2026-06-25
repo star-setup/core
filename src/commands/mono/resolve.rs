@@ -1,7 +1,7 @@
 use crate::{
   cli::ResolvedArgs,
-  commands::header::{print_mode_header, ModeHeader},
-  config::types::SetupConfig,
+  commands::{print_mode_header, ModeHeader},
+  config::SetupConfig,
   profile::list_profiles,
 };
 use std::io::Write;

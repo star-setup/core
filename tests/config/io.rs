@@ -1,11 +1,7 @@
 use super::{common::sink, fixtures::sample_entry};
 use star_setup::{
-  cli::build::BuildType,
-  config::{
-    crud::insert_config,
-    io::{load_config, save_config},
-    types::{ConfigEntry, SetupConfig},
-  },
+  cli::BuildType,
+  config::{insert_config, load_config, save_config, ConfigEntry, SetupConfig},
 };
 use std::path::PathBuf;
 

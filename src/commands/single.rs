@@ -1,9 +1,6 @@
 use crate::{
   cli::ResolvedArgs,
-  commands::{
-    build::build_project,
-    header::{print_mode_header, ModeHeader},
-  },
+  commands::{build_project, print_mode_header, ModeHeader},
   ctx::RunCtx,
   prompts::confirm,
   repository::{repo_dir_name, resolve_repo_url},

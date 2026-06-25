@@ -1,19 +1,12 @@
-use super::common::make_io;
-
 use super::{
-  common::{empty_input, sink},
+  common::{empty_input, make_io, sink},
   fixtures::sample_entry,
 };
 use star_setup::{
-  cli::build::BuildType,
+  cli::BuildType,
   config::{
-    crud::{
-      add_config, create_default_config, has_config, insert_config, remove_config,
-      remove_config_entry,
-    },
-    display::list_configs,
-    io::save_config,
-    types::{ConfigEntry, SetupConfig},
+    add_config, create_default_config, has_config, insert_config, list_configs, remove_config,
+    remove_config_entry, save_config, ConfigEntry, SetupConfig,
   },
 };
 

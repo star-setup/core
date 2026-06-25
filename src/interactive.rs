@@ -1,7 +1,7 @@
 //! Interactive CLI mode.
 
 use crate::{
-  cli::{build::BuildType, ResolvedArgs},
+  cli::{BuildType, ResolvedArgs},
   ctx::IoCtx,
   prompts::{ask, ask_default, ask_yesno},
 };

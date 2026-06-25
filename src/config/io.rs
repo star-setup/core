@@ -1,4 +1,4 @@
-use crate::config::types::SetupConfig;
+use crate::config::SetupConfig;
 use std::{fs, io, io::Write, path::PathBuf};
 
 /// Loads configuration from the first valid JSON file in `locations`.

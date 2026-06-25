@@ -1,10 +1,6 @@
 use crate::{
-  cli::build::BuildType,
-  config::{
-    display::format_entry,
-    io::save_config,
-    types::{ConfigEntry, SetupConfig},
-  },
+  cli::BuildType,
+  config::{format_entry, save_config, ConfigEntry, SetupConfig},
   ctx::IoCtx,
   prompts::confirm,
 };
