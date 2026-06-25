@@ -5,7 +5,7 @@ use std::{fs, io::Write, path::Path};
 fn write_mono_repo_config(
   mono_dir: &Path,
   repos: &[String],
-  output: &mut impl Write,
+  output: &mut (impl Write + ?Sized),
   timing: bool,
   filename: &str,
   format_modules: impl Fn(&[String]) -> String,
@@ -39,7 +39,7 @@ fn write_mono_repo_config(
 pub fn create_mono_repo_cmakelists(
   mono_dir: &Path,
   repos: &[String],
-  output: &mut impl Write,
+  output: &mut (impl Write + ?Sized),
   timing: bool,
 ) -> Result<(), String> {
   writeln!(output, "  Creating CMake configuration").ok();
@@ -83,7 +83,7 @@ set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER \"External\")
 pub fn create_mono_repo_mesonbuild(
   mono_dir: &Path,
   repos: &[String],
-  output: &mut impl Write,
+  output: &mut (impl Write + ?Sized),
   timing: bool,
 ) -> Result<(), String> {
   writeln!(output, "  Creating Meson configuration").ok();

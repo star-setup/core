@@ -67,7 +67,7 @@ pub fn parse_provide_pairs(content: &str) -> HashMap<String, String> {
 pub fn hoist_wraps(
   repos_dir: &Path,
   repo_dirs: &[PathBuf],
-  output: &mut impl Write,
+  output: &mut (impl Write + ?Sized),
   timing: bool,
 ) -> Result<HashMap<String, String>, String> {
   crate::time!(timing, output, "Hoist wraps", {

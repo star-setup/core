@@ -22,7 +22,12 @@ pub fn has_profile(config: &SetupConfig, name: &str) -> bool {
   config.profiles.contains_key(name)
 }
 
-fn print_profile_details(output: &mut impl Write, title: &str, label: &str, repos: &[String]) {
+fn print_profile_details(
+  output: &mut (impl Write + ?Sized),
+  title: &str,
+  label: &str,
+  repos: &[String],
+) {
   writeln!(output, "  {title}").ok();
   writeln!(output, "    {label}: {}", repos.len()).ok();
   for repo in repos {
@@ -112,7 +117,7 @@ pub fn remove_profile(
 }
 
 /// Lists all configured profiles.
-pub fn list_profiles(config: &SetupConfig, output: &mut impl Write) {
+pub fn list_profiles(config: &SetupConfig, output: &mut (impl Write + ?Sized)) {
   if config.profiles.is_empty() {
     writeln!(
       output,

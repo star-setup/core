@@ -104,7 +104,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
   };
 
   if args.mono.mono_repo {
-    mono_repo_mode(&args, &config, &mut stdin, &mut stdout)?;
+    mono_repo_mode(&args, &config, &mut ctx)?;
   } else {
     single_repo_mode(&args, &mut ctx)?;
   }

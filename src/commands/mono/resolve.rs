@@ -13,7 +13,7 @@ pub fn resolve_repos_for_mono(
   args: &ResolvedArgs,
   config: &SetupConfig,
   test_repo: &str,
-  output: &mut impl Write,
+  output: &mut (impl Write + ?Sized),
 ) -> Result<Vec<String>, String> {
   if let Some(profile_name) = &args.mono.profile {
     let profile_repos = config.profiles.get(profile_name).ok_or_else(|| {
