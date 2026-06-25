@@ -1,17 +1,107 @@
 use crate::{
-  cli::Args,
+  cli::{Args, ResolvedArgs},
   commands::{mono_repo_mode, single_repo_mode},
   config::{
     crud::{add_config, create_default_config, list_configs, remove_config},
     io::load_config,
-    types::ConfigEntry,
+    types::{ConfigEntry, SetupConfig},
   },
   ctx::{IoCtx, ProcessRunner, RunCtx},
   interactive::interactive_mode,
   profiles::{add_profile, list_profiles, remove_profile},
   utils::prerequisites::check_prerequisites,
 };
-use std::{error::Error, io, io::IsTerminal, path::PathBuf};
+use std::{
+  error::Error,
+  io::{self, BufRead, IsTerminal, Write},
+  path::PathBuf,
+};
+
+fn handle_early_commands(
+  args: &ResolvedArgs,
+  config: &mut SetupConfig,
+  stdin: &mut impl BufRead,
+  stdout: &mut impl Write,
+) -> Result<bool, Box<dyn Error>> {
+  if args.config.init_config {
+    create_default_config(
+      PathBuf::from(".star-setup.json"),
+      args.yes,
+      &mut IoCtx {
+        input: stdin,
+        output: stdout,
+        verbose: false,
+        timing: false,
+      },
+    )?;
+    return Ok(true);
+  }
+
+  if args.config.list_configs {
+    list_configs(config, stdout);
+    return Ok(true);
+  }
+
+  if args.profile.list_profiles {
+    list_profiles(config, stdout);
+    return Ok(true);
+  }
+
+  if let Some(name) = args.config.config_remove.as_deref() {
+    remove_config(
+      config,
+      name,
+      args.yes,
+      &mut IoCtx {
+        input: stdin,
+        output: stdout,
+        verbose: false,
+        timing: false,
+      },
+    )?;
+    return Ok(true);
+  }
+
+  if let Some(name) = args.config.config_add.as_deref() {
+    let entry = ConfigEntry {
+      ssh: args.connection.ssh,
+      build_type: args.build.build_type.clone(),
+      build_dir: args.build.build_dir.clone(),
+      mono_dir: args.mono.mono_dir.clone(),
+      no_build: args.build.no_build,
+      clean: args.build.clean,
+      verbose: args.connection.verbose,
+      timing: args.diagnostic.timing,
+      cmake_flags: args.build.cmake_flags.clone(),
+      meson_flags: args.build.meson_flags.clone(),
+    };
+    add_config(
+      config,
+      name,
+      entry,
+      args.yes,
+      &mut IoCtx {
+        input: stdin,
+        output: stdout,
+        verbose: false,
+        timing: false,
+      },
+    )?;
+    return Ok(true);
+  }
+
+  if let Some(name) = args.profile.profile_remove.as_deref() {
+    remove_profile(config, name, args.yes, stdin, stdout)?;
+    return Ok(true);
+  }
+
+  if let Some(vals) = args.profile.profile_add.as_ref() {
+    add_profile(config, vals, args.yes, stdin, stdout)?;
+    return Ok(true);
+  }
+
+  Ok(false)
+}
 
 /// Runs the setup process.
 /// # Errors
@@ -28,55 +118,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
   let mut config = load_config(&locations, &mut stdout);
   let mut args = Args::parse_with_config(&config)?;
 
-  if args.config.init_config {
-    create_default_config(
-      PathBuf::from(".star-setup.json"),
-      args.yes,
-      &mut stdin,
-      &mut stdout,
-    )?;
-    return Ok(());
-  }
-
-  if args.config.list_configs {
-    list_configs(&config, &mut stdout);
-    return Ok(());
-  }
-
-  if args.profile.list_profiles {
-    list_profiles(&config, &mut stdout);
-    return Ok(());
-  }
-
-  if let Some(name) = args.config.config_remove.as_deref() {
-    remove_config(&mut config, name, args.yes, &mut stdin, &mut stdout)?;
-    return Ok(());
-  }
-
-  if let Some(name) = args.config.config_add.as_deref() {
-    let entry = ConfigEntry {
-      ssh: args.connection.ssh,
-      build_type: args.build.build_type.clone(),
-      build_dir: args.build.build_dir.clone(),
-      mono_dir: args.mono.mono_dir.clone(),
-      no_build: args.build.no_build,
-      clean: args.build.clean,
-      verbose: args.connection.verbose,
-      timing: args.diagnostic.timing,
-      cmake_flags: args.build.cmake_flags.clone(),
-      meson_flags: args.build.meson_flags.clone(),
-    };
-    add_config(&mut config, name, entry, args.yes, &mut stdin, &mut stdout)?;
-    return Ok(());
-  }
-
-  if let Some(name) = args.profile.profile_remove.as_deref() {
-    remove_profile(&mut config, name, args.yes, &mut stdin, &mut stdout)?;
-    return Ok(());
-  }
-
-  if let Some(vals) = args.profile.profile_add.as_ref() {
-    add_profile(&mut config, vals, args.yes, &mut stdin, &mut stdout)?;
+  if handle_early_commands(&args, &mut config, &mut stdin, &mut stdout)? {
     return Ok(());
   }
 
