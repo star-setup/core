@@ -8,7 +8,7 @@ use crate::{
   },
   ctx::{IoCtx, ProcessRunner, RunCtx},
   interactive::interactive_mode,
-  profiles::{add_profile, list_profiles, remove_profile},
+  profile::{add_profile, list_profiles, remove_profile},
   utils::prerequisites::check_prerequisites,
 };
 use std::{

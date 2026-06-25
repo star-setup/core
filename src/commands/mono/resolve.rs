@@ -2,7 +2,7 @@ use crate::{
   cli::ResolvedArgs,
   commands::header::{print_mode_header, ModeHeader},
   config::types::SetupConfig,
-  profiles::list_profiles,
+  profile::list_profiles,
 };
 use std::io::Write;
 

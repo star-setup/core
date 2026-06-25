@@ -1,5 +1,4 @@
-//! Profile management.
-
+use crate::profile::display::print_profile_details;
 use crate::{
   config::{io::save_config, types::SetupConfig},
   ctx::IoCtx,
@@ -21,19 +20,6 @@ pub fn remove_profile_entry(config: &mut SetupConfig, name: &str) -> bool {
 #[must_use]
 pub fn has_profile(config: &SetupConfig, name: &str) -> bool {
   config.profiles.contains_key(name)
-}
-
-fn print_profile_details(
-  output: &mut (impl Write + ?Sized),
-  title: &str,
-  label: &str,
-  repos: &[String],
-) {
-  writeln!(output, "  {title}").ok();
-  writeln!(output, "    {label}: {}", repos.len()).ok();
-  for repo in repos {
-    writeln!(output, "      - {repo}").ok();
-  }
 }
 
 /// Adds a new profile to the configuration.
