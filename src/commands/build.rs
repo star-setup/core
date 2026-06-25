@@ -1,14 +1,13 @@
 //! Build system dispatch and per-system build functions.
 
 use crate::{
-  cli::build::{detect_build_system, BuildSystem},
-  cli::ResolvedArgs,
-  utils::process::run_command,
+  cli::{
+    build::{detect_build_system, BuildSystem},
+    ResolvedArgs,
+  },
+  ctx::RunCtx,
 };
-use std::{
-  io::{BufRead, Write},
-  path::Path,
-};
+use std::path::Path;
 
 /// Runs `CMake` configuration and optionally builds the project in `build_path`.
 /// # Errors
@@ -17,8 +16,7 @@ pub fn cmake_build(
   args: &ResolvedArgs,
   build_path: &Path,
   mono: bool,
-  output: &mut (impl Write + ?Sized),
-  timing: bool,
+  ctx: &mut RunCtx<'_>,
 ) -> Result<(), String> {
   let build_type_flag = format!("-DCMAKE_BUILD_TYPE={}", args.build.build_type.to_cmake());
   let mut cmake_cmd = if mono {
@@ -28,19 +26,16 @@ pub fn cmake_build(
   };
   cmake_cmd.extend(args.build.cmake_flags.iter().map(String::as_str));
 
-  crate::time!(timing, output, "CMake configure", {
-    run_command(
-      &cmake_cmd,
-      Some(build_path),
-      args.connection.verbose,
-      output,
-    )?;
+  crate::time!(ctx.io.timing, ctx.io.output, "CMake configure", {
+    ctx
+      .runner
+      .run(&cmake_cmd, Some(build_path), ctx.io.output)?;
   });
 
   if !args.build.no_build {
-    writeln!(output, "Building project\n").ok();
-    crate::time!(timing, output, "CMake build", {
-      run_command(
+    writeln!(ctx.io.output, "Building project\n").ok();
+    crate::time!(ctx.io.timing, ctx.io.output, "CMake build", {
+      ctx.runner.run(
         &[
           "cmake",
           "--build",
@@ -49,8 +44,7 @@ pub fn cmake_build(
           args.build.build_type.to_cmake(),
         ],
         Some(build_path),
-        args.connection.verbose,
-        output,
+        ctx.io.output,
       )?;
     });
   }
@@ -64,8 +58,7 @@ pub fn meson_build(
   args: &ResolvedArgs,
   build_path: &Path,
   source_path: &Path,
-  output: &mut (impl Write + ?Sized),
-  timing: bool,
+  ctx: &mut RunCtx<'_>,
 ) -> Result<(), String> {
   let buildtype_flag = format!("--buildtype={}", args.build.build_type.to_meson());
   let mut meson_cmd = vec!["meson", "setup"];
@@ -74,13 +67,13 @@ pub fn meson_build(
   meson_cmd.push(source_path.to_str().ok_or("Invalid source path")?);
   meson_cmd.extend(args.build.meson_flags.iter().map(String::as_str));
 
-  crate::time!(timing, output, "Meson setup", {
-    run_command(&meson_cmd, None, args.connection.verbose, output)?;
+  crate::time!(ctx.io.timing, ctx.io.output, "Meson setup", {
+    ctx.runner.run(&meson_cmd, None, ctx.io.output)?;
   });
   if !args.build.no_build {
-    writeln!(output, "Building project\n").ok();
-    crate::time!(timing, output, "Meson compile", {
-      run_command(
+    writeln!(ctx.io.output, "Building project\n").ok();
+    crate::time!(ctx.io.timing, ctx.io.output, "Meson compile", {
+      ctx.runner.run(
         &[
           "meson",
           "compile",
@@ -88,8 +81,7 @@ pub fn meson_build(
           build_path.to_str().ok_or("Invalid build path")?,
         ],
         None,
-        args.connection.verbose,
-        output,
+        ctx.io.output,
       )?;
     });
   }
@@ -104,12 +96,10 @@ pub fn build_project(
   build_path: &Path,
   source_path: &Path,
   mono: bool,
-  input: &mut (impl BufRead + ?Sized),
-  output: &mut (impl Write + ?Sized),
-  timing: bool,
+  ctx: &mut RunCtx<'_>,
 ) -> Result<(), String> {
-  match detect_build_system(source_path, input, output, timing)? {
-    BuildSystem::Cmake => cmake_build(args, build_path, mono, output, timing),
-    BuildSystem::Meson => meson_build(args, build_path, source_path, output, timing),
+  match detect_build_system(source_path, ctx)? {
+    BuildSystem::Cmake => cmake_build(args, build_path, mono, ctx),
+    BuildSystem::Meson => meson_build(args, build_path, source_path, ctx),
   }
 }

@@ -198,7 +198,7 @@ pub fn mono_repo_mode(
     .map(|r| repos_path.join(repo_dir_name(r)))
     .collect();
 
-  let build_system = detect_mono_build_system(&repo_dirs, ctx.io.input, ctx.io.output, timing)?;
+  let build_system = detect_mono_build_system(&repo_dirs, ctx)?;
 
   let canonical_map = generate_mono_config(
     &build_system,
@@ -224,15 +224,7 @@ pub fn mono_repo_mode(
     build_path.display()
   )
   .ok();
-  build_project(
-    args,
-    build_path.as_path(),
-    &mono_repo_path,
-    true,
-    ctx.io.input,
-    ctx.io.output,
-    timing,
-  )?;
+  build_project(args, build_path.as_path(), &mono_repo_path, true, ctx)?;
 
   print_setup_complete(
     canonical_map,

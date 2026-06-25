@@ -7,7 +7,6 @@ use crate::{
   ctx::RunCtx,
   prompts::confirm,
   repository::{repo_dir_name, resolve_repo_url},
-  utils::process::run_command,
 };
 use std::{
   fs,
@@ -47,30 +46,24 @@ pub fn single_repo_mode(args: &ResolvedArgs, ctx: &mut RunCtx<'_>) -> Result<(),
     )? {
       writeln!(ctx.io.output, "Updating {dir_name}\n").ok();
       crate::time!(args.diagnostic.timing, ctx.io.output, "Update", {
-        run_command(
-          &["git", "pull"],
-          Some(Path::new(&dir_name)),
-          args.connection.verbose,
-          ctx.io.output,
-        )?;
+        ctx
+          .runner
+          .run(&["git", "pull"], Some(Path::new(&dir_name)), ctx.io.output)?;
       });
     }
   } else {
     writeln!(ctx.io.output, "Cloning {dir_name}\n").ok();
     crate::time!(args.diagnostic.timing, ctx.io.output, "Clone", {
-      run_command(
-        &["git", "clone", &repo_url, &dir_name],
-        None,
-        args.connection.verbose,
-        ctx.io.output,
-      )?;
+      ctx
+        .runner
+        .run(&["git", "clone", &repo_url, &dir_name], None, ctx.io.output)?;
     });
   }
 
   let build_path = PathBuf::from(&dir_name).join(&args.build.build_dir);
   if args.build.clean && build_path.exists() {
     writeln!(ctx.io.output, "Cleaning build directory\n").ok();
-    crate::time!(args.diagnostic.timing, ctx.io.output, "Clean", {
+    crate::time!(ctx.io.timing, ctx.io.output, "Clean", {
       fs::remove_dir_all(&build_path).map_err(|e| e.to_string())?;
     });
   }
@@ -91,15 +84,7 @@ pub fn single_repo_mode(args: &ResolvedArgs, ctx: &mut RunCtx<'_>) -> Result<(),
   );
 
   writeln!(ctx.io.output, "Configuring project\n").ok();
-  build_project(
-    args,
-    build_path.as_path(),
-    Path::new(&dir_name),
-    false,
-    ctx.io.input,
-    ctx.io.output,
-    args.diagnostic.timing,
-  )?;
+  build_project(args, build_path.as_path(), Path::new(&dir_name), false, ctx)?;
 
   writeln!(
     ctx.io.output,
@@ -108,7 +93,7 @@ pub fn single_repo_mode(args: &ResolvedArgs, ctx: &mut RunCtx<'_>) -> Result<(),
   )
   .ok();
 
-  if args.diagnostic.timing {
+  if ctx.io.timing {
     writeln!(ctx.io.output, "[timing] Total: {:.2?}", total.elapsed()).ok();
   }
   Ok(())
