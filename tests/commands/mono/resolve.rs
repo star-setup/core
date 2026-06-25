@@ -1,4 +1,5 @@
 use super::common::sink;
+use star_setup::cli::flags::DiagnosticFlags;
 use star_setup::cli::{
   resolve_with_config, Args, BuildFlags, ConfigFlags, ConnectionFlags, MonoRepoFlags, ProfileFlags,
 };
@@ -50,6 +51,7 @@ fn default_resolved() -> star_setup::cli::ResolvedArgs {
   let args = Args {
     repo: Some("user/repo".to_string()),
     yes: false,
+    diagnostic: DiagnosticFlags { timing: false },
     connection: ConnectionFlags {
       ssh: false,
       https: false,

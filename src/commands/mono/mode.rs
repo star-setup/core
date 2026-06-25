@@ -4,10 +4,12 @@ use crate::{
     ResolvedArgs,
   },
   commands::{
-    build::{cmake_build, meson_build},
-    mono::config::{create_mono_repo_cmakelists, create_mono_repo_mesonbuild},
-    mono::resolve::{resolve_repos_for_mono, resolve_test_repo},
-    mono::wraps::hoist_wraps,
+    build::build_project,
+    mono::{
+      config::{create_mono_repo_cmakelists, create_mono_repo_mesonbuild},
+      resolve::{resolve_repos_for_mono, resolve_test_repo},
+      wraps::hoist_wraps,
+    },
   },
   config::types::SetupConfig,
   repository::{clone_repository, repo_dir_name},
@@ -23,9 +25,11 @@ fn clone_mono_repos(
   repos_path: &std::path::Path,
   ssh: bool,
   verbose: bool,
+  timing: bool,
   output: &mut impl Write,
 ) -> Result<(), String> {
   writeln!(output, "Cloning repositories").ok();
+  let t = std::time::Instant::now();
   for repo in repos {
     clone_repository(repo, repos_path, ssh, verbose, output)?;
   }
@@ -35,6 +39,9 @@ fn clone_mono_repos(
     repos.len()
   )
   .ok();
+  if timing {
+    writeln!(output, "  [timing] Clone: {:.2?}", t.elapsed()).ok();
+  }
   Ok(())
 }
 
@@ -80,6 +87,30 @@ pub fn build_repo_list(test_repo: &str, deps: &[String]) -> Vec<String> {
     .collect()
 }
 
+fn prepare_build_dir(
+  build_path: &std::path::Path,
+  clean: bool,
+  timing: bool,
+  output: &mut impl Write,
+) -> Result<(), String> {
+  if clean && build_path.exists() {
+    let t = std::time::Instant::now();
+    writeln!(output, "Cleaning build directory\n").ok();
+    fs::remove_dir_all(build_path).map_err(|e| e.to_string())?;
+    if timing {
+      writeln!(output, "  [timing] Clean: {:.2?}", t.elapsed()).ok();
+    }
+  }
+
+  let t = std::time::Instant::now();
+  writeln!(output, "Creating build directory\n").ok();
+  fs::create_dir_all(build_path).map_err(|e| e.to_string())?;
+  if timing {
+    writeln!(output, "  [timing] Create build directory: {:.2?}", t.elapsed()).ok();
+  }
+  Ok(())
+}
+
 /// Clones and configures a mono-repo ecosystem from a profile or explicit repository list.
 /// # Errors
 /// Returns an error if no repository is specified, directory creation fails, or any build system command fails.
@@ -89,6 +120,9 @@ pub fn mono_repo_mode(
   input: &mut impl BufRead,
   output: &mut impl Write,
 ) -> Result<(), String> {
+  let timing = args.diagnostic.timing;
+  let total = std::time::Instant::now();
+
   let repo_input = args.repo.as_deref().ok_or("No repository specified")?;
   let repo_input = repo_input.trim_end_matches('/');
 
@@ -97,9 +131,13 @@ pub fn mono_repo_mode(
   let repos = build_repo_list(&test_repo, &deps);
   writeln!(output, "Total repositories: {}\n", repos.len()).ok();
 
+  let t = std::time::Instant::now();
   let mono_repo_path = PathBuf::from(&args.mono.mono_dir);
   writeln!(output, "Creating directory: {}\n", mono_repo_path.display()).ok();
   fs::create_dir_all(&mono_repo_path).map_err(|e| e.to_string())?;
+  if timing {
+    writeln!(output, "  [timing] Create directory: {:.2?}", t.elapsed()).ok();
+  }
 
   let repos_path = mono_repo_path.join("repos");
   fs::create_dir_all(&repos_path).map_err(|e| e.to_string())?;
@@ -109,6 +147,7 @@ pub fn mono_repo_mode(
     &repos_path,
     args.connection.ssh,
     args.connection.verbose,
+    timing,
     output,
   )?;
 
@@ -117,7 +156,7 @@ pub fn mono_repo_mode(
     .map(|r| repos_path.join(repo_dir_name(r)))
     .collect();
 
-  let build_system = detect_mono_build_system(&repo_dirs, input, output)?;
+  let build_system = detect_mono_build_system(&repo_dirs, input, output, timing)?;
 
   let canonical_map = generate_mono_config(
     &build_system,
@@ -129,19 +168,18 @@ pub fn mono_repo_mode(
   )?;
 
   let build_path = mono_repo_path.join(&args.build.build_dir);
-  if args.build.clean && build_path.exists() {
-    writeln!(output, "Cleaning build directory\n").ok();
-    fs::remove_dir_all(&build_path).map_err(|e| e.to_string())?;
-  }
-
-  writeln!(output, "Creating build directory\n").ok();
-  fs::create_dir_all(&build_path).map_err(|e| e.to_string())?;
+  prepare_build_dir(build_path.as_path(), args.build.clean, timing, output)?;
 
   writeln!(output, "Configuring project in {}\n", build_path.display()).ok();
-  match &build_system {
-    BuildSystem::Cmake => cmake_build(args, build_path.as_path(), true, output)?,
-    BuildSystem::Meson => meson_build(args, build_path.as_path(), &mono_repo_path, output)?,
-  }
+  build_project(
+    args,
+    build_path.as_path(),
+    &mono_repo_path,
+    true,
+    input,
+    output,
+    timing,
+  )?;
 
   writeln!(output, "Setup complete").ok();
   writeln!(
@@ -180,6 +218,9 @@ pub fn mono_repo_mode(
         .display()
     )
     .ok();
+  }
+  if timing {
+    writeln!(output, "[timing] Total: {:.2?}", total.elapsed()).ok();
   }
   Ok(())
 }

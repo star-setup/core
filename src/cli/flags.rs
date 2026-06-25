@@ -109,3 +109,10 @@ pub struct ProfileFlags {
   #[arg(long)]
   pub list_profiles: bool,
 }
+
+#[derive(ClapArgs)]
+pub struct DiagnosticFlags {
+  /// Show timing information for each phase
+  #[arg(long)]
+  pub timing: bool,
+}

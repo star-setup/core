@@ -72,6 +72,7 @@ pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<Resol
     repo: args.repo,
     yes: args.yes,
     connection: ResolvedConnectionFlags { ssh, verbose },
+    diagnostic: args.diagnostic,
     build: ResolvedBuildFlags {
       build_type: if let Some(s) = args.build.build_type {
         s.parse::<BuildType>()?

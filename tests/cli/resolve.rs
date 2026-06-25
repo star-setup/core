@@ -1,3 +1,4 @@
+use star_setup::cli::flags::DiagnosticFlags;
 use star_setup::cli::{
   build::BuildType, resolve_bool, resolve_with_config, Args, BuildFlags, ConfigFlags,
   ConnectionFlags, MonoRepoFlags, ProfileFlags,
@@ -73,6 +74,7 @@ fn default_args() -> Args {
   Args {
     repo: None,
     yes: false,
+    diagnostic: DiagnosticFlags { timing: false },
     connection: ConnectionFlags {
       ssh: false,
       https: false,

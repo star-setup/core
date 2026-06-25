@@ -16,21 +16,21 @@ fn meson_dir() -> TempDir {
 #[test]
 fn test_detect_build_system_cmake() {
   let dir = cmake_dir();
-  let result = detect_build_system(dir.path(), &mut b"".as_ref(), &mut Vec::new()).unwrap();
+  let result = detect_build_system(dir.path(), &mut b"".as_ref(), &mut Vec::new(), false).unwrap();
   assert!(matches!(result, BuildSystem::Cmake));
 }
 
 #[test]
 fn test_detect_build_system_meson() {
   let dir = meson_dir();
-  let result = detect_build_system(dir.path(), &mut b"".as_ref(), &mut Vec::new()).unwrap();
+  let result = detect_build_system(dir.path(), &mut b"".as_ref(), &mut Vec::new(), false).unwrap();
   assert!(matches!(result, BuildSystem::Meson));
 }
 
 #[test]
 fn test_detect_build_system_none() {
   let dir = TempDir::new().unwrap();
-  let result = detect_build_system(dir.path(), &mut b"".as_ref(), &mut Vec::new());
+  let result = detect_build_system(dir.path(), &mut b"".as_ref(), &mut Vec::new(), false);
   assert!(result.is_err());
 }
 
@@ -38,7 +38,8 @@ fn test_detect_build_system_none() {
 fn test_detect_build_system_both_picks_cmake() {
   let dir = cmake_dir();
   std::fs::write(dir.path().join("meson.build"), "").unwrap();
-  let result = detect_build_system(dir.path(), &mut b"1\n".as_ref(), &mut Vec::new()).unwrap();
+  let result =
+    detect_build_system(dir.path(), &mut b"1\n".as_ref(), &mut Vec::new(), false).unwrap();
   assert!(matches!(result, BuildSystem::Cmake));
 }
 
@@ -46,7 +47,8 @@ fn test_detect_build_system_both_picks_cmake() {
 fn test_detect_build_system_both_picks_meson() {
   let dir = cmake_dir();
   std::fs::write(dir.path().join("meson.build"), "").unwrap();
-  let result = detect_build_system(dir.path(), &mut b"2\n".as_ref(), &mut Vec::new()).unwrap();
+  let result =
+    detect_build_system(dir.path(), &mut b"2\n".as_ref(), &mut Vec::new(), false).unwrap();
   assert!(matches!(result, BuildSystem::Meson));
 }
 
@@ -57,6 +59,7 @@ fn test_detect_mono_build_system_cmake() {
     &[dir.path().to_path_buf()],
     &mut b"".as_ref(),
     &mut Vec::new(),
+    false,
   )
   .unwrap();
   assert!(matches!(result, BuildSystem::Cmake));
@@ -69,6 +72,7 @@ fn test_detect_mono_build_system_meson() {
     &[dir.path().to_path_buf()],
     &mut b"".as_ref(),
     &mut Vec::new(),
+    false,
   )
   .unwrap();
   assert!(matches!(result, BuildSystem::Meson));
@@ -81,6 +85,7 @@ fn test_detect_mono_build_system_none() {
     &[dir.path().to_path_buf()],
     &mut b"".as_ref(),
     &mut Vec::new(),
+    false,
   );
   assert!(result.is_err());
 }
@@ -93,6 +98,7 @@ fn test_detect_mono_build_system_both_picks_cmake() {
     &[dir.path().to_path_buf()],
     &mut b"1\n".as_ref(),
     &mut Vec::new(),
+    false,
   )
   .unwrap();
   assert!(matches!(result, BuildSystem::Cmake));
@@ -106,6 +112,7 @@ fn test_detect_mono_build_system_both_picks_meson() {
     &[dir.path().to_path_buf()],
     &mut b"2\n".as_ref(),
     &mut Vec::new(),
+    false,
   )
   .unwrap();
   assert!(matches!(result, BuildSystem::Meson));

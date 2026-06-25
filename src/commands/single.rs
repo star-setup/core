@@ -83,6 +83,7 @@ pub fn single_repo_mode(
     false,
     input,
     output,
+    args.diagnostic.timing,
   )?;
 
   writeln!(

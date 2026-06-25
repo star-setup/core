@@ -1,6 +1,8 @@
 use crate::{
   cli::{
-    flags::{BuildFlags, ConfigFlags, ConnectionFlags, MonoRepoFlags, ProfileFlags},
+    flags::{
+      BuildFlags, ConfigFlags, ConnectionFlags, DiagnosticFlags, MonoRepoFlags, ProfileFlags,
+    },
     resolve::resolve_with_config,
     resolved::ResolvedArgs,
   },
@@ -37,6 +39,9 @@ pub struct Args {
 
   #[command(flatten)]
   pub profile: ProfileFlags,
+
+  #[command(flatten)]
+  pub diagnostic: DiagnosticFlags,
 }
 
 impl Args {

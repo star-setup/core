@@ -18,7 +18,9 @@ pub fn cmake_build(
   build_path: &Path,
   mono: bool,
   output: &mut impl Write,
+  timing: bool,
 ) -> Result<(), String> {
+  let t = std::time::Instant::now();
   let build_type_flag = format!("-DCMAKE_BUILD_TYPE={}", args.build.build_type.to_cmake());
   let mut cmake_cmd = if mono {
     vec!["cmake", "-DBUILD_LOCAL=ON", &build_type_flag, ".."]
@@ -47,6 +49,9 @@ pub fn cmake_build(
       output,
     )?;
   }
+  if timing {
+    writeln!(output, "  [timing] CMake build: {:.2?}", t.elapsed()).ok();
+  }
   Ok(())
 }
 
@@ -58,7 +63,9 @@ pub fn meson_build(
   build_path: &Path,
   source_path: &Path,
   output: &mut impl Write,
+  timing: bool,
 ) -> Result<(), String> {
+  let t = std::time::Instant::now();
   let buildtype_flag = format!("--buildtype={}", args.build.build_type.to_meson());
   let mut meson_cmd = vec!["meson", "setup"];
   meson_cmd.push(&buildtype_flag);
@@ -80,6 +87,9 @@ pub fn meson_build(
       output,
     )?;
   }
+  if timing {
+    writeln!(output, "  [timing] Meson build: {:.2?}", t.elapsed()).ok();
+  }
   Ok(())
 }
 
@@ -93,9 +103,10 @@ pub fn build_project(
   mono: bool,
   input: &mut impl BufRead,
   output: &mut impl Write,
+  timing: bool,
 ) -> Result<(), String> {
-  match detect_build_system(source_path, input, output)? {
-    BuildSystem::Cmake => cmake_build(args, build_path, mono, output),
-    BuildSystem::Meson => meson_build(args, build_path, source_path, output),
+  match detect_build_system(source_path, input, output, timing)? {
+    BuildSystem::Cmake => cmake_build(args, build_path, mono, output, timing),
+    BuildSystem::Meson => meson_build(args, build_path, source_path, output, timing),
   }
 }
