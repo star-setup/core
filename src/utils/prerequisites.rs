@@ -1,5 +1,5 @@
-use std::process::Command;
 use crate::ctx::IoCtx;
+use std::process::Command;
 
 /// Checks if required tools are available on PATH.
 /// Returns Result.
