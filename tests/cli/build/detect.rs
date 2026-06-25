@@ -73,7 +73,12 @@ fn test_detect_build_system_both_picks_cmake() {
   std::fs::write(dir.path().join("meson.build"), "").unwrap();
   let mut runner = ProcessRunner { verbose: false };
   let mut ctx = RunCtx {
-    io: IoCtx { input: &mut b"1\n".as_ref(), output: &mut Vec::new(), verbose: false, timing: false },
+    io: IoCtx {
+      input: &mut b"1\n".as_ref(),
+      output: &mut Vec::new(),
+      verbose: false,
+      timing: false,
+    },
     runner: &mut runner,
   };
   let result = detect_build_system(dir.path(), &mut ctx).unwrap();
@@ -86,7 +91,12 @@ fn test_detect_build_system_both_picks_meson() {
   std::fs::write(dir.path().join("meson.build"), "").unwrap();
   let mut runner = ProcessRunner { verbose: false };
   let mut ctx = RunCtx {
-    io: IoCtx { input: &mut b"2\n".as_ref(), output: &mut Vec::new(), verbose: false, timing: false },
+    io: IoCtx {
+      input: &mut b"2\n".as_ref(),
+      output: &mut Vec::new(),
+      verbose: false,
+      timing: false,
+    },
     runner: &mut runner,
   };
   let result = detect_build_system(dir.path(), &mut ctx).unwrap();
@@ -99,7 +109,12 @@ fn test_detect_build_system_timing_output() {
   let mut output = Vec::new();
   let mut runner = ProcessRunner { verbose: false };
   let mut ctx = RunCtx {
-    io: IoCtx { input: &mut b"".as_ref(), output: &mut output, verbose: false, timing: true },
+    io: IoCtx {
+      input: &mut b"".as_ref(),
+      output: &mut output,
+      verbose: false,
+      timing: true,
+    },
     runner: &mut runner,
   };
   detect_build_system(dir.path(), &mut ctx).unwrap();
@@ -112,7 +127,12 @@ fn test_detect_mono_build_system_cmake() {
   let dir = cmake_dir();
   let mut runner = ProcessRunner { verbose: false };
   let mut ctx = RunCtx {
-    io: IoCtx { input: &mut b"".as_ref(), output: &mut Vec::new(), verbose: false, timing: false },
+    io: IoCtx {
+      input: &mut b"".as_ref(),
+      output: &mut Vec::new(),
+      verbose: false,
+      timing: false,
+    },
     runner: &mut runner,
   };
   let result = detect_mono_build_system(&[dir.path().to_path_buf()], &mut ctx).unwrap();
@@ -124,7 +144,12 @@ fn test_detect_mono_build_system_meson() {
   let dir = meson_dir();
   let mut runner = ProcessRunner { verbose: false };
   let mut ctx = RunCtx {
-    io: IoCtx { input: &mut b"".as_ref(), output: &mut Vec::new(), verbose: false, timing: false },
+    io: IoCtx {
+      input: &mut b"".as_ref(),
+      output: &mut Vec::new(),
+      verbose: false,
+      timing: false,
+    },
     runner: &mut runner,
   };
   let result = detect_mono_build_system(&[dir.path().to_path_buf()], &mut ctx).unwrap();
@@ -136,7 +161,12 @@ fn test_detect_mono_build_system_none() {
   let dir = TempDir::new().unwrap();
   let mut runner = ProcessRunner { verbose: false };
   let mut ctx = RunCtx {
-    io: IoCtx { input: &mut b"".as_ref(), output: &mut Vec::new(), verbose: false, timing: false },
+    io: IoCtx {
+      input: &mut b"".as_ref(),
+      output: &mut Vec::new(),
+      verbose: false,
+      timing: false,
+    },
     runner: &mut runner,
   };
   let result = detect_mono_build_system(&[dir.path().to_path_buf()], &mut ctx);
@@ -149,7 +179,12 @@ fn test_detect_mono_build_system_both_picks_cmake() {
   std::fs::write(dir.path().join("meson.build"), "").unwrap();
   let mut runner = ProcessRunner { verbose: false };
   let mut ctx = RunCtx {
-    io: IoCtx { input: &mut b"1\n".as_ref(), output: &mut Vec::new(), verbose: false, timing: false },
+    io: IoCtx {
+      input: &mut b"1\n".as_ref(),
+      output: &mut Vec::new(),
+      verbose: false,
+      timing: false,
+    },
     runner: &mut runner,
   };
   let result = detect_mono_build_system(&[dir.path().to_path_buf()], &mut ctx).unwrap();
@@ -162,7 +197,12 @@ fn test_detect_mono_build_system_both_picks_meson() {
   std::fs::write(dir.path().join("meson.build"), "").unwrap();
   let mut runner = ProcessRunner { verbose: false };
   let mut ctx = RunCtx {
-    io: IoCtx { input: &mut b"2\n".as_ref(), output: &mut Vec::new(), verbose: false, timing: false },
+    io: IoCtx {
+      input: &mut b"2\n".as_ref(),
+      output: &mut Vec::new(),
+      verbose: false,
+      timing: false,
+    },
     runner: &mut runner,
   };
   let result = detect_mono_build_system(&[dir.path().to_path_buf()], &mut ctx).unwrap();
@@ -175,7 +215,12 @@ fn test_detect_mono_build_system_timing_output() {
   let mut output = Vec::new();
   let mut runner = ProcessRunner { verbose: false };
   let mut ctx = RunCtx {
-    io: IoCtx { input: &mut b"".as_ref(), output: &mut output, verbose: false, timing: true },
+    io: IoCtx {
+      input: &mut b"".as_ref(),
+      output: &mut output,
+      verbose: false,
+      timing: true,
+    },
     runner: &mut runner,
   };
   detect_mono_build_system(&[dir.path().to_path_buf()], &mut ctx).unwrap();

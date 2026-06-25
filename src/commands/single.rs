@@ -45,7 +45,7 @@ pub fn single_repo_mode(args: &ResolvedArgs, ctx: &mut RunCtx<'_>) -> Result<(),
       ctx.io.output,
     )? {
       writeln!(ctx.io.output, "Updating {dir_name}\n").ok();
-      crate::time!(args.diagnostic.timing, ctx.io.output, "Update", {
+      crate::time!(ctx.io.timing, ctx.io.output, "Update", {
         ctx
           .runner
           .run(&["git", "pull"], Some(Path::new(&dir_name)), ctx.io.output)?;
@@ -53,7 +53,7 @@ pub fn single_repo_mode(args: &ResolvedArgs, ctx: &mut RunCtx<'_>) -> Result<(),
     }
   } else {
     writeln!(ctx.io.output, "Cloning {dir_name}\n").ok();
-    crate::time!(args.diagnostic.timing, ctx.io.output, "Clone", {
+    crate::time!(ctx.io.timing, ctx.io.output, "Clone", {
       ctx
         .runner
         .run(&["git", "clone", &repo_url, &dir_name], None, ctx.io.output)?;
@@ -74,14 +74,9 @@ pub fn single_repo_mode(args: &ResolvedArgs, ctx: &mut RunCtx<'_>) -> Result<(),
     args.build.build_dir
   )
   .ok();
-  crate::time!(
-    args.diagnostic.timing,
-    ctx.io.output,
-    "Create build directory",
-    {
-      fs::create_dir_all(&build_path).map_err(|e| e.to_string())?;
-    }
-  );
+  crate::time!(ctx.io.timing, ctx.io.output, "Create build directory", {
+    fs::create_dir_all(&build_path).map_err(|e| e.to_string())?;
+  });
 
   writeln!(ctx.io.output, "Configuring project\n").ok();
   build_project(args, build_path.as_path(), Path::new(&dir_name), false, ctx)?;
