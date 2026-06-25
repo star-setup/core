@@ -67,11 +67,11 @@ pub fn single_repo_mode(
   }
 
   let build_path = PathBuf::from(&dir_name).join(&args.build.build_dir);
-    if args.build.clean && build_path.exists() {
-      writeln!(output, "Cleaning build directory\n").ok();
-      crate::time!(args.diagnostic.timing, output, "Clean", {
-        fs::remove_dir_all(&build_path).map_err(|e| e.to_string())?;
-      });
+  if args.build.clean && build_path.exists() {
+    writeln!(output, "Cleaning build directory\n").ok();
+    crate::time!(args.diagnostic.timing, output, "Clean", {
+      fs::remove_dir_all(&build_path).map_err(|e| e.to_string())?;
+    });
   }
 
   writeln!(

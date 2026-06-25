@@ -20,7 +20,6 @@ pub fn cmake_build(
   output: &mut impl Write,
   timing: bool,
 ) -> Result<(), String> {
-  let t = std::time::Instant::now();
   let build_type_flag = format!("-DCMAKE_BUILD_TYPE={}", args.build.build_type.to_cmake());
   let mut cmake_cmd = if mono {
     vec!["cmake", "-DBUILD_LOCAL=ON", &build_type_flag, ".."]
@@ -28,29 +27,32 @@ pub fn cmake_build(
     vec!["cmake", "..", &build_type_flag]
   };
   cmake_cmd.extend(args.build.cmake_flags.iter().map(String::as_str));
-  run_command(
-    &cmake_cmd,
-    Some(build_path),
-    args.connection.verbose,
-    output,
-  )?;
-  if !args.build.no_build {
-    writeln!(output, "Building project\n").ok();
+
+  crate::time!(timing, output, "CMake configure", {
     run_command(
-      &[
-        "cmake",
-        "--build",
-        ".",
-        "--config",
-        args.build.build_type.to_cmake(),
-      ],
+      &cmake_cmd,
       Some(build_path),
       args.connection.verbose,
       output,
     )?;
-  }
-  if timing {
-    writeln!(output, "  [timing] CMake build: {:.2?}", t.elapsed()).ok();
+  });
+
+  if !args.build.no_build {
+    writeln!(output, "Building project\n").ok();
+    crate::time!(timing, output, "CMake build", {
+      run_command(
+        &[
+          "cmake",
+          "--build",
+          ".",
+          "--config",
+          args.build.build_type.to_cmake(),
+        ],
+        Some(build_path),
+        args.connection.verbose,
+        output,
+      )?;
+    });
   }
   Ok(())
 }
@@ -65,32 +67,33 @@ pub fn meson_build(
   output: &mut impl Write,
   timing: bool,
 ) -> Result<(), String> {
-  let t = std::time::Instant::now();
   let buildtype_flag = format!("--buildtype={}", args.build.build_type.to_meson());
   let mut meson_cmd = vec!["meson", "setup"];
   meson_cmd.push(&buildtype_flag);
   meson_cmd.push(build_path.to_str().ok_or("Invalid build path")?);
   meson_cmd.push(source_path.to_str().ok_or("Invalid source path")?);
   meson_cmd.extend(args.build.meson_flags.iter().map(String::as_str));
-  run_command(&meson_cmd, None, args.connection.verbose, output)?;
+
+  crate::time!(timing, output, "Meson setup", {
+    run_command(&meson_cmd, None, args.connection.verbose, output)?;
+  });
   if !args.build.no_build {
     writeln!(output, "Building project\n").ok();
-    run_command(
-      &[
-        "meson",
-        "compile",
-        "-C",
-        build_path.to_str().ok_or("Invalid build path")?,
-      ],
-      None,
-      args.connection.verbose,
-      output,
-    )?;
-  }
-  if timing {
-    writeln!(output, "  [timing] Meson build: {:.2?}", t.elapsed()).ok();
-  }
-  Ok(())
+    crate::time!(timing, output, "Meson compile", {
+        run_command(
+          &[
+            "meson",
+            "compile",
+            "-C",
+            build_path.to_str().ok_or("Invalid build path")?,
+          ],
+          None,
+          args.connection.verbose,
+          output,
+        )?;
+      });
+    }
+    Ok(())
 }
 
 /// Detects and dispatches to the appropriate build system.
