@@ -2,7 +2,8 @@ use crate::{
   cli::{Args, ResolvedArgs},
   commands::{mono_repo_mode, single_repo_mode},
   config::{
-    crud::{add_config, create_default_config, list_configs, remove_config},
+    crud::{add_config, create_default_config, remove_config},
+    display::list_configs,
     io::load_config,
     types::{ConfigEntry, SetupConfig},
   },

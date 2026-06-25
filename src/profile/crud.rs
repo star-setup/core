@@ -4,7 +4,6 @@ use crate::{
   ctx::IoCtx,
   prompts::confirm,
 };
-use std::io::Write;
 
 /// Inserts or overwrites a named profile.
 pub fn insert_profile(config: &mut SetupConfig, name: &str, repos: Vec<String>) {
@@ -102,22 +101,4 @@ pub fn remove_profile(
   writeln!(io.output, "\nProfile '{name}' removed successfully").ok();
   writeln!(io.output, "Configuration saved to: {}\n", path.display()).ok();
   Ok(())
-}
-
-/// Lists all configured profiles.
-pub fn list_profiles(config: &SetupConfig, output: &mut (impl Write + ?Sized)) {
-  if config.profiles.is_empty() {
-    writeln!(
-      output,
-      "No profiles configured. Run with --init-config to create a default configuration."
-    )
-    .ok();
-    return;
-  }
-
-  writeln!(output, "Configured profiles:\n").ok();
-  for (name, repos) in &config.profiles {
-    print_profile_details(output, name, "Repositories", repos);
-    writeln!(output).ok();
-  }
 }

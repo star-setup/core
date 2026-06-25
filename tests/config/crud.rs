@@ -8,9 +8,10 @@ use star_setup::{
   cli::build::BuildType,
   config::{
     crud::{
-      add_config, create_default_config, has_config, insert_config, list_configs, remove_config,
+      add_config, create_default_config, has_config, insert_config, remove_config,
       remove_config_entry,
     },
+    display::list_configs,
     io::save_config,
     types::{ConfigEntry, SetupConfig},
   },

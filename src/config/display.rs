@@ -1,5 +1,5 @@
-use crate::config::types::ConfigEntry;
-use std::fmt::Write as FmtWrite;
+use crate::config::types::{ConfigEntry, SetupConfig};
+use std::{fmt::Write as FmtWrite, io::Write};
 
 /// Formats a `ConfigEntry` as a human-readable string.
 #[must_use]
@@ -34,4 +34,23 @@ pub fn format_entry(e: &ConfigEntry) -> String {
     }
   }
   out
+}
+
+/// Lists all saved configuration entries.
+pub fn list_configs(config: &SetupConfig, output: &mut impl Write) {
+  if config.configs.is_empty() {
+    writeln!(output, "  No configurations created.").ok();
+    writeln!(
+      output,
+      "  Run with --init-config to create a default configuration."
+    )
+    .ok();
+    return;
+  }
+
+  writeln!(output, "Configurations:").ok();
+  for (name, e) in &config.configs {
+    writeln!(output, "\n{name}:").ok();
+    write!(output, "{}", format_entry(e)).ok();
+  }
 }

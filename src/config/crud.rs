@@ -8,7 +8,7 @@ use crate::{
   ctx::IoCtx,
   prompts::confirm,
 };
-use std::{io::Write, path::PathBuf};
+use std::path::PathBuf;
 
 /// Inserts or overwrites a named configuration entry.
 pub fn insert_config(config: &mut SetupConfig, name: &str, entry: ConfigEntry) {
@@ -140,23 +140,4 @@ pub fn remove_config(
   writeln!(io.output, "\nConfig '{name}' was successfully removed").ok();
   writeln!(io.output, "Configuration saved to: {}\n", path.display()).ok();
   Ok(())
-}
-
-/// Lists all saved configuration entries.
-pub fn list_configs(config: &SetupConfig, output: &mut impl Write) {
-  if config.configs.is_empty() {
-    writeln!(output, "  No configurations created.").ok();
-    writeln!(
-      output,
-      "  Run with --init-config to create a default configuration."
-    )
-    .ok();
-    return;
-  }
-
-  writeln!(output, "Configurations:").ok();
-  for (name, e) in &config.configs {
-    writeln!(output, "\n{name}:").ok();
-    write!(output, "{}", format_entry(e)).ok();
-  }
 }
