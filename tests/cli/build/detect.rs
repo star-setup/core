@@ -117,3 +117,27 @@ fn test_detect_mono_build_system_both_picks_meson() {
   .unwrap();
   assert!(matches!(result, BuildSystem::Meson));
 }
+
+#[test]
+fn test_detect_build_system_timing_output() {
+  let dir = cmake_dir();
+  let mut output = Vec::new();
+  detect_build_system(dir.path(), &mut b"".as_ref(), &mut output, true).unwrap();
+  let out = String::from_utf8(output).unwrap();
+  assert!(out.contains("[timing] Detect:"));
+}
+
+#[test]
+fn test_detect_mono_build_system_timing_output() {
+  let dir = cmake_dir();
+  let mut output = Vec::new();
+  detect_mono_build_system(
+    &[dir.path().to_path_buf()],
+    &mut b"".as_ref(),
+    &mut output,
+    true,
+  )
+  .unwrap();
+  let out = String::from_utf8(output).unwrap();
+  assert!(out.contains("[timing] Detect:"));
+}

@@ -106,7 +106,12 @@ fn prepare_build_dir(
   writeln!(output, "Creating build directory\n").ok();
   fs::create_dir_all(build_path).map_err(|e| e.to_string())?;
   if timing {
-    writeln!(output, "  [timing] Create build directory: {:.2?}", t.elapsed()).ok();
+    writeln!(
+      output,
+      "  [timing] Create build directory: {:.2?}",
+      t.elapsed()
+    )
+    .ok();
   }
   Ok(())
 }
