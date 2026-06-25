@@ -86,7 +86,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     }
   }
 
-  check_prerequisites(args.connection.verbose, &mut stdout)?;
+  check_prerequisites(args.connection.verbose, &mut stdout, args.diagnostic.timing)?;
 
   if args.mono.mono_repo {
     mono_repo_mode(&args, &config, &mut stdin, &mut stdout)?;
