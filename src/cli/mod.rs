@@ -8,4 +8,7 @@ pub use flags::{
 pub mod resolve;
 pub use resolve::{resolve_bool, resolve_with_config};
 pub mod resolved;
-pub use resolved::{ResolvedArgs, ResolvedBuildFlags, ResolvedConnectionFlags, ResolvedMonoFlags};
+pub use resolved::{
+  ResolvedArgs, ResolvedBuildFlags, ResolvedConnectionFlags, ResolvedDiagnosticFlags,
+  ResolvedMonoFlags,
+};

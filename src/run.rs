@@ -61,6 +61,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
       no_build: args.build.no_build,
       clean: args.build.clean,
       verbose: args.connection.verbose,
+      timing: args.diagnostic.timing,
       cmake_flags: args.build.cmake_flags.clone(),
       meson_flags: args.build.meson_flags.clone(),
     };

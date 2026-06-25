@@ -1,12 +1,17 @@
 use crate::cli::{
   build::BuildType,
-  flags::{ConfigFlags, DiagnosticFlags, ProfileFlags},
+  flags::{ConfigFlags, ProfileFlags},
 };
 
 /// Resolved connection flags after applying config and CLI overrides.
 pub struct ResolvedConnectionFlags {
   pub ssh: bool,
   pub verbose: bool,
+}
+
+/// Resolved diagnostic flags after applying config and CLI overrides.
+pub struct ResolvedDiagnosticFlags {
+  pub timing: bool,
 }
 
 /// Resolved build flags after applying config and CLI overrides.
@@ -32,9 +37,9 @@ pub struct ResolvedArgs {
   pub repo: Option<String>,
   pub yes: bool,
   pub connection: ResolvedConnectionFlags,
+  pub diagnostic: ResolvedDiagnosticFlags,
   pub build: ResolvedBuildFlags,
   pub mono: ResolvedMonoFlags,
   pub config: ConfigFlags,
   pub profile: ProfileFlags,
-  pub diagnostic: DiagnosticFlags,
 }

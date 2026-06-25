@@ -2,7 +2,10 @@ use crate::{
   cli::{
     args::Args,
     build::BuildType,
-    resolved::{ResolvedArgs, ResolvedBuildFlags, ResolvedConnectionFlags, ResolvedMonoFlags},
+    resolved::{
+      ResolvedArgs, ResolvedBuildFlags, ResolvedConnectionFlags, ResolvedDiagnosticFlags,
+      ResolvedMonoFlags,
+    },
   },
   config::types::SetupConfig,
 };
@@ -45,6 +48,12 @@ pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<Resol
     default.map(|e| e.verbose),
     false,
   );
+  let timing = resolve_bool(
+    args.diagnostic.timing,
+    false,
+    default.map(|e| e.timing),
+    false,
+  );
   let no_build = resolve_bool(
     args.build.no_build,
     args.build.build,
@@ -72,7 +81,7 @@ pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<Resol
     repo: args.repo,
     yes: args.yes,
     connection: ResolvedConnectionFlags { ssh, verbose },
-    diagnostic: args.diagnostic,
+    diagnostic: ResolvedDiagnosticFlags { timing },
     build: ResolvedBuildFlags {
       build_type: if let Some(s) = args.build.build_type {
         s.parse::<BuildType>()?

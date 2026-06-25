@@ -66,6 +66,7 @@ fn test_add_config_aborts_when_exists_and_not_confirmed() {
       no_build: false,
       clean: false,
       verbose: false,
+      timing: false,
       cmake_flags: vec![],
       meson_flags: vec![],
     },
