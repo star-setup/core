@@ -32,6 +32,9 @@ pub fn interactive_mode(
   if !args.connection.verbose {
     args.connection.verbose = ask_yesno("Verbose?", false, input, output)?;
   }
+  if !args.diagnostic.timing {
+    args.diagnostic.timing = ask_yesno("Show timing?", false, input, output)?;
+  }
   if !args.build.clean {
     args.build.clean = ask_yesno("Clean build directory if exists?", false, input, output)?;
   }

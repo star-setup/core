@@ -69,7 +69,7 @@
 
         <Package Id='*'
             Keywords='Installer'
-            Description='Lightweight CLI to clone, configure, and wire single or multi-repo CMake ecosystems'
+            Description='Lightweight CLI to clone, configure, and wire single or multi-repo ecosystems'
             Manufacturer='Mason L&#39;Etoile'
             InstallerVersion='450'
             Languages='1033'

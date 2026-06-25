@@ -11,7 +11,7 @@ fn test_create_mono_repo_cmakelists_creates_file() {
     "user/lib1".to_string(),
     "user/lib2".to_string(),
   ];
-  create_mono_repo_cmakelists(tmp.path(), &repos, &mut sink()).unwrap();
+  create_mono_repo_cmakelists(tmp.path(), &repos, &mut sink(), false).unwrap();
 
   let cmake_file = tmp.path().join("CMakeLists.txt");
   assert!(cmake_file.exists());
@@ -26,7 +26,7 @@ fn test_create_mono_repo_cmakelists_creates_file() {
 fn test_create_mono_repo_cmakelists_empty_repos() {
   let tmp = tempfile::TempDir::new().unwrap();
   let repos = vec!["user-testrepo".to_string()];
-  create_mono_repo_cmakelists(tmp.path(), &repos, &mut sink()).unwrap();
+  create_mono_repo_cmakelists(tmp.path(), &repos, &mut sink(), false).unwrap();
   assert!(tmp.path().join("CMakeLists.txt").exists());
 }
 
@@ -39,7 +39,7 @@ fn test_create_mono_repo_mesonbuild_creates_file() {
     "user/lib1".to_string(),
     "user/lib2".to_string(),
   ];
-  create_mono_repo_mesonbuild(tmp.path(), &repos, &mut sink()).unwrap();
+  create_mono_repo_mesonbuild(tmp.path(), &repos, &mut sink(), false).unwrap();
   let meson_file = tmp.path().join("meson.build");
   assert!(meson_file.exists());
   let content = std::fs::read_to_string(&meson_file).unwrap();
@@ -52,6 +52,6 @@ fn test_create_mono_repo_mesonbuild_creates_file() {
 fn test_create_mono_repo_mesonbuild_empty_repos() {
   let tmp = tempfile::TempDir::new().unwrap();
   let repos = vec!["user-testrepo".to_string()];
-  create_mono_repo_mesonbuild(tmp.path(), &repos, &mut sink()).unwrap();
+  create_mono_repo_mesonbuild(tmp.path(), &repos, &mut sink(), false).unwrap();
   assert!(tmp.path().join("meson.build").exists());
 }

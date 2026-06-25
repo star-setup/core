@@ -9,6 +9,11 @@ pub struct ResolvedConnectionFlags {
   pub verbose: bool,
 }
 
+/// Resolved diagnostic flags after applying config and CLI overrides.
+pub struct ResolvedDiagnosticFlags {
+  pub timing: bool,
+}
+
 /// Resolved build flags after applying config and CLI overrides.
 pub struct ResolvedBuildFlags {
   pub build_type: BuildType,
@@ -32,6 +37,7 @@ pub struct ResolvedArgs {
   pub repo: Option<String>,
   pub yes: bool,
   pub connection: ResolvedConnectionFlags,
+  pub diagnostic: ResolvedDiagnosticFlags,
   pub build: ResolvedBuildFlags,
   pub mono: ResolvedMonoFlags,
   pub config: ConfigFlags,

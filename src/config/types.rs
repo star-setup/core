@@ -20,6 +20,8 @@ pub struct ConfigEntry {
   pub clean: bool,
   /// Show detailed command output.
   pub verbose: bool,
+  /// Show timing information.
+  pub timing: bool,
   /// Additional `CMake` arguments.
   pub cmake_flags: Vec<String>,
   /// Additional `Meson` arguments.

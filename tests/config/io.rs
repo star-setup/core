@@ -26,6 +26,7 @@ fn test_save_and_load_roundtrip() {
       no_build: false,
       clean: false,
       verbose: false,
+      timing: false,
       cmake_flags: vec![],
       meson_flags: vec![],
     },

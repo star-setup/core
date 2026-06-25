@@ -61,6 +61,7 @@ pub fn create_default_config(
       no_build: false,
       clean: false,
       verbose: false,
+      timing: false,
       cmake_flags: vec![],
       meson_flags: vec![],
     },

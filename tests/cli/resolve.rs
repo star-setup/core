@@ -1,3 +1,4 @@
+use star_setup::cli::flags::DiagnosticFlags;
 use star_setup::cli::{
   build::BuildType, resolve_bool, resolve_with_config, Args, BuildFlags, ConfigFlags,
   ConnectionFlags, MonoRepoFlags, ProfileFlags,
@@ -73,6 +74,7 @@ fn default_args() -> Args {
   Args {
     repo: None,
     yes: false,
+    diagnostic: DiagnosticFlags { timing: false },
     connection: ConnectionFlags {
       ssh: false,
       https: false,
@@ -137,6 +139,7 @@ fn test_resolve_with_config_applies_config_defaults() {
       mono_dir: "mono".to_string(),
       no_build: true,
       clean: true,
+      timing: false,
       cmake_flags: vec!["-DTEST=ON".to_string()],
       meson_flags: vec![],
     },
@@ -164,6 +167,7 @@ fn test_resolve_with_config_cli_overrides_config() {
       mono_dir: "build-mono".to_string(),
       no_build: false,
       clean: false,
+      timing: false,
       cmake_flags: vec![],
       meson_flags: vec![],
     },
@@ -216,6 +220,7 @@ fn test_resolve_with_config_named_config_pulls_correct_values() {
       mono_dir: "mono".to_string(),
       no_build: false,
       clean: true,
+      timing: false,
       cmake_flags: vec![],
       meson_flags: vec![],
     },
@@ -242,6 +247,7 @@ fn test_resolve_with_config_cli_cmake_flags_not_overwritten_by_config() {
       mono_dir: "build-mono".to_string(),
       no_build: false,
       clean: false,
+      timing: false,
       cmake_flags: vec!["-DCONFIG_FLAG=ON".to_string()],
       meson_flags: vec![],
     },
@@ -265,6 +271,7 @@ fn test_resolve_with_config_negative_flags_override_config() {
       mono_dir: "build-mono".to_string(),
       no_build: true,
       clean: true,
+      timing: false,
       cmake_flags: vec![],
       meson_flags: vec![],
     },

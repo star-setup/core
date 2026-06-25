@@ -9,6 +9,7 @@ pub fn sample_entry() -> ConfigEntry {
     no_build: false,
     clean: true,
     verbose: false,
+    timing: false,
     cmake_flags: vec![],
     meson_flags: vec![],
   }

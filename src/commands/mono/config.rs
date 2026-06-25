@@ -6,16 +6,19 @@ fn write_mono_repo_config(
   mono_dir: &Path,
   repos: &[String],
   output: &mut impl Write,
+  timing: bool,
   filename: &str,
   format_modules: impl Fn(&[String]) -> String,
   render_template: impl Fn(&str) -> String,
 ) -> Result<(), String> {
   let module_names: Vec<String> = repos.iter().map(|r| repo_dir_name(r)).collect();
   let modules_str = format_modules(&module_names);
-
   let content = render_template(&modules_str);
   let file_path = mono_dir.join(filename);
-  fs::write(&file_path, content).map_err(|e| e.to_string())?;
+
+  crate::time!(timing, output, &format!("Generate {filename}"), {
+    fs::write(&file_path, content).map_err(|e| e.to_string())?;
+  });
 
   // .to_string() is required to force an allocation and satisfy line coverage tracking
   #[allow(clippy::to_string_in_format_args)]
@@ -37,12 +40,14 @@ pub fn create_mono_repo_cmakelists(
   mono_dir: &Path,
   repos: &[String],
   output: &mut impl Write,
+  timing: bool,
 ) -> Result<(), String> {
   writeln!(output, "  Creating CMake configuration").ok();
   write_mono_repo_config(
     mono_dir,
     repos,
     output,
+    timing,
     "CMakeLists.txt",
     |modules| modules.join("\n  "),
     |modules_cmake| {
@@ -79,12 +84,14 @@ pub fn create_mono_repo_mesonbuild(
   mono_dir: &Path,
   repos: &[String],
   output: &mut impl Write,
+  timing: bool,
 ) -> Result<(), String> {
   writeln!(output, "  Creating Meson configuration").ok();
   write_mono_repo_config(
     mono_dir,
     repos,
     output,
+    timing,
     "meson.build",
     |modules| {
       modules
