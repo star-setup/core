@@ -1,6 +1,4 @@
-use super::common::{empty_input, make_io};
-
-use super::common::sink;
+use super::common::{sink, empty_input, make_io};
 use star_setup::commands::{create_mono_repo_cmakelists, create_mono_repo_mesonbuild};
 
 // create_mono_repo_cmakelists tests

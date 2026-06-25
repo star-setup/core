@@ -47,7 +47,7 @@ fn generate_mono_config(
       Ok(None)
     }
     BuildSystem::Meson => {
-      let map = hoist_wraps(repos_path, repo_dirs, ctx.io.output, ctx.io.timing)?;
+      let map = hoist_wraps(repos_path, repo_dirs, &mut ctx.io)?;
       let subproject_names: Vec<String> = repos
         .iter()
         .map(|r| {
