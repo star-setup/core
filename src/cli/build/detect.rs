@@ -14,8 +14,7 @@ pub fn detect_build_system(dir: &Path, ctx: &mut RunCtx<'_>) -> Result<BuildSyst
       (true, true) => match ask_choice(
         "Multiple build systems detected:",
         &["CMake", "Meson"],
-        ctx.io.input,
-        ctx.io.output,
+        &mut ctx.io,
       )? {
         0 => Ok(BuildSystem::Cmake),
         _ => Ok(BuildSystem::Meson),
@@ -42,8 +41,7 @@ pub fn detect_mono_build_system(
       (true, true) => match ask_choice(
         "Multiple build systems detected:",
         &["CMake", "Meson"],
-        ctx.io.input,
-        ctx.io.output,
+        &mut ctx.io,
       )? {
         0 => Ok(BuildSystem::Cmake),
         _ => Ok(BuildSystem::Meson),

@@ -34,8 +34,7 @@ pub fn create_default_config(path: PathBuf, yes: bool, io: &mut IoCtx<'_>) -> Re
     && !confirm(
       &format!("{} already exists. Overwrite?", path.display()),
       yes,
-      io.input,
-      io.output,
+      io,
     )?
   {
     writeln!(io.output, "Aborted.").ok();
@@ -90,8 +89,7 @@ pub fn add_config(
     && !confirm(
       &format!("Warning: Configuration '{name}' already exists. Overwrite?"),
       yes,
-      io.input,
-      io.output,
+      io,
     )?
   {
     writeln!(io.output, "Aborted.").ok();
@@ -132,12 +130,7 @@ pub fn remove_config(
   writeln!(io.output, "Configuration details:").ok();
   write!(io.output, "{}", format_entry(e)).ok();
 
-  if !confirm(
-    "\nAre you sure you want to remove this config?",
-    yes,
-    io.input,
-    io.output,
-  )? {
+  if !confirm("\nAre you sure you want to remove this config?", yes, io)? {
     writeln!(io.output, "Aborted.").ok();
     return Ok(());
   }

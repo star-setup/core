@@ -38,12 +38,7 @@ pub fn single_repo_mode(args: &ResolvedArgs, ctx: &mut RunCtx<'_>) -> Result<(),
   let repo_path = Path::new(&dir_name);
   if repo_path.exists() {
     writeln!(ctx.io.output, "Repository {dir_name} already exists").ok();
-    if confirm(
-      "Update existing repository?",
-      args.yes,
-      ctx.io.input,
-      ctx.io.output,
-    )? {
+    if confirm("Update existing repository?", args.yes, &mut ctx.io)? {
       writeln!(ctx.io.output, "Updating {dir_name}\n").ok();
       crate::time!(ctx.io.timing, ctx.io.output, "Update", {
         ctx

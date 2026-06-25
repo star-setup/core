@@ -57,8 +57,7 @@ pub fn add_profile(
     && !confirm(
       &format!("Warning: Profile '{name}' already exists. Overwrite?"),
       yes,
-      io.input,
-      io.output,
+      io,
     )?
   {
     writeln!(io.output, "Aborted.").ok();
@@ -106,8 +105,7 @@ pub fn remove_profile(
   if !confirm(
     &format!("Are you sure you want to remove profile '{name}'?"),
     yes,
-    io.input,
-    io.output,
+    io,
   )? {
     writeln!(io.output, "Aborted.").ok();
     return Ok(());
