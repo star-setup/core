@@ -1,9 +1,9 @@
 [package]
 name = "star-setup"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 repository = "https://github.com/star-setup/core"
-description = "Lightweight CLI to clone, configure, and wire single or multi-repo CMake ecosystems"
+description = "Lightweight CLI to clone, configure, and wire single or multi-repo ecosystems"
 homepage = "https://github.com/star-setup/core"
 authors = ["Mason L'Etoile <contact@masonletoile.ca>"]
 
