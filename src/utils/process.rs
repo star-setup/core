@@ -66,7 +66,7 @@ pub fn run_command(
   cmd: &[&str],
   cwd: Option<&Path>,
   verbose: bool,
-  output: &mut impl Write,
+  output: &mut (impl Write + ?Sized),
 ) -> Result<(), String> {
   if cmd.is_empty() {
     return Err("No command provided".to_string());

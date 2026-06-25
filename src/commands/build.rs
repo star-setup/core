@@ -17,7 +17,7 @@ pub fn cmake_build(
   args: &ResolvedArgs,
   build_path: &Path,
   mono: bool,
-  output: &mut impl Write,
+  output: &mut (impl Write + ?Sized),
   timing: bool,
 ) -> Result<(), String> {
   let build_type_flag = format!("-DCMAKE_BUILD_TYPE={}", args.build.build_type.to_cmake());
@@ -64,7 +64,7 @@ pub fn meson_build(
   args: &ResolvedArgs,
   build_path: &Path,
   source_path: &Path,
-  output: &mut impl Write,
+  output: &mut (impl Write + ?Sized),
   timing: bool,
 ) -> Result<(), String> {
   let buildtype_flag = format!("--buildtype={}", args.build.build_type.to_meson());
@@ -104,8 +104,8 @@ pub fn build_project(
   build_path: &Path,
   source_path: &Path,
   mono: bool,
-  input: &mut impl BufRead,
-  output: &mut impl Write,
+  input: &mut (impl BufRead + ?Sized),
+  output: &mut (impl Write + ?Sized),
   timing: bool,
 ) -> Result<(), String> {
   match detect_build_system(source_path, input, output, timing)? {

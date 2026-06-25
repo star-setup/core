@@ -7,8 +7,8 @@ use std::io::{BufRead, Write};
 /// Returns an error if stdin reaches EOF unexpectedly.
 pub fn ask(
   prompt: &str,
-  input: &mut impl BufRead,
-  output: &mut impl Write,
+  input: &mut (impl BufRead + ?Sized),
+  output: &mut (impl Write + ?Sized),
 ) -> Result<String, String> {
   write!(output, "{prompt}: ").ok();
   output.flush().ok();
@@ -25,8 +25,8 @@ pub fn ask(
 pub fn ask_default(
   prompt: &str,
   default: &str,
-  input: &mut impl BufRead,
-  output: &mut impl Write,
+  input: &mut (impl BufRead + ?Sized),
+  output: &mut (impl Write + ?Sized),
 ) -> Result<String, String> {
   write!(output, "{prompt} [{default}]: ").ok();
   output.flush().ok();
@@ -48,8 +48,8 @@ pub fn ask_default(
 pub fn ask_yesno(
   prompt: &str,
   default: bool,
-  input: &mut impl BufRead,
-  output: &mut impl Write,
+  input: &mut (impl BufRead + ?Sized),
+  output: &mut (impl Write + ?Sized),
 ) -> Result<bool, String> {
   let default_char = if default { "Y" } else { "N" };
   write!(output, "{prompt} (y/n) [{default_char}]: ").ok();
@@ -69,8 +69,8 @@ pub fn ask_yesno(
 pub fn ask_choice(
   prompt: &str,
   options: &[&str],
-  input: &mut impl BufRead,
-  output: &mut impl Write,
+  input: &mut (impl BufRead + ?Sized),
+  output: &mut (impl Write + ?Sized),
 ) -> Result<usize, String> {
   writeln!(output, "{prompt}").ok();
   for (i, opt) in options.iter().enumerate() {
@@ -98,8 +98,8 @@ pub fn ask_choice(
 pub fn confirm(
   prompt: &str,
   yes: bool,
-  input: &mut impl BufRead,
-  output: &mut impl Write,
+  input: &mut (impl BufRead + ?Sized),
+  output: &mut (impl Write + ?Sized),
 ) -> Result<bool, String> {
   if yes {
     return Ok(true);

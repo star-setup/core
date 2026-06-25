@@ -3,6 +3,7 @@
 pub mod cli;
 pub mod commands;
 pub mod config;
+pub mod ctx;
 pub mod interactive;
 pub mod profiles;
 pub mod prompts;

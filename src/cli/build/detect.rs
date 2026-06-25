@@ -9,8 +9,8 @@ use std::{
 /// Returns an error on EOF during prompt, or if no supported build system is found.
 pub fn detect_build_system(
   dir: &Path,
-  input: &mut impl BufRead,
-  output: &mut impl Write,
+  input: &mut (impl BufRead + ?Sized),
+  output: &mut (impl Write + ?Sized),
   timing: bool,
 ) -> Result<BuildSystem, String> {
   crate::time!(timing, output, "Detect", {
@@ -38,8 +38,8 @@ pub fn detect_build_system(
 /// Returns an error if systems are inconsistent or none found, or EOF during prompt.
 pub fn detect_mono_build_system(
   dirs: &[PathBuf],
-  input: &mut impl BufRead,
-  output: &mut impl Write,
+  input: &mut (impl BufRead + ?Sized),
+  output: &mut (impl Write + ?Sized),
   timing: bool,
 ) -> Result<BuildSystem, String> {
   writeln!(output, "Detecting build system\n").ok();

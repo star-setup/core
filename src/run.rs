@@ -6,6 +6,7 @@ use crate::{
     io::load_config,
     types::ConfigEntry,
   },
+  ctx::{IoCtx, ProcessRunner, RunCtx},
   interactive::interactive_mode,
   profiles::{add_profile, list_profiles, remove_profile},
   utils::prerequisites::check_prerequisites,
@@ -89,10 +90,23 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
   check_prerequisites(args.connection.verbose, &mut stdout, args.diagnostic.timing)?;
 
+  let mut runner = ProcessRunner {
+    verbose: args.connection.verbose,
+  };
+  let mut ctx = RunCtx {
+    io: IoCtx {
+      input: &mut stdin,
+      output: &mut stdout,
+      verbose: args.connection.verbose,
+      timing: args.diagnostic.timing,
+    },
+    runner: &mut runner,
+  };
+
   if args.mono.mono_repo {
     mono_repo_mode(&args, &config, &mut stdin, &mut stdout)?;
   } else {
-    single_repo_mode(&args, &mut stdin, &mut stdout)?;
+    single_repo_mode(&args, &mut ctx)?;
   }
 
   Ok(())

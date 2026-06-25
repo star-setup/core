@@ -13,7 +13,7 @@ pub struct ModeHeader<'a> {
 }
 
 /// Prints a formatted header summarizing the current mode and configuration.
-pub fn print_mode_header(header: &ModeHeader<'_>, output: &mut impl Write) {
+pub fn print_mode_header(header: &ModeHeader<'_>, output: &mut (impl Write + ?Sized)) {
   writeln!(output, "Star Setup: {}", header.mode).ok();
   if let Some(p) = header.profile {
     writeln!(output, "  Profile: {p}").ok();
