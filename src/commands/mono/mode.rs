@@ -21,19 +21,17 @@ fn clone_mono_repos(
   repos: &[String],
   repos_path: &std::path::Path,
   ssh: bool,
-  verbose: bool,
-  timing: bool,
-  output: &mut (impl Write + ?Sized),
+  ctx: &mut RunCtx<'_>,
 ) -> Result<(), String> {
-  writeln!(output, "Cloning repositories").ok();
-  crate::time!(timing, output, "Clone", {
+  writeln!(ctx.io.output, "Cloning repositories").ok();
+  crate::time!(ctx.io.timing, ctx.io.output, "Clone", {
     for repo in repos {
-      clone_repository(repo, repos_path, ssh, verbose, output)?;
+      clone_repository(repo, repos_path, ssh, ctx)?;
     }
     Ok::<(), String>(())
   })?;
   writeln!(
-    output,
+    ctx.io.output,
     "\n  Finished cloning ({} repositories)\n",
     repos.len()
   )
@@ -47,17 +45,16 @@ fn generate_mono_config(
   repos_path: &std::path::Path,
   repo_dirs: &[PathBuf],
   repos: &[String],
-  output: &mut (impl Write + ?Sized),
-  timing: bool,
+  ctx: &mut RunCtx<'_>,
 ) -> Result<Option<std::collections::HashMap<String, String>>, String> {
-  writeln!(output, "Creating mono-repo configuration").ok();
+  writeln!(ctx.io.output, "Creating mono-repo configuration").ok();
   match build_system {
     BuildSystem::Cmake => {
-      create_mono_repo_cmakelists(mono_repo_path, repos, output, timing)?;
+      create_mono_repo_cmakelists(mono_repo_path, repos, ctx.io.output, ctx.io.timing)?;
       Ok(None)
     }
     BuildSystem::Meson => {
-      let map = hoist_wraps(repos_path, repo_dirs, output, timing)?;
+      let map = hoist_wraps(repos_path, repo_dirs, ctx.io.output, ctx.io.timing)?;
       let subproject_names: Vec<String> = repos
         .iter()
         .map(|r| {
@@ -69,7 +66,12 @@ fn generate_mono_config(
             .unwrap_or(dir)
         })
         .collect();
-      create_mono_repo_mesonbuild(mono_repo_path, &subproject_names, output, timing)?;
+      create_mono_repo_mesonbuild(
+        mono_repo_path,
+        &subproject_names,
+        ctx.io.output,
+        ctx.io.timing,
+      )?;
       Ok(Some(map))
     }
   }
@@ -87,18 +89,17 @@ pub fn build_repo_list(test_repo: &str, deps: &[String]) -> Vec<String> {
 fn prepare_build_dir(
   build_path: &std::path::Path,
   clean: bool,
-  timing: bool,
-  output: &mut (impl Write + ?Sized),
+  ctx: &mut RunCtx<'_>,
 ) -> Result<(), String> {
   if clean && build_path.exists() {
-    writeln!(output, "Cleaning build directory\n").ok();
-    crate::time!(timing, output, "Clean", {
+    writeln!(ctx.io.output, "Cleaning build directory\n").ok();
+    crate::time!(ctx.io.timing, ctx.io.output, "Clean", {
       fs::remove_dir_all(build_path).map_err(|e| e.to_string())?;
     });
   }
 
-  writeln!(output, "Creating build directory\n").ok();
-  crate::time!(timing, output, "Create build directory", {
+  writeln!(ctx.io.output, "Creating build directory\n").ok();
+  crate::time!(ctx.io.timing, ctx.io.output, "Create build directory", {
     fs::create_dir_all(build_path).map_err(|e| e.to_string())?;
   });
   Ok(())
@@ -159,7 +160,7 @@ pub fn mono_repo_mode(
   config: &SetupConfig,
   ctx: &mut RunCtx<'_>,
 ) -> Result<(), String> {
-  let timing = args.diagnostic.timing;
+  let timing = ctx.io.timing;
   let total = std::time::Instant::now();
 
   let repo_input = args.repo.as_deref().ok_or("No repository specified")?;
@@ -184,14 +185,7 @@ pub fn mono_repo_mode(
   let repos_path = mono_repo_path.join("repos");
   fs::create_dir_all(&repos_path).map_err(|e| e.to_string())?;
 
-  clone_mono_repos(
-    &repos,
-    &repos_path,
-    args.connection.ssh,
-    args.connection.verbose,
-    timing,
-    ctx.io.output,
-  )?;
+  clone_mono_repos(&repos, &repos_path, args.connection.ssh, ctx)?;
 
   let repo_dirs: Vec<PathBuf> = repos
     .iter()
@@ -206,17 +200,11 @@ pub fn mono_repo_mode(
     &repos_path,
     &repo_dirs,
     &repos,
-    ctx.io.output,
-    timing,
+    ctx,
   )?;
 
   let build_path = mono_repo_path.join(&args.build.build_dir);
-  prepare_build_dir(
-    build_path.as_path(),
-    args.build.clean,
-    timing,
-    ctx.io.output,
-  )?;
+  prepare_build_dir(build_path.as_path(), args.build.clean, ctx)?;
 
   writeln!(
     ctx.io.output,
