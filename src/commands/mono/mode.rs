@@ -29,19 +29,18 @@ fn clone_mono_repos(
   output: &mut impl Write,
 ) -> Result<(), String> {
   writeln!(output, "Cloning repositories").ok();
-  let t = std::time::Instant::now();
-  for repo in repos {
-    clone_repository(repo, repos_path, ssh, verbose, output)?;
-  }
+  crate::time!(timing, output, "Clone", {
+    for repo in repos {
+      clone_repository(repo, repos_path, ssh, verbose, output)?;
+    }
+    Ok::<(), String>(())
+  })?;
   writeln!(
     output,
     "\n  Finished cloning ({} repositories)\n",
     repos.len()
   )
   .ok();
-  if timing {
-    writeln!(output, "  [timing] Clone: {:.2?}", t.elapsed()).ok();
-  }
   Ok(())
 }
 
@@ -94,25 +93,16 @@ fn prepare_build_dir(
   output: &mut impl Write,
 ) -> Result<(), String> {
   if clean && build_path.exists() {
-    let t = std::time::Instant::now();
     writeln!(output, "Cleaning build directory\n").ok();
-    fs::remove_dir_all(build_path).map_err(|e| e.to_string())?;
-    if timing {
-      writeln!(output, "  [timing] Clean: {:.2?}", t.elapsed()).ok();
-    }
+    crate::time!(timing, output, "Clean", {
+      fs::remove_dir_all(build_path).map_err(|e| e.to_string())?;
+    });
   }
 
-  let t = std::time::Instant::now();
   writeln!(output, "Creating build directory\n").ok();
-  fs::create_dir_all(build_path).map_err(|e| e.to_string())?;
-  if timing {
-    writeln!(
-      output,
-      "  [timing] Create build directory: {:.2?}",
-      t.elapsed()
-    )
-    .ok();
-  }
+  crate::time!(timing, output, "Create build directory", {
+    fs::create_dir_all(build_path).map_err(|e| e.to_string())?;
+  });
   Ok(())
 }
 
@@ -136,13 +126,11 @@ pub fn mono_repo_mode(
   let repos = build_repo_list(&test_repo, &deps);
   writeln!(output, "Total repositories: {}\n", repos.len()).ok();
 
-  let t = std::time::Instant::now();
   let mono_repo_path = PathBuf::from(&args.mono.mono_dir);
   writeln!(output, "Creating directory: {}\n", mono_repo_path.display()).ok();
-  fs::create_dir_all(&mono_repo_path).map_err(|e| e.to_string())?;
-  if timing {
-    writeln!(output, "  [timing] Create directory: {:.2?}", t.elapsed()).ok();
-  }
+  crate::time!(timing, output, "Create directory", {
+    fs::create_dir_all(&mono_repo_path).map_err(|e| e.to_string())?;
+  });
 
   let repos_path = mono_repo_path.join("repos");
   fs::create_dir_all(&repos_path).map_err(|e| e.to_string())?;
@@ -195,6 +183,7 @@ pub fn mono_repo_mode(
       .display()
   )
   .ok();
+
   if let Some(map) = canonical_map {
     let test_repo_name = repo_dir_name(&test_repo);
     if let Some((canonical, _)) = map.iter().find(|(_, v)| *v == &test_repo_name) {
@@ -224,6 +213,7 @@ pub fn mono_repo_mode(
     )
     .ok();
   }
+
   if timing {
     writeln!(output, "[timing] Total: {:.2?}", total.elapsed()).ok();
   }
