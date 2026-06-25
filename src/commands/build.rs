@@ -80,20 +80,20 @@ pub fn meson_build(
   if !args.build.no_build {
     writeln!(output, "Building project\n").ok();
     crate::time!(timing, output, "Meson compile", {
-        run_command(
-          &[
-            "meson",
-            "compile",
-            "-C",
-            build_path.to_str().ok_or("Invalid build path")?,
-          ],
-          None,
-          args.connection.verbose,
-          output,
-        )?;
-      });
-    }
-    Ok(())
+      run_command(
+        &[
+          "meson",
+          "compile",
+          "-C",
+          build_path.to_str().ok_or("Invalid build path")?,
+        ],
+        None,
+        args.connection.verbose,
+        output,
+      )?;
+    });
+  }
+  Ok(())
 }
 
 /// Detects and dispatches to the appropriate build system.

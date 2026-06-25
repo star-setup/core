@@ -51,11 +51,12 @@ fn generate_mono_config(
   repo_dirs: &[PathBuf],
   repos: &[String],
   output: &mut impl Write,
+  timing: bool,
 ) -> Result<Option<std::collections::HashMap<String, String>>, String> {
   writeln!(output, "Creating mono-repo configuration").ok();
   match build_system {
     BuildSystem::Cmake => {
-      create_mono_repo_cmakelists(mono_repo_path, repos, output)?;
+      create_mono_repo_cmakelists(mono_repo_path, repos, output, timing)?;
       Ok(None)
     }
     BuildSystem::Meson => {
@@ -71,7 +72,7 @@ fn generate_mono_config(
             .unwrap_or(dir)
         })
         .collect();
-      create_mono_repo_mesonbuild(mono_repo_path, &subproject_names, output)?;
+      create_mono_repo_mesonbuild(mono_repo_path, &subproject_names, output, timing)?;
       Ok(Some(map))
     }
   }
@@ -158,6 +159,7 @@ pub fn mono_repo_mode(
     &repo_dirs,
     &repos,
     output,
+    timing,
   )?;
 
   let build_path = mono_repo_path.join(&args.build.build_dir);

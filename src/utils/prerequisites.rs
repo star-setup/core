@@ -12,6 +12,7 @@ pub fn check_prerequisites(
 ) -> Result<(), String> {
   crate::time!(timing, output, "Check prerequisites", {
     let mut missing: Vec<&str> = Vec::new();
+
     for tool in &["git", "cmake", "meson"] {
       if Command::new(tool)
         .arg("--version")
