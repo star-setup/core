@@ -13,52 +13,32 @@ use crate::{
 };
 use std::{
   error::Error,
-  io::{self, BufRead, IsTerminal, Write},
+  io::{self, IsTerminal},
   path::PathBuf,
 };
 
 fn handle_early_commands(
   args: &ResolvedArgs,
   config: &mut SetupConfig,
-  stdin: &mut impl BufRead,
-  stdout: &mut impl Write,
+  io: &mut IoCtx<'_>,
 ) -> Result<bool, Box<dyn Error>> {
   if args.config.init_config {
-    create_default_config(
-      PathBuf::from(".star-setup.json"),
-      args.yes,
-      &mut IoCtx {
-        input: stdin,
-        output: stdout,
-        verbose: false,
-        timing: false,
-      },
-    )?;
+    create_default_config(PathBuf::from(".star-setup.json"), args.yes, io)?;
     return Ok(true);
   }
 
   if args.config.list_configs {
-    list_configs(config, stdout);
+    list_configs(config, &mut io.output);
     return Ok(true);
   }
 
   if args.profile.list_profiles {
-    list_profiles(config, stdout);
+    list_profiles(config, io.output);
     return Ok(true);
   }
 
   if let Some(name) = args.config.config_remove.as_deref() {
-    remove_config(
-      config,
-      name,
-      args.yes,
-      &mut IoCtx {
-        input: stdin,
-        output: stdout,
-        verbose: false,
-        timing: false,
-      },
-    )?;
+    remove_config(config, name, args.yes, io)?;
     return Ok(true);
   }
 
@@ -75,28 +55,17 @@ fn handle_early_commands(
       cmake_flags: args.build.cmake_flags.clone(),
       meson_flags: args.build.meson_flags.clone(),
     };
-    add_config(
-      config,
-      name,
-      entry,
-      args.yes,
-      &mut IoCtx {
-        input: stdin,
-        output: stdout,
-        verbose: false,
-        timing: false,
-      },
-    )?;
+    add_config(config, name, entry, args.yes, io)?;
     return Ok(true);
   }
 
   if let Some(name) = args.profile.profile_remove.as_deref() {
-    remove_profile(config, name, args.yes, stdin, stdout)?;
+    remove_profile(config, name, args.yes, io)?;
     return Ok(true);
   }
 
   if let Some(vals) = args.profile.profile_add.as_ref() {
-    add_profile(config, vals, args.yes, stdin, stdout)?;
+    add_profile(config, vals, args.yes, io)?;
     return Ok(true);
   }
 
@@ -118,7 +87,13 @@ pub fn run() -> Result<(), Box<dyn Error>> {
   let mut config = load_config(&locations, &mut stdout);
   let mut args = Args::parse_with_config(&config)?;
 
-  if handle_early_commands(&args, &mut config, &mut stdin, &mut stdout)? {
+  let mut early_io = IoCtx {
+    input: &mut stdin,
+    output: &mut stdout,
+    verbose: false,
+    timing: false,
+  };
+  if handle_early_commands(&args, &mut config, &mut early_io)? {
     return Ok(());
   }
 

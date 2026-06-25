@@ -2,9 +2,10 @@
 
 use crate::{
   config::{io::save_config, types::SetupConfig},
+  ctx::IoCtx,
   prompts::confirm,
 };
-use std::io::{BufRead, Write};
+use std::io::Write;
 
 /// Inserts or overwrites a named profile.
 pub fn insert_profile(config: &mut SetupConfig, name: &str, repos: Vec<String>) {
@@ -43,8 +44,7 @@ pub fn add_profile(
   config: &mut SetupConfig,
   args: &[String],
   yes: bool,
-  input: &mut impl BufRead,
-  output: &mut impl Write,
+  io: &mut IoCtx<'_>,
 ) -> Result<(), String> {
   if args.len() < 2 {
     return Err("--profile-add requires NAME REPO1 [REPO2 ...]".to_string());
@@ -57,22 +57,22 @@ pub fn add_profile(
     && !confirm(
       &format!("Warning: Profile '{name}' already exists. Overwrite?"),
       yes,
-      input,
-      output,
+      io.input,
+      io.output,
     )?
   {
-    writeln!(output, "Aborted.").ok();
+    writeln!(io.output, "Aborted.").ok();
     return Ok(());
   }
 
   insert_profile(config, &name, repos.clone());
   let path = save_config(config)?;
 
-  writeln!(output, "Profile '{name}' added successfully").ok();
-  writeln!(output, "Configuration saved to: {}", path.display()).ok();
-  print_profile_details(output, "Profile details:", "Repositories", &repos);
+  writeln!(io.output, "Profile '{name}' added successfully").ok();
+  writeln!(io.output, "Configuration saved to: {}", path.display()).ok();
+  print_profile_details(io.output, "Profile details:", "Repositories", &repos);
   writeln!(
-    output,
+    io.output,
     "\nUsage: star-setup username/test-repo --profile {name}"
   )
   .ok();
@@ -86,33 +86,37 @@ pub fn remove_profile(
   config: &mut SetupConfig,
   name: &str,
   yes: bool,
-  input: &mut impl BufRead,
-  output: &mut impl Write,
+  io: &mut IoCtx<'_>,
 ) -> Result<(), String> {
   let repos = match config.profiles.get(name) {
     None => {
-      writeln!(output, "Warning: Profile '{name}' not found.").ok();
+      writeln!(io.output, "Warning: Profile '{name}' not found.").ok();
       return Ok(());
     }
     Some(r) => r.clone(),
   };
 
-  print_profile_details(output, &format!("Profile '{name}'"), "Repositories", &repos);
+  print_profile_details(
+    io.output,
+    &format!("Profile '{name}'"),
+    "Repositories",
+    &repos,
+  );
 
   if !confirm(
     &format!("Are you sure you want to remove profile '{name}'?"),
     yes,
-    input,
-    output,
+    io.input,
+    io.output,
   )? {
-    writeln!(output, "Aborted.").ok();
+    writeln!(io.output, "Aborted.").ok();
     return Ok(());
   }
 
   remove_profile_entry(config, name);
   let path = save_config(config)?;
-  writeln!(output, "\nProfile '{name}' removed successfully").ok();
-  writeln!(output, "Configuration saved to: {}\n", path.display()).ok();
+  writeln!(io.output, "\nProfile '{name}' removed successfully").ok();
+  writeln!(io.output, "Configuration saved to: {}\n", path.display()).ok();
   Ok(())
 }
 
