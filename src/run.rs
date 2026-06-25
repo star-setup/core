@@ -103,9 +103,9 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         return Err("no repository specified".into());
       }
     }
-  }
 
-  check_prerequisites(args.connection.verbose, &mut stdout, args.diagnostic.timing)?;
+    check_prerequisites(&mut early_io)?;
+  }
 
   let mut runner = ProcessRunner {
     verbose: args.connection.verbose,
