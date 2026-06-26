@@ -77,6 +77,7 @@ cargo install --git https://github.com/star-setup/core
 |------|-------------|
 | `--build-type <TYPE>` | Build type: `Debug` (default) or `Release` |
 | `--build-dir <DIR>` | Build output directory (default: `build`) |
+| `--build-system <SYSTEM>` | Skip auto-detection and use `cmake` or `meson` |
 | `--no-build` | Configure only, skip build step |
 | `--clean` | Remove build directory before configuring |
 | `--cmake-arg <ARG>` | Pass additional argument to CMake |

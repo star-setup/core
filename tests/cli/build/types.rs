@@ -52,3 +52,14 @@ fn test_from_str_error() {
   use std::str::FromStr;
   assert!(BuildType::from_str("unknown").is_err());
 }
+
+#[test]
+fn test_build_system_from_str() {
+  use star_setup::cli::BuildSystem;
+  use std::str::FromStr;
+  assert_eq!(BuildSystem::from_str("cmake").unwrap(), BuildSystem::Cmake);
+  assert_eq!(BuildSystem::from_str("CMAKE").unwrap(), BuildSystem::Cmake);
+  assert_eq!(BuildSystem::from_str("meson").unwrap(), BuildSystem::Meson);
+  assert_eq!(BuildSystem::from_str("MESON").unwrap(), BuildSystem::Meson);
+  assert!(BuildSystem::from_str("ninja").is_err());
+}

@@ -1,4 +1,4 @@
-use crate::cli::{BuildType, ConfigFlags, ProfileFlags};
+use crate::cli::{BuildSystem, BuildType, ConfigFlags, ProfileFlags};
 
 /// Resolved connection flags after applying config and CLI overrides.
 pub struct ResolvedConnectionFlags {
@@ -16,6 +16,7 @@ pub struct ResolvedDiagnosticFlags {
 pub struct ResolvedBuildFlags {
   pub build_type: BuildType,
   pub build_dir: String,
+  pub build_system: Option<BuildSystem>,
   pub no_build: bool,
   pub clean: bool,
   pub cmake_flags: Vec<String>,

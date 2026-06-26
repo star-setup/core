@@ -95,6 +95,7 @@ pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<Resol
         .build_dir
         .or_else(|| default.map(|e| e.build_dir.clone()))
         .unwrap_or_else(|| "build".to_string()),
+      build_system: args.build.build_system,
       no_build,
       clean,
       cmake_flags: args.build.cmake_flags,

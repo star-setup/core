@@ -1,65 +1,15 @@
-use super::common::{empty_input, make_io, sink, MockRunner};
+use super::common::{default_resolved_with_no_build, empty_input, make_io, sink, MockRunner};
 use star_setup::{
-  cli::{
-    resolve_with_config, Args, BuildFlags, BuildSystem, ConfigFlags, ConnectionFlags,
-    DiagnosticFlags, MonoRepoFlags, ProfileFlags,
-  },
+  cli::BuildSystem,
   commands::{build_project, cmake_build, meson_build},
-  config::SetupConfig,
   ctx::RunCtx,
 };
 use tempfile::TempDir;
 
-fn default_resolved(no_build: bool) -> star_setup::cli::ResolvedArgs {
-  let args = Args {
-    repo: Some("user/repo".to_string()),
-    yes: false,
-    diagnostic: DiagnosticFlags {
-      timing: false,
-      dry_run: false,
-    },
-    connection: ConnectionFlags {
-      ssh: false,
-      https: false,
-      verbose: false,
-      no_verbose: false,
-    },
-    build: BuildFlags {
-      build_type: None,
-      build_dir: None,
-      no_build,
-      build: false,
-      clean: false,
-      no_clean: false,
-      cmake_flags: vec![],
-      meson_flags: vec![],
-    },
-    mono: MonoRepoFlags {
-      mono_repo: false,
-      mono_dir: None,
-      repos: None,
-      profile: None,
-    },
-    config: ConfigFlags {
-      init_config: false,
-      config_name: None,
-      config_add: None,
-      config_remove: None,
-      list_configs: false,
-    },
-    profile: ProfileFlags {
-      profile_add: None,
-      profile_remove: None,
-      list_profiles: false,
-    },
-  };
-  resolve_with_config(args, &SetupConfig::new()).unwrap()
-}
-
 #[test]
 fn test_cmake_build_configure_only() {
   let tmp = TempDir::new().unwrap();
-  let args = default_resolved(true);
+  let args = default_resolved_with_no_build(true);
   let mut input = empty_input();
   let mut output = sink();
   let mut runner = MockRunner::new();
@@ -77,7 +27,7 @@ fn test_cmake_build_configure_only() {
 #[test]
 fn test_cmake_build_with_build_step() {
   let tmp = TempDir::new().unwrap();
-  let args = default_resolved(false);
+  let args = default_resolved_with_no_build(false);
   let mut input = empty_input();
   let mut output = sink();
   let mut runner = MockRunner::new();
@@ -95,7 +45,7 @@ fn test_cmake_build_with_build_step() {
 #[test]
 fn test_cmake_build_mono_flag() {
   let tmp = TempDir::new().unwrap();
-  let args = default_resolved(true);
+  let args = default_resolved_with_no_build(true);
   let mut input = empty_input();
   let mut output = sink();
   let mut runner = MockRunner::new();
@@ -112,7 +62,7 @@ fn test_cmake_build_mono_flag() {
 #[test]
 fn test_meson_build_configure_only() {
   let tmp = TempDir::new().unwrap();
-  let args = default_resolved(true);
+  let args = default_resolved_with_no_build(true);
   let mut input = empty_input();
   let mut output = sink();
   let mut runner = MockRunner::new();
@@ -131,7 +81,7 @@ fn test_meson_build_configure_only() {
 #[test]
 fn test_meson_build_with_build_step() {
   let tmp = TempDir::new().unwrap();
-  let args = default_resolved(false);
+  let args = default_resolved_with_no_build(false);
   let mut input = empty_input();
   let mut output = sink();
   let mut runner = MockRunner::new();
@@ -149,7 +99,7 @@ fn test_meson_build_with_build_step() {
 #[test]
 fn test_build_project_dispatches_cmake() {
   let tmp = TempDir::new().unwrap();
-  let args = default_resolved(true);
+  let args = default_resolved_with_no_build(true);
   let mut input = empty_input();
   let mut output = sink();
   let mut runner = MockRunner::new();
@@ -174,7 +124,7 @@ fn test_build_project_dispatches_cmake() {
 #[test]
 fn test_build_project_dispatches_meson() {
   let tmp = TempDir::new().unwrap();
-  let args = default_resolved(true);
+  let args = default_resolved_with_no_build(true);
   let mut input = empty_input();
   let mut output = sink();
   let mut runner = MockRunner::new();

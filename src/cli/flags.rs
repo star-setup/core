@@ -1,3 +1,4 @@
+use crate::cli::BuildSystem;
 use clap::Args as ClapArgs;
 
 #[allow(clippy::struct_excessive_bools)]
@@ -28,6 +29,10 @@ pub struct BuildFlags {
   /// Build directory name
   #[arg(short = 'd', long)]
   pub build_dir: Option<String>,
+
+  /// Build system to use, skipping auto-detection
+  #[arg(long, value_name = "BUILD_SYSTEM")]
+  pub build_system: Option<BuildSystem>,
 
   /// Skip building, only configure
   #[arg(short = 'n', long, conflicts_with = "build")]
@@ -115,6 +120,7 @@ pub struct DiagnosticFlags {
   /// Show timing information for each phase
   #[arg(long)]
   pub timing: bool,
+
   /// If set, print commands instead of executing them without making any changes.
   #[arg(long)]
   pub dry_run: bool,

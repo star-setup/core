@@ -44,6 +44,21 @@ impl BuildType {
   }
 }
 
+impl std::str::FromStr for BuildSystem {
+  type Err = String;
+
+  /// Parses a build system string.
+  /// # Errors
+  /// Returns an error if the string does not match `cmake` or `meson`.
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    match s.to_lowercase().as_str() {
+      "cmake" => Ok(Self::Cmake),
+      "meson" => Ok(Self::Meson),
+      _ => Err(format!("Unknown build system '{s}'. Valid: cmake, meson")),
+    }
+  }
+}
+
 impl std::str::FromStr for BuildType {
   type Err = String;
 

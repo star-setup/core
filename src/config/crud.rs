@@ -96,11 +96,20 @@ pub fn add_config(
   }
 
   if io.dry_run {
-    writeln!(io.output, "Would save configuration '{name}' to config file").ok();
+    writeln!(
+      io.output,
+      "Would save configuration '{name}' to config file"
+    )
+    .ok();
   } else {
     insert_config(config, name, entry);
     let path = save_config(config)?;
-    writeln!(io.output, "Configuration '{name}' added successfully to {}", path.display()).ok();
+    writeln!(
+      io.output,
+      "Configuration '{name}' added successfully to {}",
+      path.display()
+    )
+    .ok();
     let e: &ConfigEntry = &config.configs[name];
     writeln!(io.output, "Configuration details:").ok();
     write!(io.output, "{}", format_entry(e)).ok();
@@ -132,7 +141,11 @@ pub fn remove_config(
   }
 
   if io.dry_run {
-    writeln!(io.output, "Would remove configuration '{name}' from config file").ok();
+    writeln!(
+      io.output,
+      "Would remove configuration '{name}' from config file"
+    )
+    .ok();
   } else {
     remove_config_entry(config, name);
     let path = save_config(config)?;
