@@ -1,4 +1,4 @@
-use crate::cli::BuildType;
+use crate::cli::{BuildType, ResolvedArgs};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf};
 
@@ -28,6 +28,23 @@ pub struct ConfigEntry {
   pub meson_flags: Vec<String>,
 }
 
+impl From<&ResolvedArgs> for ConfigEntry {
+  fn from(args: &ResolvedArgs) -> Self {
+    Self {
+      ssh: args.connection.ssh,
+      build_type: args.build.build_type.clone(),
+      build_dir: args.build.build_dir.clone(),
+      mono_dir: args.mono.mono_dir.clone(),
+      no_build: args.build.no_build,
+      clean: args.build.clean,
+      verbose: args.connection.verbose,
+      timing: args.diagnostic.timing,
+      cmake_flags: args.build.cmake_flags.clone(),
+      meson_flags: args.build.meson_flags.clone(),
+    }
+  }
+}
+
 /// Top-level configuration structure.
 #[derive(Serialize, Deserialize, Default)]
 pub struct SetupConfig {
@@ -49,3 +66,4 @@ impl SetupConfig {
     Self::default()
   }
 }
+

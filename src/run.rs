@@ -22,7 +22,7 @@ fn handle_early_commands(
   io: &mut IoCtx<'_>,
 ) -> Result<bool, Box<dyn Error>> {
   if args.config.init_config {
-    create_default_config(PathBuf::from(".star-setup.json"), args.yes, io)?;
+    create_default_config(PathBuf::from(CONFIG_FILE_NAME), args.yes, io)?;
     return Ok(true);
   }
 
@@ -42,18 +42,7 @@ fn handle_early_commands(
   }
 
   if let Some(name) = args.config.config_add.as_deref() {
-    let entry = ConfigEntry {
-      ssh: args.connection.ssh,
-      build_type: args.build.build_type.clone(),
-      build_dir: args.build.build_dir.clone(),
-      mono_dir: args.mono.mono_dir.clone(),
-      no_build: args.build.no_build,
-      clean: args.build.clean,
-      verbose: args.connection.verbose,
-      timing: args.diagnostic.timing,
-      cmake_flags: args.build.cmake_flags.clone(),
-      meson_flags: args.build.meson_flags.clone(),
-    };
+    let entry = ConfigEntry::from(args);
     add_config(config, name, entry, args.yes, io)?;
     return Ok(true);
   }
@@ -71,18 +60,22 @@ fn handle_early_commands(
   Ok(false)
 }
 
+const CONFIG_FILE_NAME: &str = ".star-setup.json";
+
 /// Runs the setup process.
 /// # Errors
 /// Returns an error if the configuration file is missing or corrupted.
 pub fn run() -> Result<(), Box<dyn Error>> {
   let mut stdin = io::stdin().lock();
-  let is_terminal = stdin.is_terminal();
+  let is_terminal = stdin.is_terminal() && io::stdout().is_terminal();
   let mut stdout = io::stdout();
 
-  let mut locations = vec![PathBuf::from(".star-setup.json")];
-  if let Some(home) = dirs::home_dir() {
-    locations.push(home.join(".star-setup.json"));
-  }
+  let locations = vec![
+    PathBuf::from(CONFIG_FILE_NAME),
+    dirs::home_dir()
+      .map(|h| h.join(CONFIG_FILE_NAME))
+      .unwrap_or_default(),
+  ];
 
   let mut config = load_config(&locations, &mut stdout);
   let mut args = Args::parse_with_config(&config)?;
@@ -90,8 +83,8 @@ pub fn run() -> Result<(), Box<dyn Error>> {
   let mut io = IoCtx {
     input: &mut stdin,
     output: &mut stdout,
-    verbose: false,
-    timing: false,
+    verbose: args.connection.verbose,
+    timing: args.diagnostic.timing,
   };
 
   if handle_early_commands(&args, &mut config, &mut io)? {
@@ -107,9 +100,6 @@ pub fn run() -> Result<(), Box<dyn Error>> {
   }
 
   check_prerequisites(&mut io)?;
-
-  io.verbose = args.connection.verbose;
-  io.timing = args.diagnostic.timing;
 
   let mut runner = ProcessRunner;
   let mut ctx = RunCtx {
