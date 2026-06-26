@@ -32,18 +32,10 @@ pub fn mono_repo_mode(
   writeln!(ctx.io.output, "Total repositories: {}\n", repos.len()).ok();
 
   let mono_repo_path = base_dir.join(&args.mono.mono_dir);
-  writeln!(
-    ctx.io.output,
-    "Creating directory: {}\n",
-    mono_repo_path.display()
-  )
-  .ok();
-  crate::time!(ctx.io.timing, ctx.io.output, "Create directory", {
-    fs::create_dir_all(&mono_repo_path).map_err(|e| e.to_string())?;
-  });
-
   let repos_path = mono_repo_path.join("repos");
-  fs::create_dir_all(&repos_path).map_err(|e| e.to_string())?;
+  crate::time!(ctx.io.timing, ctx.io.output, "Create directory", {
+    fs::create_dir_all(&repos_path).map_err(|e| e.to_string())?;
+  });
 
   clone_mono_repos(&repos, &repos_path, args.connection.ssh, ctx)?;
 
@@ -68,9 +60,9 @@ pub fn mono_repo_mode(
   configure_and_build(args, &mono_repo_path, &build_path, true, ctx)?;
 
   print_setup_complete(
-    canonical_map,
-    mono_repo_path,
-    build_path,
+    canonical_map.as_ref(),
+    &mono_repo_path,
+    &build_path,
     &test_repo,
     total,
     &mut ctx.io,

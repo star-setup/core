@@ -1,11 +1,11 @@
 use crate::{ctx::IoCtx, repository::repo_dir_name};
-use std::collections::HashMap;
+use std::{collections::HashMap, path::Path};
 
 /// Prints the setup completion summary including paths, executable location, and total timing.
 pub fn print_setup_complete<S: std::hash::BuildHasher>(
-  canonical_map: Option<HashMap<String, String, S>>,
-  mono_repo_path: std::path::PathBuf,
-  build_path: std::path::PathBuf,
+  canonical_map: Option<&HashMap<String, String, S>>,
+  mono_repo_path: &Path,
+  build_path: &Path,
   test_repo: &str,
   total: std::time::Instant,
   io: &mut IoCtx<'_>,
@@ -14,8 +14,8 @@ pub fn print_setup_complete<S: std::hash::BuildHasher>(
   writeln!(
     io.output,
     "Repositories in: {}",
-    dunce::canonicalize(&mono_repo_path)
-      .unwrap_or(mono_repo_path)
+    dunce::canonicalize(mono_repo_path)
+      .unwrap_or_else(|_| mono_repo_path.to_path_buf())
       .display()
   )
   .ok();
@@ -34,7 +34,9 @@ pub fn print_setup_complete<S: std::hash::BuildHasher>(
       writeln!(
         io.output,
         "Executable: {}",
-        dunce::canonicalize(&exe_path).unwrap_or(exe_path).display()
+        dunce::canonicalize(&exe_path)
+          .unwrap_or_else(|_| exe_path.clone())
+          .display()
       )
       .ok();
     }
@@ -42,8 +44,8 @@ pub fn print_setup_complete<S: std::hash::BuildHasher>(
     writeln!(
       io.output,
       "Build output in: {}",
-      dunce::canonicalize(&build_path)
-        .unwrap_or(build_path)
+      dunce::canonicalize(build_path)
+        .unwrap_or_else(|_| build_path.to_path_buf())
         .display()
     )
     .ok();

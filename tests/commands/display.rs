@@ -11,9 +11,9 @@ fn test_print_setup_complete_no_map() {
   let mut io = make_io(&mut input, &mut output);
 
   print_setup_complete(
-    None::<HashMap<String, String>>,
-    tmp.path().to_path_buf(),
-    tmp.path().join("build"),
+    None::<HashMap<String, String>>.as_ref(),
+    tmp.path(),
+    &tmp.path().join("build"),
     "user/repo",
     std::time::Instant::now(),
     &mut io,
@@ -35,9 +35,9 @@ fn test_print_setup_complete_with_map() {
   map.insert("my_lib".to_string(), "user-repo".to_string());
 
   print_setup_complete(
-    Some(map),
-    tmp.path().to_path_buf(),
-    tmp.path().join("build"),
+    Some(&map),
+    tmp.path(),
+    &tmp.path().join("build"),
     "user/repo",
     std::time::Instant::now(),
     &mut io,
@@ -61,9 +61,9 @@ fn test_print_setup_complete_timing() {
   };
 
   print_setup_complete(
-    None::<HashMap<String, String>>,
-    tmp.path().to_path_buf(),
-    tmp.path().join("build"),
+    None::<HashMap<String, String>>.as_ref(),
+    tmp.path(),
+    &tmp.path().join("build"),
     "user/repo",
     std::time::Instant::now(),
     &mut io,

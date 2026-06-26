@@ -16,7 +16,8 @@ fn pick_build_system(
       &mut ctx.io,
     )? {
       0 => Ok(BuildSystem::Cmake),
-      _ => Ok(BuildSystem::Meson),
+      1 => Ok(BuildSystem::Meson),
+      _ => Err("Invalid build system choice".into()),
     },
     (false, false) => Err(none_err.into()),
   }
