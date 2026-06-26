@@ -14,7 +14,10 @@ fn default_resolved_mono(repos: Vec<String>) -> star_setup::cli::ResolvedArgs {
   let args = Args {
     repo: Some("user/test-repo".to_string()),
     yes: true,
-    diagnostic: DiagnosticFlags { timing: false },
+    diagnostic: DiagnosticFlags {
+      timing: false,
+      dry_run: false,
+    },
     connection: ConnectionFlags {
       ssh: false,
       https: false,

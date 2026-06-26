@@ -115,4 +115,7 @@ pub struct DiagnosticFlags {
   /// Show timing information for each phase
   #[arg(long)]
   pub timing: bool,
+  /// If set, print commands instead of executing them without making any changes.
+  #[arg(long)]
+  pub dry_run: bool,
 }

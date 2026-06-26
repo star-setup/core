@@ -13,7 +13,10 @@ fn default_resolved() -> star_setup::cli::ResolvedArgs {
   let args = Args {
     repo: None,
     yes: false,
-    diagnostic: DiagnosticFlags { timing: false },
+    diagnostic: DiagnosticFlags {
+      timing: false,
+      dry_run: false,
+    },
     connection: ConnectionFlags {
       ssh: false,
       https: false,

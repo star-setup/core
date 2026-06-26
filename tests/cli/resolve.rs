@@ -75,7 +75,10 @@ fn default_args() -> Args {
   Args {
     repo: None,
     yes: false,
-    diagnostic: DiagnosticFlags { timing: false },
+    diagnostic: DiagnosticFlags {
+      timing: false,
+      dry_run: false,
+    },
     connection: ConnectionFlags {
       ssh: false,
       https: false,
