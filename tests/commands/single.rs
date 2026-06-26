@@ -6,7 +6,7 @@ use star_setup::{
   },
   commands::single_repo_mode,
   config::SetupConfig,
-  ctx::RunCtx,
+  ctx::{DryRunRunner, RunCtx},
 };
 use tempfile::TempDir;
 
@@ -152,4 +152,29 @@ fn test_single_repo_mode_outputs_timing() {
   single_repo_mode(&args, tmp.path(), &mut ctx).unwrap();
   let out = String::from_utf8(output).unwrap();
   assert!(out.contains("[timing] Total:"));
+}
+
+#[test]
+fn test_single_repo_mode_dry_run_makes_no_fs_changes() {
+  let tmp = TempDir::new().unwrap();
+  let mut args = default_resolved();
+  args.diagnostic.dry_run = true;
+
+  let mut input = b"".as_ref();
+  let mut output = sink();
+  let mut runner = DryRunRunner;
+  let mut ctx = RunCtx {
+    io: star_setup::ctx::IoCtx {
+      input: &mut input,
+      output: &mut output,
+      verbose: false,
+      timing: false,
+      dry_run: true,
+    },
+    runner: &mut runner,
+  };
+
+  single_repo_mode(&args, tmp.path(), &mut ctx).unwrap();
+
+  assert!(!tmp.path().join("user-repo").exists());
 }
