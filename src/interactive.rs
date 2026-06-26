@@ -27,9 +27,11 @@ pub fn interactive_mode(args: &mut ResolvedArgs, io: &mut IoCtx<'_>) -> Result<(
   }
   if !args.connection.verbose {
     args.connection.verbose = ask_yesno("Verbose?", false, io)?;
+    io.verbose = args.connection.verbose;
   }
   if !args.diagnostic.timing {
     args.diagnostic.timing = ask_yesno("Show timing?", false, io)?;
+    io.timing = args.diagnostic.timing;
   }
   if !args.build.clean {
     args.build.clean = ask_yesno("Clean build directory if exists?", false, io)?;

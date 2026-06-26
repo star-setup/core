@@ -57,7 +57,7 @@ pub fn mono_repo_mode(
 
   let build_path = mono_repo_path.join(&args.build.build_dir);
   prepare_build_dir(build_path.as_path(), args.build.clean, ctx)?;
-  configure_and_build(args, &mono_repo_path, &build_path, true, ctx)?;
+  configure_and_build(args, &mono_repo_path, &build_path, build_system, true, ctx)?;
 
   print_setup_complete(
     canonical_map.as_ref(),

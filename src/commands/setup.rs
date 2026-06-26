@@ -1,5 +1,5 @@
 use crate::{
-  cli::{detect_build_system, ResolvedArgs},
+  cli::{BuildSystem, ResolvedArgs},
   commands::build_project,
   ctx::RunCtx,
 };
@@ -34,11 +34,11 @@ pub fn configure_and_build(
   args: &ResolvedArgs,
   project_path: &Path,
   build_path: &Path,
+  build_system: BuildSystem,
   is_mono: bool,
   ctx: &mut RunCtx<'_>,
 ) -> Result<(), String> {
   writeln!(ctx.io.output, "Configuring project\n").ok();
-  let build_system = detect_build_system(project_path, ctx)?;
   build_project(args, build_path, project_path, build_system, is_mono, ctx)
 }
 
