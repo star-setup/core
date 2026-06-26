@@ -47,7 +47,7 @@ pub fn mono_repo_mode(
   let build_system = detect_mono_build_system(&repo_dirs, ctx)?;
 
   let canonical_map = generate_mono_config(
-    &build_system,
+    build_system,
     &mono_repo_path,
     &repos_path,
     &repo_dirs,

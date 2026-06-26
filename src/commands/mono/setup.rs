@@ -10,7 +10,7 @@ use std::path::PathBuf;
 /// # Errors
 /// Returns an error if config file generation or wrap hoisting fails.
 pub fn generate_mono_config(
-  build_system: &BuildSystem,
+  build_system: BuildSystem,
   mono_repo_path: &std::path::Path,
   repos_path: &std::path::Path,
   repo_dirs: &[PathBuf],

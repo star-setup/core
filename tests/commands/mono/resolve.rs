@@ -194,7 +194,7 @@ fn test_generate_mono_config_meson() {
   };
 
   let result = generate_mono_config(
-    &star_setup::cli::BuildSystem::Meson,
+    star_setup::cli::BuildSystem::Meson,
     tmp.path(),
     &repos_path,
     &[repo_dir],
@@ -204,5 +204,8 @@ fn test_generate_mono_config_meson() {
 
   assert!(result.is_ok());
   assert!(result.unwrap().is_some());
-  assert!(tmp.path().join("meson.build").exists());
+  let meson_build = tmp.path().join("meson.build");
+  assert!(meson_build.exists());
+  let content = std::fs::read_to_string(&meson_build).unwrap();
+  assert!(content.contains("user_lib1") || content.contains("user-lib1"));
 }

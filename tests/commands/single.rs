@@ -109,22 +109,18 @@ fn test_single_repo_mode_cleans_build_dir() {
   let mut args = default_resolved();
   args.build.clean = true;
   make_repo_fixture(tmp.path());
-  std::fs::create_dir_all(tmp.path().join("user-repo").join(&args.build.build_dir)).unwrap();
+  let build_dir = tmp.path().join("user-repo").join(&args.build.build_dir);
+  std::fs::create_dir_all(&build_dir).unwrap();
+  std::fs::write(build_dir.join("dummy.txt"), "old content").unwrap();
 
   let mut input = b"n\n".as_ref();
   let mut output = sink();
   let mut runner = MockRunner::new();
-  let mut ctx = RunCtx {
-    io: make_io(&mut input, &mut output),
-    runner: &mut runner,
-  };
+  let mut ctx = RunCtx { io: make_io(&mut input, &mut output), runner: &mut runner };
 
   single_repo_mode(&args, tmp.path(), &mut ctx).unwrap();
-  assert!(tmp
-    .path()
-    .join("user-repo")
-    .join(&args.build.build_dir)
-    .exists());
+  assert!(!build_dir.join("dummy.txt").exists());
+  assert!(build_dir.exists());
 }
 
 #[test]
