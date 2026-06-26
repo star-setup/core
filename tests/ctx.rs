@@ -29,7 +29,10 @@ fn test_dry_run_runner_prints_command() {
     dry_run: true,
   };
   runner.run(&["git", "clone", "foo"], None, &mut io).unwrap();
-  assert_eq!(String::from_utf8(output).unwrap(), "Would run: git clone foo\n");
+  assert_eq!(
+    String::from_utf8(output).unwrap(),
+    "Would run: git clone foo\n"
+  );
 }
 
 #[test]
@@ -44,7 +47,9 @@ fn test_dry_run_runner_prints_cwd() {
     timing: false,
     dry_run: true,
   };
-  runner.run(&["cmake", ".."], Some(Path::new("/tmp/build")), &mut io).unwrap();
+  runner
+    .run(&["cmake", ".."], Some(Path::new("/tmp/build")), &mut io)
+    .unwrap();
   let out = String::from_utf8(output).unwrap();
   assert!(out.contains("Would run: cmake .."));
   assert!(out.contains("  in directory: /tmp/build"));

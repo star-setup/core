@@ -1,5 +1,5 @@
 use super::common::{empty_input, make_io, sink};
-use star_setup::commands::mono::display::print_setup_complete;
+use star_setup::commands::mono::display::{print_setup_complete, resolve_setup_paths};
 use std::collections::HashMap;
 use tempfile::TempDir;
 
@@ -9,16 +9,13 @@ fn test_print_setup_complete_no_map() {
   let mut input = empty_input();
   let mut output = sink();
   let mut io = make_io(&mut input, &mut output);
-
-  print_setup_complete(
-    None::<HashMap<String, String>>.as_ref(),
+  let paths = resolve_setup_paths(
+    None::<&HashMap<String, String>>,
     tmp.path(),
     &tmp.path().join("build"),
     "user/repo",
-    std::time::Instant::now(),
-    &mut io,
   );
-
+  print_setup_complete(&paths, std::time::Instant::now(), &mut io);
   let out = String::from_utf8(output).unwrap();
   assert!(out.contains("Setup complete"));
   assert!(out.contains("Build output in:"));
@@ -30,19 +27,10 @@ fn test_print_setup_complete_with_map() {
   let mut input = empty_input();
   let mut output = sink();
   let mut io = make_io(&mut input, &mut output);
-
   let mut map = HashMap::new();
   map.insert("my_lib".to_string(), "user-repo".to_string());
-
-  print_setup_complete(
-    Some(&map),
-    tmp.path(),
-    &tmp.path().join("build"),
-    "user/repo",
-    std::time::Instant::now(),
-    &mut io,
-  );
-
+  let paths = resolve_setup_paths(Some(&map), tmp.path(), &tmp.path().join("build"), "user/repo");
+  print_setup_complete(&paths, std::time::Instant::now(), &mut io);
   let out = String::from_utf8(output).unwrap();
   assert!(out.contains("Setup complete"));
   assert!(out.contains("Executable:"));
@@ -60,16 +48,13 @@ fn test_print_setup_complete_timing() {
     timing: true,
     dry_run: false,
   };
-
-  print_setup_complete(
-    None::<HashMap<String, String>>.as_ref(),
+  let paths = resolve_setup_paths(
+    None::<&HashMap<String, String>>,
     tmp.path(),
     &tmp.path().join("build"),
     "user/repo",
-    std::time::Instant::now(),
-    &mut io,
   );
-
+  print_setup_complete(&paths, std::time::Instant::now(), &mut io);
   let out = String::from_utf8(output).unwrap();
   assert!(out.contains("[timing] Total:"));
 }

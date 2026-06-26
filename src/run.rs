@@ -5,7 +5,7 @@ use crate::{
     add_config, create_default_config, list_configs, load_config, remove_config, ConfigEntry,
     SetupConfig,
   },
-  ctx::{IoCtx, ProcessRunner, DryRunRunner, Runner, RunCtx},
+  ctx::{DryRunRunner, IoCtx, ProcessRunner, RunCtx, Runner},
   interactive::interactive_mode,
   profile::{add_profile, list_profiles, remove_profile},
   utils::check_prerequisites,
