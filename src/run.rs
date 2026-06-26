@@ -27,7 +27,7 @@ fn handle_early_commands(
   }
 
   if args.config.list_configs {
-    list_configs(config, &mut io.output);
+    list_configs(config, io);
     return Ok(true);
   }
 

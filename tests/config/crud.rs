@@ -118,8 +118,10 @@ fn test_create_default_config_aborts_when_exists_and_not_confirmed() {
 #[test]
 fn test_list_configs_empty() {
   let config = SetupConfig::new();
+  let mut input = empty_input();
   let mut output = sink();
-  list_configs(&config, &mut output);
+  let mut io = make_io(&mut input, &mut output);
+  list_configs(&config, &mut io);
   let out = String::from_utf8(output).unwrap();
   assert!(out.contains("No configurations created"));
 }
@@ -128,8 +130,12 @@ fn test_list_configs_empty() {
 fn test_list_configs_with_entries() {
   let mut config = SetupConfig::new();
   insert_config(&mut config, "myconfig", sample_entry());
+
+  let mut input = empty_input();
   let mut output = sink();
-  list_configs(&config, &mut output);
+  let mut io = make_io(&mut input, &mut output);
+
+  list_configs(&config, &mut io);
   let out = String::from_utf8(output).unwrap();
   assert!(out.contains("myconfig"));
   assert!(out.contains("Configurations:"));
@@ -161,9 +167,11 @@ fn test_remove_config_removes_and_saves() {
 #[test]
 fn test_remove_config_not_found() {
   let mut config = SetupConfig::new();
+
   let mut input = empty_input();
   let mut output = sink();
   let mut io = make_io(&mut input, &mut output);
+
   remove_config(&mut config, "nonexistent", true, &mut io).unwrap();
 }
 

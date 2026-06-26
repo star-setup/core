@@ -1,5 +1,8 @@
-use crate::config::{ConfigEntry, SetupConfig};
-use std::{fmt::Write as FmtWrite, io::Write};
+use crate::{
+  config::{ConfigEntry, SetupConfig},
+  ctx::IoCtx,
+};
+use std::fmt::Write as FmtWrite;
 
 /// Formats a `ConfigEntry` as a human-readable string.
 #[must_use]
@@ -37,20 +40,20 @@ pub fn format_entry(e: &ConfigEntry) -> String {
 }
 
 /// Lists all saved configuration entries.
-pub fn list_configs(config: &SetupConfig, output: &mut impl Write) {
+pub fn list_configs(config: &SetupConfig, io: &mut IoCtx<'_>) {
   if config.configs.is_empty() {
-    writeln!(output, "  No configurations created.").ok();
+    writeln!(io.output, "  No configurations created.").ok();
     writeln!(
-      output,
+      io.output,
       "  Run with --init-config to create a default configuration."
     )
     .ok();
     return;
   }
 
-  writeln!(output, "Configurations:").ok();
+  writeln!(io.output, "Configurations:").ok();
   for (name, e) in &config.configs {
-    writeln!(output, "\n{name}:").ok();
-    write!(output, "{}", format_entry(e)).ok();
+    writeln!(io.output, "\n{name}:").ok();
+    write!(io.output, "{}", format_entry(e)).ok();
   }
 }
