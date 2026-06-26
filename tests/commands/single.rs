@@ -154,3 +154,23 @@ fn test_single_repo_mode_dry_run_clean_prints_would_remove() {
   assert!(out.contains("Would remove directory:"));
   assert!(std::fs::read_dir(tmp.path()).unwrap().next().is_none());
 }
+
+#[test]
+fn test_single_repo_mode_with_build_system_flag() {
+  let tmp = TempDir::new().unwrap();
+  let mut args = default_resolved();
+  args.build.build_system = Some(star_setup::cli::BuildSystem::Cmake);
+  make_repo_fixture(tmp.path());
+
+  let mut input = b"n\n".as_ref();
+  let mut output = sink();
+  let mut runner = MockRunner::new();
+  let mut ctx = RunCtx {
+    io: make_io(&mut input, &mut output),
+    runner: &mut runner,
+  };
+
+  single_repo_mode(&args, tmp.path(), &mut ctx).unwrap();
+
+  assert!(runner.calls.iter().any(|(cmd, _)| cmd[0] == "cmake"));
+}
