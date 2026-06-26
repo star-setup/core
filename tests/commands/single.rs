@@ -175,6 +175,5 @@ fn test_single_repo_mode_dry_run_makes_no_fs_changes() {
   };
 
   single_repo_mode(&args, tmp.path(), &mut ctx).unwrap();
-
-  assert!(!tmp.path().join("user-repo").exists());
+  assert!(std::fs::read_dir(tmp.path()).unwrap().next().is_none());
 }
