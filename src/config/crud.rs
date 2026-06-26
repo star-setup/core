@@ -37,26 +37,28 @@ pub fn create_default_config(path: PathBuf, yes: bool, io: &mut IoCtx<'_>) -> Re
     return Ok(());
   }
 
-  let mut config = SetupConfig::new();
-  config.path = Some(path.clone());
-  config.configs.insert(
-    "default".to_string(),
-    ConfigEntry {
-      ssh: false,
-      build_type: BuildType::Debug,
-      build_dir: "build".to_string(),
-      mono_dir: "build-mono".to_string(),
-      no_build: false,
-      clean: false,
-      verbose: false,
-      timing: false,
-      dry_run: false,
-      cmake_flags: vec![],
-      meson_flags: vec![],
-    },
-  );
+  if !io.dry_run {
+    let mut config = SetupConfig::new();
+    config.path = Some(path.clone());
+    config.configs.insert(
+      "default".to_string(),
+      ConfigEntry {
+        ssh: false,
+        build_type: BuildType::Debug,
+        build_dir: "build".to_string(),
+        mono_dir: "build-mono".to_string(),
+        no_build: false,
+        clean: false,
+        verbose: false,
+        timing: false,
+        dry_run: false,
+        cmake_flags: vec![],
+        meson_flags: vec![],
+      },
+    );
 
-  save_config(&mut config)?;
+    save_config(&mut config)?;
+  }
 
   writeln!(
     io.output,
@@ -93,19 +95,16 @@ pub fn add_config(
     return Ok(());
   }
 
-  insert_config(config, name, entry);
-  let path = save_config(config)?;
-
-  let e = &config.configs[name];
-  writeln!(
-    io.output,
-    "Configuration '{name}' added successfully to {}",
-    path.display()
-  )
-  .ok();
-  writeln!(io.output, "Configuration details:").ok();
-  write!(io.output, "{}", format_entry(e)).ok();
-
+  if io.dry_run {
+    writeln!(io.output, "Would save configuration '{name}' to config file").ok();
+  } else {
+    insert_config(config, name, entry);
+    let path = save_config(config)?;
+    writeln!(io.output, "Configuration '{name}' added successfully to {}", path.display()).ok();
+    let e: &ConfigEntry = &config.configs[name];
+    writeln!(io.output, "Configuration details:").ok();
+    write!(io.output, "{}", format_entry(e)).ok();
+  }
   Ok(())
 }
 
@@ -132,9 +131,13 @@ pub fn remove_config(
     return Ok(());
   }
 
-  remove_config_entry(config, name);
-  let path = save_config(config)?;
-  writeln!(io.output, "\nConfig '{name}' was successfully removed").ok();
-  writeln!(io.output, "Configuration saved to: {}\n", path.display()).ok();
+  if io.dry_run {
+    writeln!(io.output, "Would remove configuration '{name}' from config file").ok();
+  } else {
+    remove_config_entry(config, name);
+    let path = save_config(config)?;
+    writeln!(io.output, "\nConfig '{name}' was successfully removed").ok();
+    writeln!(io.output, "Configuration saved to: {}\n", path.display()).ok();
+  }
   Ok(())
 }
