@@ -21,8 +21,7 @@ pub fn prepare_build_dir(
       build_path.display()
     )
     .ok();
-  }
-  else if clean && build_path.exists() {
+  } else if clean && build_path.exists() {
     writeln!(ctx.io.output, "Cleaning build directory\n").ok();
     crate::time!(ctx.io.timing, ctx.io.output, "Clean", {
       fs::remove_dir_all(build_path).map_err(|e| e.to_string())?;

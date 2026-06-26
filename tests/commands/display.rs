@@ -29,7 +29,12 @@ fn test_print_setup_complete_with_map() {
   let mut io = make_io(&mut input, &mut output);
   let mut map = HashMap::new();
   map.insert("my_lib".to_string(), "user-repo".to_string());
-  let paths = resolve_setup_paths(Some(&map), tmp.path(), &tmp.path().join("build"), "user/repo");
+  let paths = resolve_setup_paths(
+    Some(&map),
+    tmp.path(),
+    &tmp.path().join("build"),
+    "user/repo",
+  );
   print_setup_complete(&paths, std::time::Instant::now(), &mut io);
   let out = String::from_utf8(output).unwrap();
   assert!(out.contains("Setup complete"));
