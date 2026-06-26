@@ -61,3 +61,27 @@ fn test_mono_repo_mode_dry_run_makes_no_fs_changes() {
 
   assert!(std::fs::read_dir(tmp.path()).unwrap().next().is_none());
 }
+
+#[test]
+fn test_mono_repo_mode_with_build_system_flag() {
+  let tmp = TempDir::new().unwrap();
+  let mut args = default_resolved_mono(vec!["user/lib1".to_string()]);
+  args.build.build_system = Some(star_setup::cli::BuildSystem::Cmake);
+
+  let repos_path = tmp.path().join(&args.mono.mono_dir).join("repos");
+  std::fs::create_dir_all(&repos_path).unwrap();
+  make_cmake_repo(&repos_path, "user-lib1");
+  make_cmake_repo(&repos_path, "user-test-repo");
+
+  let mut input = empty_input();
+  let mut output = sink();
+  let mut runner = MockRunner::new();
+  let mut ctx = RunCtx {
+    io: make_io(&mut input, &mut output),
+    runner: &mut runner,
+  };
+
+  mono_repo_mode(&args, &SetupConfig::new(), tmp.path(), &mut ctx).unwrap();
+
+  assert!(runner.calls.iter().any(|(cmd, _)| cmd[0] == "cmake"));
+}
