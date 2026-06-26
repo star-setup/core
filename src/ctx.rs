@@ -10,6 +10,7 @@ pub struct IoCtx<'a> {
   pub output: &'a mut dyn Write,
   pub verbose: bool,
   pub timing: bool,
+  pub dry_run: bool,
 }
 
 /// Trait for executing shell commands.

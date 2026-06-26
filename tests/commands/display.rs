@@ -58,6 +58,7 @@ fn test_print_setup_complete_timing() {
     output: &mut output,
     verbose: false,
     timing: true,
+    dry_run: false,
   };
 
   print_setup_complete(

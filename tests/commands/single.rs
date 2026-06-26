@@ -119,7 +119,10 @@ fn test_single_repo_mode_cleans_build_dir() {
   let mut input = b"n\n".as_ref();
   let mut output = sink();
   let mut runner = MockRunner::new();
-  let mut ctx = RunCtx { io: make_io(&mut input, &mut output), runner: &mut runner };
+  let mut ctx = RunCtx {
+    io: make_io(&mut input, &mut output),
+    runner: &mut runner,
+  };
 
   single_repo_mode(&args, tmp.path(), &mut ctx).unwrap();
   assert!(!build_dir.join("dummy.txt").exists());
@@ -141,6 +144,7 @@ fn test_single_repo_mode_outputs_timing() {
       output: &mut output,
       verbose: false,
       timing: true,
+      dry_run: false,
     },
     runner: &mut runner,
   };

@@ -77,6 +77,7 @@ fn test_clone_skips_existing_directory() {
       output: &mut Vec::new(),
       verbose: false,
       timing: false,
+      dry_run: false,
     },
     runner: &mut runner,
   };

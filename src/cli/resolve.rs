@@ -50,6 +50,12 @@ pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<Resol
     default.map(|e| e.timing),
     false,
   );
+  let dry_run = resolve_bool(
+    args.diagnostic.dry_run,
+    false,
+    default.map(|e| e.dry_run),
+    false,
+  );
   let no_build = resolve_bool(
     args.build.no_build,
     args.build.build,
@@ -77,7 +83,7 @@ pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<Resol
     repo: args.repo,
     yes: args.yes,
     connection: ResolvedConnectionFlags { ssh, verbose },
-    diagnostic: ResolvedDiagnosticFlags { timing },
+    diagnostic: ResolvedDiagnosticFlags { timing, dry_run },
     build: ResolvedBuildFlags {
       build_type: if let Some(s) = args.build.build_type {
         s.parse::<BuildType>()?

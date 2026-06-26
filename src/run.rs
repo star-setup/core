@@ -85,6 +85,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     output: &mut stdout,
     verbose: args.connection.verbose,
     timing: args.diagnostic.timing,
+    dry_run: args.diagnostic.dry_run,
   };
 
   if handle_early_commands(&args, &mut config, &mut io)? {

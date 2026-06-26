@@ -9,6 +9,7 @@ fn test_process_runner_runs_command() {
     output: &mut output,
     verbose: false,
     timing: false,
+    dry_run: false,
   };
   assert!(runner.run(&["git", "--version"], None, &mut io).is_ok());
 }

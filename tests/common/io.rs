@@ -17,5 +17,6 @@ pub fn make_io<'a>(
     output,
     verbose: false,
     timing: false,
+    dry_run: false,
   }
 }

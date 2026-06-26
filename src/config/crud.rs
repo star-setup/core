@@ -50,6 +50,7 @@ pub fn create_default_config(path: PathBuf, yes: bool, io: &mut IoCtx<'_>) -> Re
       clean: false,
       verbose: false,
       timing: false,
+      dry_run: false,
       cmake_flags: vec![],
       meson_flags: vec![],
     },

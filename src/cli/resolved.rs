@@ -9,6 +9,7 @@ pub struct ResolvedConnectionFlags {
 /// Resolved diagnostic flags after applying config and CLI overrides.
 pub struct ResolvedDiagnosticFlags {
   pub timing: bool,
+  pub dry_run: bool,
 }
 
 /// Resolved build flags after applying config and CLI overrides.
