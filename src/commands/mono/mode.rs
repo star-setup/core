@@ -59,11 +59,7 @@ fn generate_mono_config(
             .unwrap_or(dir)
         })
         .collect();
-      create_mono_repo_mesonbuild(
-        mono_repo_path,
-        &subproject_names,
-        &mut ctx.io,
-      )?;
+      create_mono_repo_mesonbuild(mono_repo_path, &subproject_names, &mut ctx.io)?;
       Ok(Some(map))
     }
   }
@@ -159,7 +155,7 @@ pub fn mono_repo_mode(
   let repo_input = repo_input.trim_end_matches('/');
 
   let test_repo = resolve_test_repo(repo_input)?;
-  let deps = resolve_repos_for_mono(args, config, &test_repo, ctx.io.output)?;
+  let deps = resolve_repos_for_mono(args, config, &test_repo, &mut ctx.io)?;
   let repos = build_repo_list(&test_repo, &deps);
   writeln!(ctx.io.output, "Total repositories: {}\n", repos.len()).ok();
 

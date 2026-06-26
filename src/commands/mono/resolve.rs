@@ -2,9 +2,9 @@ use crate::{
   cli::ResolvedArgs,
   commands::{print_mode_header, ModeHeader},
   config::SetupConfig,
+  ctx::IoCtx,
   profile::list_profiles,
 };
-use std::io::Write;
 
 /// Resolves the list of repositories for mono-repo mode from a profile or explicit repo list.
 /// # Errors
@@ -13,11 +13,11 @@ pub fn resolve_repos_for_mono(
   args: &ResolvedArgs,
   config: &SetupConfig,
   test_repo: &str,
-  output: &mut (impl Write + ?Sized),
+  io: &mut IoCtx<'_>,
 ) -> Result<Vec<String>, String> {
   if let Some(profile_name) = &args.mono.profile {
     let profile_repos = config.profiles.get(profile_name).ok_or_else(|| {
-      list_profiles(config, output);
+      list_profiles(config, io.output);
       format!("Profile '{profile_name}' not found")
     })?;
     if profile_repos.is_empty() {
@@ -33,7 +33,7 @@ pub fn resolve_repos_for_mono(
         profile: Some(profile_name),
         lib_count: Some(profile_repos.len()),
       },
-      output,
+      io.output,
     );
     Ok(profile_repos.clone())
   } else if let Some(r) = &args.mono.repos {
@@ -47,7 +47,7 @@ pub fn resolve_repos_for_mono(
         profile: None,
         lib_count: Some(r.len()),
       },
-      output,
+      io.output,
     );
     Ok(r.clone())
   } else {
