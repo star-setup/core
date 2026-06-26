@@ -4,9 +4,13 @@ use std::{
   path::{Path, PathBuf},
 };
 
+/// Resolved display paths for the setup completion summary.
 pub struct SetupPaths {
+  /// Canonicalized path to the mono-repo root directory.
   pub mono_repo_disp: PathBuf,
+  /// Canonicalized path to the test repository executable, if found.
   pub exe_path: Option<PathBuf>,
+  /// Canonicalized path to the build output directory, if no canonical map was provided.
   pub build_disp: Option<PathBuf>,
 }
 
