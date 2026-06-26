@@ -4,5 +4,7 @@ mod config;
 mod resolve;
 #[path = "mono/setup.rs"]
 mod setup;
+#[path = "mono/clone.rs"]
+mod clone;
 #[path = "mono/wraps.rs"]
 mod wraps;
