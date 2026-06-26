@@ -8,3 +8,5 @@ mod setup;
 mod clone;
 #[path = "mono/wraps.rs"]
 mod wraps;
+#[path = "mono/mode.rs"]
+mod mode;
