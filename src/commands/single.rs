@@ -5,15 +5,12 @@ use crate::{
   prompts::confirm,
   repository::{repo_dir_name, resolve_repo_url},
 };
-use std::{
-  fs,
-  path::{Path, PathBuf},
-};
+use std::{fs, path::Path};
 
 /// Clones and configures a single repository.
 /// # Errors
 /// Returns an error if no repository is specified, or if any git or build system fails.
-pub fn single_repo_mode(args: &ResolvedArgs, ctx: &mut RunCtx<'_>) -> Result<(), String> {
+pub fn single_repo_mode(args: &ResolvedArgs, base_dir: &Path, ctx: &mut RunCtx<'_>) -> Result<(), String> {
   let total = std::time::Instant::now();
   let repo = args.repo.as_deref().ok_or("No repository specified")?;
   let repo_url = resolve_repo_url(repo, args.connection.ssh);
@@ -32,7 +29,7 @@ pub fn single_repo_mode(args: &ResolvedArgs, ctx: &mut RunCtx<'_>) -> Result<(),
     &mut ctx.io,
   );
 
-  let repo_path = Path::new(&dir_name);
+  let repo_path = base_dir.join(&dir_name);
   if repo_path.exists() {
     writeln!(ctx.io.output, "Repository {dir_name} already exists").ok();
     if confirm("Update existing repository?", args.yes, &mut ctx.io)? {
@@ -52,7 +49,7 @@ pub fn single_repo_mode(args: &ResolvedArgs, ctx: &mut RunCtx<'_>) -> Result<(),
     });
   }
 
-  let build_path = PathBuf::from(&dir_name).join(&args.build.build_dir);
+  let build_path = base_dir.join(&dir_name).join(&args.build.build_dir);
   if args.build.clean && build_path.exists() {
     writeln!(ctx.io.output, "Cleaning build directory\n").ok();
     crate::time!(ctx.io.timing, ctx.io.output, "Clean", {

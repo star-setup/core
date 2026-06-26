@@ -11,9 +11,7 @@ use crate::{
   utils::check_prerequisites,
 };
 use std::{
-  error::Error,
-  io::{self, IsTerminal},
-  path::PathBuf,
+  error::Error, io::{self, IsTerminal}, path::{Path, PathBuf},
 };
 
 fn handle_early_commands(
@@ -108,9 +106,9 @@ pub fn run() -> Result<(), Box<dyn Error>> {
   };
 
   if args.mono.mono_repo {
-    mono_repo_mode(&args, &config, &mut ctx)?;
+    mono_repo_mode(&args, &config, Path::new("."), &mut ctx)?;
   } else {
-    single_repo_mode(&args, &mut ctx)?;
+    single_repo_mode(&args, Path::new("."), &mut ctx)?;
   }
 
   Ok(())

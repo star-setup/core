@@ -9,7 +9,7 @@ use crate::{
   ctx::RunCtx,
   repository::repo_dir_name,
 };
-use std::{fs, path::PathBuf};
+use std::{fs, path::{Path, PathBuf}};
 
 /// Clones and configures a mono-repo ecosystem from a profile or explicit repository list.
 /// # Errors
@@ -17,9 +17,9 @@ use std::{fs, path::PathBuf};
 pub fn mono_repo_mode(
   args: &ResolvedArgs,
   config: &SetupConfig,
+  base_dir: &Path,
   ctx: &mut RunCtx<'_>,
 ) -> Result<(), String> {
-  let timing = ctx.io.timing;
   let total = std::time::Instant::now();
 
   let repo_input = args.repo.as_deref().ok_or("No repository specified")?;
@@ -30,14 +30,14 @@ pub fn mono_repo_mode(
   let repos = build_repo_list(&test_repo, &deps);
   writeln!(ctx.io.output, "Total repositories: {}\n", repos.len()).ok();
 
-  let mono_repo_path = PathBuf::from(&args.mono.mono_dir);
+  let mono_repo_path = base_dir.join(&args.mono.mono_dir);
   writeln!(
     ctx.io.output,
     "Creating directory: {}\n",
     mono_repo_path.display()
   )
   .ok();
-  crate::time!(timing, ctx.io.output, "Create directory", {
+  crate::time!(ctx.io.timing, ctx.io.output, "Create directory", {
     fs::create_dir_all(&mono_repo_path).map_err(|e| e.to_string())?;
   });
 
