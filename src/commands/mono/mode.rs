@@ -59,22 +59,22 @@ pub fn mono_repo_mode(
 
   let build_path = mono_repo_path.join(&args.build.build_dir);
 
-  let canonical_map = if ctx.io.dry_run {
+  let build_system = if let Some(bs) = args.build.build_system {
+    Some(bs)
+  } else if !ctx.io.dry_run {
+    Some(detect_mono_build_system(&repo_dirs, ctx)?)
+  } else {
+    None
+  };
+
+  let canonical_map = if let Some(bs) = build_system {
+    let map = generate_mono_config(bs, &mono_repo_path, &repos_path, &repo_dirs, &repos, ctx)?;
+    prepare_build_dir(build_path.as_path(), args.build.clean, ctx)?;
+    configure_and_build(args, &mono_repo_path, &build_path, bs, true, ctx)?;
+    map
+  } else {
     prepare_build_dir(build_path.as_path(), args.build.clean, ctx)?;
     None
-  } else {
-    let build_system = detect_mono_build_system(&repo_dirs, ctx)?;
-    let map = generate_mono_config(
-      build_system,
-      &mono_repo_path,
-      &repos_path,
-      &repo_dirs,
-      &repos,
-      ctx,
-    )?;
-    prepare_build_dir(build_path.as_path(), args.build.clean, ctx)?;
-    configure_and_build(args, &mono_repo_path, &build_path, build_system, true, ctx)?;
-    map
   };
 
   let paths = if ctx.io.dry_run {

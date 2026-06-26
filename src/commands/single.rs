@@ -59,8 +59,15 @@ pub fn single_repo_mode(
   let build_path = repo_path.join(&args.build.build_dir);
   prepare_build_dir(&build_path, args.build.clean, ctx)?;
 
-  if !ctx.io.dry_run {
-    let build_system = detect_build_system(&repo_path, ctx)?;
+  let build_system = if let Some(bs) = args.build.build_system {
+    Some(bs)
+  } else if !ctx.io.dry_run {
+    Some(detect_build_system(&repo_path, ctx)?)
+  } else {
+    None
+  };
+
+  if let Some(build_system) = build_system {
     configure_and_build(args, &repo_path, &build_path, build_system, false, ctx)?;
   }
 
