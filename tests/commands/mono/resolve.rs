@@ -1,12 +1,14 @@
-use super::super::common::{empty_input, make_io, sink};
+use crate::common::{empty_input, make_io, sink, MockRunner};
 use star_setup::{
   cli::{
     resolve_with_config, Args, BuildFlags, ConfigFlags, ConnectionFlags, DiagnosticFlags,
     MonoRepoFlags, ProfileFlags,
   },
-  commands::{resolve_repos_for_mono, resolve_test_repo},
+  commands::{mono::generate_mono_config, resolve_repos_for_mono, resolve_test_repo},
   config::SetupConfig,
+  ctx::RunCtx,
 };
+use tempfile::TempDir;
 
 // resolve_test_repo tests
 #[test]
@@ -171,4 +173,36 @@ fn test_resolve_repos_for_mono_profile_not_found_errors() {
   let result = resolve_repos_for_mono(&args, &config, "user/repo", &mut io);
   assert!(result.is_err());
   assert!(result.unwrap_err().contains("not found"));
+}
+
+#[test]
+fn test_generate_mono_config_meson() {
+  let tmp = TempDir::new().unwrap();
+  let repos_path = tmp.path().join("repos");
+  std::fs::create_dir_all(&repos_path).unwrap();
+
+  let repo_dir = repos_path.join("user-lib1");
+  std::fs::create_dir_all(&repo_dir).unwrap();
+  std::fs::write(repo_dir.join("meson.build"), "project('user-lib1', 'cpp')").unwrap();
+
+  let mut input = empty_input();
+  let mut output = sink();
+  let mut runner = MockRunner::new();
+  let mut ctx = RunCtx {
+    io: make_io(&mut input, &mut output),
+    runner: &mut runner,
+  };
+
+  let result = generate_mono_config(
+    &star_setup::cli::BuildSystem::Meson,
+    tmp.path(),
+    &repos_path,
+    &[repo_dir],
+    &["user/lib1".to_string()],
+    &mut ctx,
+  );
+
+  assert!(result.is_ok());
+  assert!(result.unwrap().is_some());
+  assert!(tmp.path().join("meson.build").exists());
 }

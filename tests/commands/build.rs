@@ -60,7 +60,10 @@ fn test_cmake_build_configure_only() {
   let mut input = empty_input();
   let mut output = sink();
   let mut runner = MockRunner::new();
-  let mut ctx = RunCtx { io: make_io(&mut input, &mut output), runner: &mut runner };
+  let mut ctx = RunCtx {
+    io: make_io(&mut input, &mut output),
+    runner: &mut runner,
+  };
 
   cmake_build(&args, tmp.path(), false, &mut ctx).unwrap();
 
@@ -75,7 +78,10 @@ fn test_cmake_build_with_build_step() {
   let mut input = empty_input();
   let mut output = sink();
   let mut runner = MockRunner::new();
-  let mut ctx = RunCtx { io: make_io(&mut input, &mut output), runner: &mut runner };
+  let mut ctx = RunCtx {
+    io: make_io(&mut input, &mut output),
+    runner: &mut runner,
+  };
 
   cmake_build(&args, tmp.path(), false, &mut ctx).unwrap();
 
@@ -90,7 +96,10 @@ fn test_cmake_build_mono_flag() {
   let mut input = empty_input();
   let mut output = sink();
   let mut runner = MockRunner::new();
-  let mut ctx = RunCtx { io: make_io(&mut input, &mut output), runner: &mut runner };
+  let mut ctx = RunCtx {
+    io: make_io(&mut input, &mut output),
+    runner: &mut runner,
+  };
 
   cmake_build(&args, tmp.path(), true, &mut ctx).unwrap();
 
@@ -104,7 +113,10 @@ fn test_meson_build_configure_only() {
   let mut input = empty_input();
   let mut output = sink();
   let mut runner = MockRunner::new();
-  let mut ctx = RunCtx { io: make_io(&mut input, &mut output), runner: &mut runner };
+  let mut ctx = RunCtx {
+    io: make_io(&mut input, &mut output),
+    runner: &mut runner,
+  };
 
   meson_build(&args, tmp.path(), tmp.path(), &mut ctx).unwrap();
 
@@ -120,7 +132,10 @@ fn test_meson_build_with_build_step() {
   let mut input = empty_input();
   let mut output = sink();
   let mut runner = MockRunner::new();
-  let mut ctx = RunCtx { io: make_io(&mut input, &mut output), runner: &mut runner };
+  let mut ctx = RunCtx {
+    io: make_io(&mut input, &mut output),
+    runner: &mut runner,
+  };
 
   meson_build(&args, tmp.path(), tmp.path(), &mut ctx).unwrap();
 
@@ -135,9 +150,20 @@ fn test_build_project_dispatches_cmake() {
   let mut input = empty_input();
   let mut output = sink();
   let mut runner = MockRunner::new();
-  let mut ctx = RunCtx { io: make_io(&mut input, &mut output), runner: &mut runner };
+  let mut ctx = RunCtx {
+    io: make_io(&mut input, &mut output),
+    runner: &mut runner,
+  };
 
-  build_project(&args, tmp.path(), tmp.path(), BuildSystem::Cmake, false, &mut ctx).unwrap();
+  build_project(
+    &args,
+    tmp.path(),
+    tmp.path(),
+    BuildSystem::Cmake,
+    false,
+    &mut ctx,
+  )
+  .unwrap();
 
   assert!(runner.calls[0].0.contains(&"cmake".to_string()));
 }
@@ -149,9 +175,20 @@ fn test_build_project_dispatches_meson() {
   let mut input = empty_input();
   let mut output = sink();
   let mut runner = MockRunner::new();
-  let mut ctx = RunCtx { io: make_io(&mut input, &mut output), runner: &mut runner };
+  let mut ctx = RunCtx {
+    io: make_io(&mut input, &mut output),
+    runner: &mut runner,
+  };
 
-  build_project(&args, tmp.path(), tmp.path(), BuildSystem::Meson, false, &mut ctx).unwrap();
+  build_project(
+    &args,
+    tmp.path(),
+    tmp.path(),
+    BuildSystem::Meson,
+    false,
+    &mut ctx,
+  )
+  .unwrap();
 
   assert!(runner.calls[0].0.contains(&"meson".to_string()));
 }
