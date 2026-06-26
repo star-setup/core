@@ -19,8 +19,7 @@ pub trait Runner {
   /// Executes a shell command with optional working directory.
   /// # Errors
   /// Returns an error if the command fails to spawn or exits with a non-zero status.
-  fn run(&mut self, cmd: &[&str], cwd: Option<&Path>, output: &mut dyn Write)
-    -> Result<(), String>;
+  fn run(&mut self, cmd: &[&str], cwd: Option<&Path>, io: &mut IoCtx<'_>) -> Result<(), String>;
 }
 
 /// Full execution context combining IO and a command runner.
@@ -29,16 +28,14 @@ pub struct RunCtx<'a> {
   pub runner: &'a mut dyn Runner,
 }
 
-pub struct ProcessRunner {
-  pub verbose: bool,
-}
+pub struct ProcessRunner;
 impl Runner for ProcessRunner {
   fn run(
     &mut self,
     cmd: &[&str],
     cwd: Option<&Path>,
-    output: &mut dyn Write,
+    io: &mut IoCtx<'_>,
   ) -> Result<(), String> {
-    run_command(cmd, cwd, self.verbose, output)
+    run_command(cmd, cwd, io.verbose, io.output)
   }
 }

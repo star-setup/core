@@ -59,7 +59,7 @@ pub fn clone_repository(
     .run(
       &["git", "clone", &repo_url, &repo_name],
       Some(target_dir),
-      ctx.io.output,
+      &mut ctx.io,
     )
     .map_err(|e| format!("Failed to clone {repo_path}: {e}"))
 }

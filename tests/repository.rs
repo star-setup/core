@@ -68,7 +68,7 @@ fn test_clone_skips_existing_directory() {
   let repo_dir = tmp.path().join("owner-repo");
   std::fs::create_dir_all(&repo_dir).unwrap();
 
-  let mut runner = ProcessRunner { verbose: false };
+  let mut runner = ProcessRunner;
   let mut ctx = RunCtx {
     io: IoCtx {
       input: &mut b"".as_ref(),

@@ -40,7 +40,7 @@ pub fn single_repo_mode(args: &ResolvedArgs, ctx: &mut RunCtx<'_>) -> Result<(),
       crate::time!(ctx.io.timing, ctx.io.output, "Update", {
         ctx
           .runner
-          .run(&["git", "pull"], Some(Path::new(&dir_name)), ctx.io.output)?;
+          .run(&["git", "pull"], Some(Path::new(&dir_name)), &mut ctx.io)?;
       });
     }
   } else {
@@ -48,7 +48,7 @@ pub fn single_repo_mode(args: &ResolvedArgs, ctx: &mut RunCtx<'_>) -> Result<(),
     crate::time!(ctx.io.timing, ctx.io.output, "Clone", {
       ctx
         .runner
-        .run(&["git", "clone", &repo_url, &dir_name], None, ctx.io.output)?;
+        .run(&["git", "clone", &repo_url, &dir_name], None, &mut ctx.io)?;
     });
   }
 

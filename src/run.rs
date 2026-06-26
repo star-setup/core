@@ -111,9 +111,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
   io.verbose = args.connection.verbose;
   io.timing = args.diagnostic.timing;
 
-  let mut runner = ProcessRunner {
-    verbose: io.verbose,
-  };
+  let mut runner = ProcessRunner;
   let mut ctx = RunCtx {
     io,
     runner: &mut runner,
