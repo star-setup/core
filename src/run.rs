@@ -5,7 +5,7 @@ use crate::{
     add_config, create_default_config, list_configs, load_config, remove_config, ConfigEntry,
     SetupConfig,
   },
-  ctx::{IoCtx, ProcessRunner, RunCtx},
+  ctx::{DryRunRunner, IoCtx, ProcessRunner, RunCtx, Runner},
   interactive::interactive_mode,
   profile::{add_profile, list_profiles, remove_profile},
   utils::check_prerequisites,
@@ -85,6 +85,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     output: &mut stdout,
     verbose: args.connection.verbose,
     timing: args.diagnostic.timing,
+    dry_run: args.diagnostic.dry_run,
   };
 
   if handle_early_commands(&args, &mut config, &mut io)? {
@@ -101,11 +102,10 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
   check_prerequisites(&mut io)?;
 
-  let mut runner = ProcessRunner;
-  let mut ctx = RunCtx {
-    io,
-    runner: &mut runner,
-  };
+  let mut dry = DryRunRunner;
+  let mut real = ProcessRunner;
+  let runner: &mut dyn Runner = if io.dry_run { &mut dry } else { &mut real };
+  let mut ctx = RunCtx { io, runner };
 
   if args.mono.mono_repo {
     mono_repo_mode(&args, &config, Path::new("."), &mut ctx)?;

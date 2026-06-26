@@ -2,7 +2,11 @@ use crate::{
   cli::{detect_mono_build_system, ResolvedArgs},
   commands::{
     build_repo_list, configure_and_build, extract_repo_input,
-    mono::{clone_mono_repos, generate_mono_config, print_setup_complete},
+    mono::{
+      clone_mono_repos,
+      display::{resolve_setup_paths, SetupPaths},
+      generate_mono_config, print_setup_complete,
+    },
     prepare_build_dir, resolve_repos_for_mono, resolve_test_repo,
   },
   config::SetupConfig,
@@ -33,9 +37,18 @@ pub fn mono_repo_mode(
 
   let mono_repo_path = base_dir.join(&args.mono.mono_dir);
   let repos_path = mono_repo_path.join("repos");
-  crate::time!(ctx.io.timing, ctx.io.output, "Create directory", {
-    fs::create_dir_all(&repos_path).map_err(|e| e.to_string())?;
-  });
+  if ctx.io.dry_run {
+    writeln!(
+      ctx.io.output,
+      "Would create directory: {}",
+      repos_path.display()
+    )
+    .ok();
+  } else {
+    crate::time!(ctx.io.timing, ctx.io.output, "Create directory", {
+      fs::create_dir_all(&repos_path).map_err(|e| e.to_string())?;
+    });
+  }
 
   clone_mono_repos(&repos, &repos_path, args.connection.ssh, ctx)?;
 
@@ -44,28 +57,41 @@ pub fn mono_repo_mode(
     .map(|r| repos_path.join(repo_dir_name(r)))
     .collect();
 
-  let build_system = detect_mono_build_system(&repo_dirs, ctx)?;
-
-  let canonical_map = generate_mono_config(
-    build_system,
-    &mono_repo_path,
-    &repos_path,
-    &repo_dirs,
-    &repos,
-    ctx,
-  )?;
-
   let build_path = mono_repo_path.join(&args.build.build_dir);
-  prepare_build_dir(build_path.as_path(), args.build.clean, ctx)?;
-  configure_and_build(args, &mono_repo_path, &build_path, build_system, true, ctx)?;
 
-  print_setup_complete(
-    canonical_map.as_ref(),
-    &mono_repo_path,
-    &build_path,
-    &test_repo,
-    total,
-    &mut ctx.io,
-  );
+  let canonical_map = if ctx.io.dry_run {
+    prepare_build_dir(build_path.as_path(), args.build.clean, ctx)?;
+    None
+  } else {
+    let build_system = detect_mono_build_system(&repo_dirs, ctx)?;
+    let map = generate_mono_config(
+      build_system,
+      &mono_repo_path,
+      &repos_path,
+      &repo_dirs,
+      &repos,
+      ctx,
+    )?;
+    prepare_build_dir(build_path.as_path(), args.build.clean, ctx)?;
+    configure_and_build(args, &mono_repo_path, &build_path, build_system, true, ctx)?;
+    map
+  };
+
+  let paths = if ctx.io.dry_run {
+    SetupPaths {
+      mono_repo_disp: mono_repo_path.clone(),
+      exe_path: None,
+      build_disp: Some(build_path.clone()),
+    }
+  } else {
+    resolve_setup_paths(
+      canonical_map.as_ref(),
+      &mono_repo_path,
+      &build_path,
+      &test_repo,
+    )
+  };
+
+  print_setup_complete(&paths, total, &mut ctx.io);
   Ok(())
 }

@@ -64,6 +64,37 @@ cargo install --git https://github.com/star-setup/core
 
 ## Usage
 
+### Flags
+#### Connection
+| Flag | Description |
+|------|-------------|
+| `--ssh` | Clone via SSH instead of HTTPS |
+| `--https` | Force HTTPS (default) |
+| `--verbose` | Print commands as they run |
+
+#### Build
+| Flag | Description |
+|------|-------------|
+| `--build-type <TYPE>` | Build type: `Debug` (default) or `Release` |
+| `--build-dir <DIR>` | Build output directory (default: `build`) |
+| `--no-build` | Configure only, skip build step |
+| `--clean` | Remove build directory before configuring |
+| `--cmake-arg <ARG>` | Pass additional argument to CMake |
+| `--meson-arg <ARG>` | Pass additional argument to Meson |
+
+#### Mono-Repo
+| Flag | Description |
+|------|-------------|
+| `--repos <REPOS>...` | List of dependency repositories |
+| `--mono-dir <DIR>` | Workspace directory (default: `build-mono`) |
+| `--profile <NAME>` | Use a saved profile |
+
+#### Diagnostic
+| Flag | Description |
+|------|-------------|
+| `--dry-run` | Print what would happen without making any changes |
+| `--timing` | Show timing for each phase |
+
 ### Interactive Mode
 Running `star-setup` without arguments launches interactive mode, guiding you through all options.
 
@@ -83,35 +114,19 @@ Interactive mode complete
 
 ### Single Repository Mode
 ```bash
-# Clone and build via HTTPS
+# Clone and build using a single repository
 star-setup username/repo
-
-# Clone and build via SSH
-star-setup username/repo --ssh
-
-# Common flags
-star-setup username/repo --build-type Release
-star-setup username/repo --build-dir out
-star-setup username/repo --no-build
-star-setup username/repo --clean
-star-setup username/repo --verbose
-star-setup username/repo --timing
-star-setup username/repo --cmake-arg=-DCMAKE_CXX_COMPILER=clang++
-star-setup username/repo --meson-arg=-Db_lto=true
 ```
 
 ### Mono-Repo Mode
 Clones multiple repositories into a single workspace and auto-detects the build system. For CMake projects, generates a root `CMakeLists.txt` wiring all repositories as subdirectories. For Meson projects, generates a root `meson.build` and auto-generates local `.wrap` files bridging canonical dependency names to cloned directories.
 
 ```bash
-# Manual repo list
+# Clone and build a test repo and a manual repo list
 star-setup username/repo --repos user/lib1 user/lib2
 
-# Use a saved profile
+# Clone and build a test repo and a saved profile
 star-setup username/repo --profile myprofile
-
-# With SSH and custom directory
-star-setup username/repo --repos user/lib1 user/lib2 --ssh --mono-dir my-workspace
 ```
 
 #### Workspace Structure (CMake)

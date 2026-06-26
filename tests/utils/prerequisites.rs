@@ -18,6 +18,7 @@ fn test_check_prerequisites_verbose_outputs_found() {
     output: &mut output,
     verbose: true,
     timing: false,
+    dry_run: false,
   };
   check_prerequisites(&mut io).unwrap();
   let out = String::from_utf8(output).unwrap();

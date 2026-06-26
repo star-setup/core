@@ -49,11 +49,14 @@ pub fn add_profile(
     return Ok(());
   }
 
-  insert_profile(config, &name, repos.clone());
-  let path = save_config(config)?;
-
-  writeln!(io.output, "Profile '{name}' added successfully").ok();
-  writeln!(io.output, "Configuration saved to: {}", path.display()).ok();
+  if io.dry_run {
+    writeln!(io.output, "Would save profile '{name}' to config file").ok();
+  } else {
+    insert_profile(config, &name, repos.clone());
+    let path = save_config(config)?;
+    writeln!(io.output, "Profile '{name}' added successfully").ok();
+    writeln!(io.output, "Configuration saved to: {}", path.display()).ok();
+  }
   print_profile_details(io.output, "Profile details:", "Repositories", &repos);
   writeln!(
     io.output,
@@ -96,9 +99,13 @@ pub fn remove_profile(
     return Ok(());
   }
 
-  remove_profile_entry(config, name);
-  let path = save_config(config)?;
-  writeln!(io.output, "\nProfile '{name}' removed successfully").ok();
-  writeln!(io.output, "Configuration saved to: {}\n", path.display()).ok();
+  if io.dry_run {
+    writeln!(io.output, "Would remove profile '{name}' from config file").ok();
+  } else {
+    remove_profile_entry(config, name);
+    let path = save_config(config)?;
+    writeln!(io.output, "\nProfile '{name}' removed successfully").ok();
+    writeln!(io.output, "Configuration saved to: {}\n", path.display()).ok();
+  }
   Ok(())
 }

@@ -26,6 +26,7 @@ fn test_detect_build_system_none() {
       output: &mut Vec::new(),
       verbose: false,
       timing: false,
+      dry_run: false,
     },
     runner: &mut runner,
   };
@@ -43,6 +44,7 @@ fn test_detect_build_system_cmake() {
       output: &mut Vec::new(),
       verbose: false,
       timing: false,
+      dry_run: false,
     },
     runner: &mut runner,
   };
@@ -60,6 +62,7 @@ fn test_detect_build_system_meson() {
       output: &mut Vec::new(),
       verbose: false,
       timing: false,
+      dry_run: false,
     },
     runner: &mut runner,
   };
@@ -78,6 +81,7 @@ fn test_detect_build_system_both_picks_cmake() {
       output: &mut Vec::new(),
       verbose: false,
       timing: false,
+      dry_run: false,
     },
     runner: &mut runner,
   };
@@ -96,6 +100,7 @@ fn test_detect_build_system_both_picks_meson() {
       output: &mut Vec::new(),
       verbose: false,
       timing: false,
+      dry_run: false,
     },
     runner: &mut runner,
   };
@@ -114,6 +119,7 @@ fn test_detect_build_system_timing_output() {
       output: &mut output,
       verbose: false,
       timing: true,
+      dry_run: false,
     },
     runner: &mut runner,
   };
@@ -132,6 +138,7 @@ fn test_detect_mono_build_system_cmake() {
       output: &mut Vec::new(),
       verbose: false,
       timing: false,
+      dry_run: false,
     },
     runner: &mut runner,
   };
@@ -149,6 +156,7 @@ fn test_detect_mono_build_system_meson() {
       output: &mut Vec::new(),
       verbose: false,
       timing: false,
+      dry_run: false,
     },
     runner: &mut runner,
   };
@@ -166,6 +174,7 @@ fn test_detect_mono_build_system_none() {
       output: &mut Vec::new(),
       verbose: false,
       timing: false,
+      dry_run: false,
     },
     runner: &mut runner,
   };
@@ -184,6 +193,7 @@ fn test_detect_mono_build_system_both_picks_cmake() {
       output: &mut Vec::new(),
       verbose: false,
       timing: false,
+      dry_run: false,
     },
     runner: &mut runner,
   };
@@ -202,6 +212,7 @@ fn test_detect_mono_build_system_both_picks_meson() {
       output: &mut Vec::new(),
       verbose: false,
       timing: false,
+      dry_run: false,
     },
     runner: &mut runner,
   };
@@ -220,6 +231,7 @@ fn test_detect_mono_build_system_timing_output() {
       output: &mut output,
       verbose: false,
       timing: true,
+      dry_run: false,
     },
     runner: &mut runner,
   };

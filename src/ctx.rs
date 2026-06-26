@@ -10,6 +10,7 @@ pub struct IoCtx<'a> {
   pub output: &'a mut dyn Write,
   pub verbose: bool,
   pub timing: bool,
+  pub dry_run: bool,
 }
 
 /// Trait for executing shell commands.
@@ -28,9 +29,22 @@ pub struct RunCtx<'a> {
   pub runner: &'a mut dyn Runner,
 }
 
+/// Runner that executes commands.
 pub struct ProcessRunner;
 impl Runner for ProcessRunner {
   fn run(&mut self, cmd: &[&str], cwd: Option<&Path>, io: &mut IoCtx<'_>) -> Result<(), String> {
     run_command(cmd, cwd, io.verbose, io.output)
+  }
+}
+
+/// Runner that prints commands instead of executing them.
+pub struct DryRunRunner;
+impl Runner for DryRunRunner {
+  fn run(&mut self, cmd: &[&str], cwd: Option<&Path>, io: &mut IoCtx<'_>) -> Result<(), String> {
+    writeln!(io.output, "Would run: {}", cmd.join(" ")).map_err(|e| e.to_string())?;
+    if let Some(dir) = cwd {
+      writeln!(io.output, "  in directory: {}", dir.display()).map_err(|e| e.to_string())?;
+    }
+    Ok(())
   }
 }

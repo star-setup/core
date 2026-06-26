@@ -13,7 +13,15 @@ pub fn prepare_build_dir(
   clean: bool,
   ctx: &mut RunCtx<'_>,
 ) -> Result<(), String> {
-  if clean && build_path.exists() {
+  if clean && ctx.io.dry_run {
+    writeln!(ctx.io.output, "Cleaning build directory\n").ok();
+    writeln!(
+      ctx.io.output,
+      "Would remove directory: {}",
+      build_path.display()
+    )
+    .ok();
+  } else if clean && build_path.exists() {
     writeln!(ctx.io.output, "Cleaning build directory\n").ok();
     crate::time!(ctx.io.timing, ctx.io.output, "Clean", {
       fs::remove_dir_all(build_path).map_err(|e| e.to_string())?;
@@ -21,9 +29,18 @@ pub fn prepare_build_dir(
   }
 
   writeln!(ctx.io.output, "Creating build directory\n").ok();
-  crate::time!(ctx.io.timing, ctx.io.output, "Create build directory", {
-    fs::create_dir_all(build_path).map_err(|e| e.to_string())?;
-  });
+  if ctx.io.dry_run {
+    writeln!(
+      ctx.io.output,
+      "Would create directory: {}",
+      build_path.display()
+    )
+    .ok();
+  } else {
+    crate::time!(ctx.io.timing, ctx.io.output, "Create build directory", {
+      fs::create_dir_all(build_path).map_err(|e| e.to_string())?;
+    });
+  }
   Ok(())
 }
 

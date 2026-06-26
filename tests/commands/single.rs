@@ -6,7 +6,7 @@ use star_setup::{
   },
   commands::single_repo_mode,
   config::SetupConfig,
-  ctx::RunCtx,
+  ctx::{DryRunRunner, RunCtx},
 };
 use tempfile::TempDir;
 
@@ -14,7 +14,10 @@ fn default_resolved() -> star_setup::cli::ResolvedArgs {
   let args = Args {
     repo: Some("user/repo".to_string()),
     yes: false,
-    diagnostic: DiagnosticFlags { timing: false },
+    diagnostic: DiagnosticFlags {
+      timing: false,
+      dry_run: false,
+    },
     connection: ConnectionFlags {
       ssh: false,
       https: false,
@@ -116,7 +119,10 @@ fn test_single_repo_mode_cleans_build_dir() {
   let mut input = b"n\n".as_ref();
   let mut output = sink();
   let mut runner = MockRunner::new();
-  let mut ctx = RunCtx { io: make_io(&mut input, &mut output), runner: &mut runner };
+  let mut ctx = RunCtx {
+    io: make_io(&mut input, &mut output),
+    runner: &mut runner,
+  };
 
   single_repo_mode(&args, tmp.path(), &mut ctx).unwrap();
   assert!(!build_dir.join("dummy.txt").exists());
@@ -138,6 +144,7 @@ fn test_single_repo_mode_outputs_timing() {
       output: &mut output,
       verbose: false,
       timing: true,
+      dry_run: false,
     },
     runner: &mut runner,
   };
@@ -145,4 +152,56 @@ fn test_single_repo_mode_outputs_timing() {
   single_repo_mode(&args, tmp.path(), &mut ctx).unwrap();
   let out = String::from_utf8(output).unwrap();
   assert!(out.contains("[timing] Total:"));
+}
+
+#[test]
+fn test_single_repo_mode_dry_run_makes_no_fs_changes() {
+  let tmp = TempDir::new().unwrap();
+  let mut args = default_resolved();
+  args.diagnostic.dry_run = true;
+
+  let mut input = b"".as_ref();
+  let mut output = sink();
+  let mut runner = DryRunRunner;
+  let mut ctx = RunCtx {
+    io: star_setup::ctx::IoCtx {
+      input: &mut input,
+      output: &mut output,
+      verbose: false,
+      timing: false,
+      dry_run: true,
+    },
+    runner: &mut runner,
+  };
+
+  single_repo_mode(&args, tmp.path(), &mut ctx).unwrap();
+  assert!(std::fs::read_dir(tmp.path()).unwrap().next().is_none());
+}
+
+#[test]
+fn test_single_repo_mode_dry_run_clean_prints_would_remove() {
+  let tmp = TempDir::new().unwrap();
+  let mut args = default_resolved();
+  args.diagnostic.dry_run = true;
+  args.build.clean = true;
+
+  let mut input = b"".as_ref();
+  let mut output = Vec::new();
+  let mut runner = DryRunRunner;
+  let mut ctx = RunCtx {
+    io: star_setup::ctx::IoCtx {
+      input: &mut input,
+      output: &mut output,
+      verbose: false,
+      timing: false,
+      dry_run: true,
+    },
+    runner: &mut runner,
+  };
+
+  single_repo_mode(&args, tmp.path(), &mut ctx).unwrap();
+
+  let out = String::from_utf8(output).unwrap();
+  assert!(out.contains("Would remove directory:"));
+  assert!(std::fs::read_dir(tmp.path()).unwrap().next().is_none());
 }

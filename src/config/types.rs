@@ -22,6 +22,8 @@ pub struct ConfigEntry {
   pub verbose: bool,
   /// Show timing information.
   pub timing: bool,
+  /// Print commands instead of executing them.
+  pub dry_run: bool,
   /// Additional `CMake` arguments.
   pub cmake_flags: Vec<String>,
   /// Additional `Meson` arguments.
@@ -39,6 +41,7 @@ impl From<&ResolvedArgs> for ConfigEntry {
       clean: args.build.clean,
       verbose: args.connection.verbose,
       timing: args.diagnostic.timing,
+      dry_run: args.diagnostic.dry_run,
       cmake_flags: args.build.cmake_flags.clone(),
       meson_flags: args.build.meson_flags.clone(),
     }
