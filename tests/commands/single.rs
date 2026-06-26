@@ -177,3 +177,31 @@ fn test_single_repo_mode_dry_run_makes_no_fs_changes() {
   single_repo_mode(&args, tmp.path(), &mut ctx).unwrap();
   assert!(std::fs::read_dir(tmp.path()).unwrap().next().is_none());
 }
+
+#[test]
+fn test_single_repo_mode_dry_run_clean_prints_would_remove() {
+  let tmp = TempDir::new().unwrap();
+  let mut args = default_resolved();
+  args.diagnostic.dry_run = true;
+  args.build.clean = true;
+
+  let mut input = b"".as_ref();
+  let mut output = Vec::new();
+  let mut runner = DryRunRunner;
+  let mut ctx = RunCtx {
+    io: star_setup::ctx::IoCtx {
+      input: &mut input,
+      output: &mut output,
+      verbose: false,
+      timing: false,
+      dry_run: true,
+    },
+    runner: &mut runner,
+  };
+
+  single_repo_mode(&args, tmp.path(), &mut ctx).unwrap();
+
+  let out = String::from_utf8(output).unwrap();
+  assert!(out.contains("Would remove directory:"));
+  assert!(std::fs::read_dir(tmp.path()).unwrap().next().is_none());
+}
