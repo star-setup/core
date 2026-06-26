@@ -95,6 +95,7 @@ star-setup username/repo --build-dir out
 star-setup username/repo --no-build
 star-setup username/repo --clean
 star-setup username/repo --verbose
+star-setup username/repo --timing
 star-setup username/repo --cmake-arg=-DCMAKE_CXX_COMPILER=clang++
 star-setup username/repo --meson-arg=-Db_lto=true
 ```
