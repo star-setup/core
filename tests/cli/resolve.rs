@@ -1,8 +1,6 @@
+use crate::common::default_args;
 use star_setup::{
-  cli::{
-    resolve_bool, resolve_with_config, Args, BuildFlags, BuildType, ConfigFlags, ConnectionFlags,
-    DiagnosticFlags, MonoRepoFlags, ProfileFlags,
-  },
+  cli::{resolve_bool, resolve_with_config, BuildType},
   config::{ConfigEntry, SetupConfig},
 };
 
@@ -68,51 +66,6 @@ fn test_resolve_bool() {
       "Failed test: {}",
       c.name
     );
-  }
-}
-
-fn default_args() -> Args {
-  Args {
-    repo: None,
-    yes: false,
-    diagnostic: DiagnosticFlags {
-      timing: false,
-      dry_run: false,
-    },
-    connection: ConnectionFlags {
-      ssh: false,
-      https: false,
-      verbose: false,
-      no_verbose: false,
-    },
-    build: BuildFlags {
-      build_type: None,
-      build_dir: None,
-      no_build: false,
-      build: false,
-      clean: false,
-      no_clean: false,
-      cmake_flags: vec![],
-      meson_flags: vec![],
-    },
-    mono: MonoRepoFlags {
-      mono_repo: false,
-      mono_dir: None,
-      repos: None,
-      profile: None,
-    },
-    config: ConfigFlags {
-      init_config: false,
-      config_name: None,
-      config_add: None,
-      config_remove: None,
-      list_configs: false,
-    },
-    profile: ProfileFlags {
-      profile_add: None,
-      profile_remove: None,
-      list_profiles: false,
-    },
   }
 }
 

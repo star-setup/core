@@ -1,9 +1,5 @@
-use crate::common::{empty_input, make_io, sink, MockRunner};
+use crate::common::{default_resolved, empty_input, make_io, sink, MockRunner};
 use star_setup::{
-  cli::{
-    resolve_with_config, Args, BuildFlags, ConfigFlags, ConnectionFlags, DiagnosticFlags,
-    MonoRepoFlags, ProfileFlags,
-  },
   commands::{mono::generate_mono_config, resolve_repos_for_mono, resolve_test_repo},
   config::SetupConfig,
   ctx::RunCtx,
@@ -49,52 +45,6 @@ fn test_resolve_test_repo_errors() {
   for (input, error) in cases {
     assert_eq!(resolve_test_repo(input), Err(error.to_string()));
   }
-}
-
-fn default_resolved() -> star_setup::cli::ResolvedArgs {
-  let args = Args {
-    repo: Some("user/repo".to_string()),
-    yes: false,
-    diagnostic: DiagnosticFlags {
-      timing: false,
-      dry_run: false,
-    },
-    connection: ConnectionFlags {
-      ssh: false,
-      https: false,
-      verbose: false,
-      no_verbose: false,
-    },
-    build: BuildFlags {
-      build_type: None,
-      build_dir: None,
-      no_build: false,
-      build: false,
-      clean: false,
-      no_clean: false,
-      cmake_flags: vec![],
-      meson_flags: vec![],
-    },
-    mono: MonoRepoFlags {
-      mono_repo: false,
-      mono_dir: None,
-      repos: None,
-      profile: None,
-    },
-    config: ConfigFlags {
-      init_config: false,
-      config_name: None,
-      config_add: None,
-      config_remove: None,
-      list_configs: false,
-    },
-    profile: ProfileFlags {
-      profile_add: None,
-      profile_remove: None,
-      list_profiles: false,
-    },
-  };
-  resolve_with_config(args, &SetupConfig::new()).unwrap()
 }
 
 #[test]

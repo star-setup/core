@@ -1,59 +1,6 @@
-use star_setup::{
-  cli::{
-    resolve_with_config, Args, BuildFlags, ConfigFlags, ConnectionFlags, DiagnosticFlags,
-    MonoRepoFlags, ProfileFlags,
-  },
-  config::SetupConfig,
-  interactive::interactive_mode,
-};
+use star_setup::interactive::interactive_mode;
 mod common;
-use common::make_io;
-
-fn default_resolved() -> star_setup::cli::ResolvedArgs {
-  let args = Args {
-    repo: None,
-    yes: false,
-    diagnostic: DiagnosticFlags {
-      timing: false,
-      dry_run: false,
-    },
-    connection: ConnectionFlags {
-      ssh: false,
-      https: false,
-      verbose: false,
-      no_verbose: false,
-    },
-    build: BuildFlags {
-      build_type: None,
-      build_dir: None,
-      no_build: false,
-      build: false,
-      clean: false,
-      no_clean: false,
-      cmake_flags: vec![],
-      meson_flags: vec![],
-    },
-    mono: MonoRepoFlags {
-      mono_repo: false,
-      mono_dir: None,
-      repos: None,
-      profile: None,
-    },
-    config: ConfigFlags {
-      init_config: false,
-      config_name: None,
-      config_add: None,
-      config_remove: None,
-      list_configs: false,
-    },
-    profile: ProfileFlags {
-      profile_add: None,
-      profile_remove: None,
-      list_profiles: false,
-    },
-  };
-  resolve_with_config(args, &SetupConfig::new()).unwrap()
-}
+use common::{default_resolved, default_resolved_interactive, make_io};
 
 fn input_with_suffix(prefix: &[u8]) -> Vec<u8> {
   let mut v = prefix.to_vec();
@@ -80,7 +27,7 @@ fn test_interactive_mode_ssh_enabled() {
   let mut input = input.as_ref();
   let mut output = Vec::new();
   let mut io = make_io(&mut input, &mut output);
-  let mut args = default_resolved();
+  let mut args = default_resolved_interactive();
   interactive_mode(&mut args, &mut io).unwrap();
   assert!(args.connection.ssh);
 }

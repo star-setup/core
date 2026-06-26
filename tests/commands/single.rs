@@ -1,60 +1,9 @@
-use super::common::{make_io, sink, MockRunner};
+use super::common::{default_resolved, make_io, sink, MockRunner};
 use star_setup::{
-  cli::{
-    resolve_with_config, Args, BuildFlags, ConfigFlags, ConnectionFlags, DiagnosticFlags,
-    MonoRepoFlags, ProfileFlags,
-  },
   commands::single_repo_mode,
-  config::SetupConfig,
   ctx::{DryRunRunner, RunCtx},
 };
 use tempfile::TempDir;
-
-fn default_resolved() -> star_setup::cli::ResolvedArgs {
-  let args = Args {
-    repo: Some("user/repo".to_string()),
-    yes: false,
-    diagnostic: DiagnosticFlags {
-      timing: false,
-      dry_run: false,
-    },
-    connection: ConnectionFlags {
-      ssh: false,
-      https: false,
-      verbose: false,
-      no_verbose: false,
-    },
-    build: BuildFlags {
-      build_type: None,
-      build_dir: None,
-      no_build: true,
-      build: false,
-      clean: false,
-      no_clean: false,
-      cmake_flags: vec![],
-      meson_flags: vec![],
-    },
-    mono: MonoRepoFlags {
-      mono_repo: false,
-      mono_dir: None,
-      repos: None,
-      profile: None,
-    },
-    config: ConfigFlags {
-      init_config: false,
-      config_name: None,
-      config_add: None,
-      config_remove: None,
-      list_configs: false,
-    },
-    profile: ProfileFlags {
-      profile_add: None,
-      profile_remove: None,
-      list_profiles: false,
-    },
-  };
-  resolve_with_config(args, &SetupConfig::new()).unwrap()
-}
 
 fn make_repo_fixture(base: &std::path::Path) {
   let repo_dir = base.join("user-repo");
