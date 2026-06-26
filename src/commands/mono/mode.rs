@@ -40,7 +40,7 @@ pub fn mono_repo_mode(
   if ctx.io.dry_run {
     writeln!(
       ctx.io.output,
-      "Would run: fs::create_dir_all({})",
+      "Would create directory: {}",
       repos_path.display()
     )
     .ok();

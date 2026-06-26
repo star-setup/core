@@ -17,7 +17,7 @@ pub fn prepare_build_dir(
     writeln!(ctx.io.output, "Cleaning build directory\n").ok();
     writeln!(
       ctx.io.output,
-      "Would run: fs::remove_dir_all({})",
+      "Would remove directory: {}",
       build_path.display()
     )
     .ok();
@@ -32,7 +32,7 @@ pub fn prepare_build_dir(
   if ctx.io.dry_run {
     writeln!(
       ctx.io.output,
-      "Would run: fs::create_dir_all({})",
+      "Would create directory: {}",
       build_path.display()
     )
     .ok();
