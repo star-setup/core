@@ -1,4 +1,4 @@
-use super::common::{empty_input, make_io, sink};
+use super::super::common::{empty_input, make_io, sink};
 use star_setup::commands::{hoist_wraps, parse_project_name, parse_provide_pairs};
 use tempfile::TempDir;
 

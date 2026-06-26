@@ -1,4 +1,4 @@
-use super::common::{empty_input, make_io, sink};
+use super::super::common::{empty_input, make_io, sink};
 use star_setup::{
   cli::{
     resolve_with_config, Args, BuildFlags, ConfigFlags, ConnectionFlags, DiagnosticFlags,

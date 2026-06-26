@@ -33,7 +33,7 @@ pub fn resolve_repos_for_mono(
         profile: Some(profile_name),
         lib_count: Some(profile_repos.len()),
       },
-      io.output,
+      io,
     );
     Ok(profile_repos.clone())
   } else if let Some(r) = &args.mono.repos {
@@ -47,7 +47,7 @@ pub fn resolve_repos_for_mono(
         profile: None,
         lib_count: Some(r.len()),
       },
-      io.output,
+      io,
     );
     Ok(r.clone())
   } else {

@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use crate::{ctx::IoCtx, repository::repo_dir_name};
+use std::collections::HashMap;
 
 /// Prints the setup completion summary including paths, executable location, and total timing.
 pub fn print_setup_complete<S: std::hash::BuildHasher>(

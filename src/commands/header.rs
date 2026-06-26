@@ -1,5 +1,6 @@
 //! Mode header rendering
-use std::io::Write;
+
+use crate::ctx::IoCtx;
 
 /// Header information printed at the start of each command mode.
 pub struct ModeHeader<'a> {
@@ -13,27 +14,27 @@ pub struct ModeHeader<'a> {
 }
 
 /// Prints a formatted header summarizing the current mode and configuration.
-pub fn print_mode_header(header: &ModeHeader<'_>, output: &mut (impl Write + ?Sized)) {
-  writeln!(output, "Star Setup: {}", header.mode).ok();
+pub fn print_mode_header(header: &ModeHeader<'_>, io: &mut IoCtx<'_>) {
+  writeln!(io.output, "Star Setup: {}", header.mode).ok();
   if let Some(p) = header.profile {
-    writeln!(output, "  Profile: {p}").ok();
+    writeln!(io.output, "  Profile: {p}").ok();
   }
   if let Some(r) = header.test_repo {
-    writeln!(output, "  Test Repository: {r}").ok();
+    writeln!(io.output, "  Test Repository: {r}").ok();
   } else if let Some(r) = header.repo_name {
-    writeln!(output, "  Repository: {r}").ok();
+    writeln!(io.output, "  Repository: {r}").ok();
   }
   writeln!(
-    output,
+    io.output,
     "  Clone Method: {}",
     if header.use_ssh { "SSH" } else { "HTTPS" }
   )
   .ok();
   if let Some(d) = header.mono_dir {
-    writeln!(output, "  Directory: {d}").ok();
+    writeln!(io.output, "  Directory: {d}").ok();
   }
   if let Some(c) = header.lib_count {
-    writeln!(output, "  Libraries: {c}").ok();
+    writeln!(io.output, "  Libraries: {c}").ok();
   }
-  writeln!(output).ok();
+  writeln!(io.output).ok();
 }

@@ -29,7 +29,7 @@ pub fn single_repo_mode(args: &ResolvedArgs, ctx: &mut RunCtx<'_>) -> Result<(),
       profile: None,
       lib_count: None,
     },
-    ctx.io.output,
+    &mut ctx.io,
   );
 
   let repo_path = Path::new(&dir_name);

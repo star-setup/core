@@ -1,5 +1,3 @@
-#[path = "../common/mod.rs"]
-mod common;
 #[path = "mono/config.rs"]
 mod config;
 #[path = "mono/resolve.rs"]
