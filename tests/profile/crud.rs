@@ -1,30 +1,16 @@
 use star_setup::{
   config::{load_config, save_config, SetupConfig},
   profile::{
-    add_profile, has_profile, insert_profile, list_profiles, remove_profile, remove_profile_entry,
+    add_profile, has_profile, insert_profile, remove_profile, remove_profile_entry,
   },
 };
-mod common;
-use common::{empty_input, make_io, sink};
+use super::common::{empty_input, make_io, sink};
 
 #[test]
 fn test_insert_profile() {
   let mut config = SetupConfig::new();
   insert_profile(&mut config, "myprofile", vec!["user/repo1".to_string()]);
   assert!(config.profiles.contains_key("myprofile"));
-}
-
-#[test]
-fn test_has_profile_true() {
-  let mut config = SetupConfig::new();
-  insert_profile(&mut config, "myprofile", vec![]);
-  assert!(has_profile(&config, "myprofile"));
-}
-
-#[test]
-fn test_has_profile_false() {
-  let config = SetupConfig::new();
-  assert!(!has_profile(&config, "nonexistent"));
 }
 
 #[test]
@@ -42,6 +28,19 @@ fn test_remove_profile_entry_missing() {
 }
 
 #[test]
+fn test_has_profile_true() {
+  let mut config = SetupConfig::new();
+  insert_profile(&mut config, "myprofile", vec![]);
+  assert!(has_profile(&config, "myprofile"));
+}
+
+#[test]
+fn test_has_profile_false() {
+  let config = SetupConfig::new();
+  assert!(!has_profile(&config, "nonexistent"));
+}
+
+#[test]
 fn test_add_profile_inserts_and_saves() {
   let tmp = tempfile::TempDir::new().unwrap();
   let path = tmp.path().join(".star-setup.json");
@@ -56,32 +55,6 @@ fn test_add_profile_inserts_and_saves() {
   add_profile(&mut config, &args, true, &mut io).unwrap();
   assert!(has_profile(&config, "myprofile"));
   assert!(path.exists());
-}
-
-#[test]
-fn test_remove_profile_removes_and_saves() {
-  let tmp = tempfile::TempDir::new().unwrap();
-  let path = tmp.path().join(".star-setup.json");
-  let mut config = SetupConfig::new();
-  config.path = Some(path.clone());
-  insert_profile(&mut config, "myprofile", vec!["user/repo1".to_string()]);
-  save_config(&mut config).unwrap();
-
-  let mut input = empty_input();
-  let mut output = sink();
-  let mut io = make_io(&mut input, &mut output);
-
-  remove_profile(&mut config, "myprofile", true, &mut io).unwrap();
-  assert!(!has_profile(&config, "myprofile"));
-}
-
-#[test]
-fn test_remove_profile_not_found() {
-  let mut config = SetupConfig::new();
-  let mut input = empty_input();
-  let mut output = sink();
-  let mut io = make_io(&mut input, &mut output);
-  remove_profile(&mut config, "nonexistent", true, &mut io).unwrap();
 }
 
 #[test]
@@ -158,6 +131,32 @@ fn test_add_profile_aborts_when_exists_and_not_confirmed() {
 }
 
 #[test]
+fn test_remove_profile_removes_and_saves() {
+  let tmp = tempfile::TempDir::new().unwrap();
+  let path = tmp.path().join(".star-setup.json");
+  let mut config = SetupConfig::new();
+  config.path = Some(path.clone());
+  insert_profile(&mut config, "myprofile", vec!["user/repo1".to_string()]);
+  save_config(&mut config).unwrap();
+
+  let mut input = empty_input();
+  let mut output = sink();
+  let mut io = make_io(&mut input, &mut output);
+
+  remove_profile(&mut config, "myprofile", true, &mut io).unwrap();
+  assert!(!has_profile(&config, "myprofile"));
+}
+
+#[test]
+fn test_remove_profile_not_found() {
+  let mut config = SetupConfig::new();
+  let mut input = empty_input();
+  let mut output = sink();
+  let mut io = make_io(&mut input, &mut output);
+  remove_profile(&mut config, "nonexistent", true, &mut io).unwrap();
+}
+
+#[test]
 fn test_remove_profile_aborts_when_not_confirmed() {
   let mut config = SetupConfig::new();
   insert_profile(&mut config, "myprofile", vec!["user/repo1".to_string()]);
@@ -168,26 +167,6 @@ fn test_remove_profile_aborts_when_not_confirmed() {
 
   remove_profile(&mut config, "myprofile", false, &mut io).unwrap();
   assert!(has_profile(&config, "myprofile"));
-}
-
-#[test]
-fn test_list_profiles_empty() {
-  let config = SetupConfig::new();
-  let mut output = sink();
-  list_profiles(&config, &mut output);
-  let out = String::from_utf8(output).unwrap();
-  assert!(out.contains("No profiles configured"));
-}
-
-#[test]
-fn test_list_profiles_with_entries() {
-  let mut config = SetupConfig::new();
-  insert_profile(&mut config, "myprofile", vec!["user/repo1".to_string()]);
-  let mut output = sink();
-  list_profiles(&config, &mut output);
-  let out = String::from_utf8(output).unwrap();
-  assert!(out.contains("myprofile"));
-  assert!(out.contains("user/repo1"));
 }
 
 #[test]

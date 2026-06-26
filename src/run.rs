@@ -32,7 +32,7 @@ fn handle_early_commands(
   }
 
   if args.profile.list_profiles {
-    list_profiles(config, io.output);
+    list_profiles(config, io);
     return Ok(true);
   }
 

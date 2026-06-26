@@ -1,4 +1,4 @@
-use crate::config::types::SetupConfig;
+use crate::{config::types::SetupConfig, ctx::IoCtx};
 use std::io::Write;
 
 pub fn print_profile_details(
@@ -15,19 +15,19 @@ pub fn print_profile_details(
 }
 
 /// Lists all configured profiles.
-pub fn list_profiles(config: &SetupConfig, output: &mut (impl Write + ?Sized)) {
+pub fn list_profiles(config: &SetupConfig, io: &mut IoCtx<'_>) {
   if config.profiles.is_empty() {
     writeln!(
-      output,
+      io.output,
       "No profiles configured. Run with --init-config to create a default configuration."
     )
     .ok();
     return;
   }
 
-  writeln!(output, "Configured profiles:\n").ok();
+  writeln!(io.output, "Configured profiles:\n").ok();
   for (name, repos) in &config.profiles {
-    print_profile_details(output, name, "Repositories", repos);
-    writeln!(output).ok();
+    print_profile_details(io.output, name, "Repositories", repos);
+    writeln!(io.output).ok();
   }
 }
