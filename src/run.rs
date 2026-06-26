@@ -76,6 +76,7 @@ fn handle_early_commands(
 /// Returns an error if the configuration file is missing or corrupted.
 pub fn run() -> Result<(), Box<dyn Error>> {
   let mut stdin = io::stdin().lock();
+  let is_terminal = stdin.is_terminal();
   let mut stdout = io::stdout();
 
   let mut locations = vec![PathBuf::from(".star-setup.json")];
@@ -86,37 +87,35 @@ pub fn run() -> Result<(), Box<dyn Error>> {
   let mut config = load_config(&locations, &mut stdout);
   let mut args = Args::parse_with_config(&config)?;
 
-  {
-    let mut early_io = IoCtx {
-      input: &mut stdin,
-      output: &mut stdout,
-      verbose: false,
-      timing: false,
-    };
-    if handle_early_commands(&args, &mut config, &mut early_io)? {
-      return Ok(());
-    }
-    if args.repo.is_none() {
-      if io::stdin().is_terminal() {
-        interactive_mode(&mut args, &mut early_io)?;
-      } else {
-        return Err("no repository specified".into());
-      }
-    }
+  let mut io = IoCtx {
+    input: &mut stdin,
+    output: &mut stdout,
+    verbose: false,
+    timing: false,
+  };
 
-    check_prerequisites(&mut early_io)?;
+  if handle_early_commands(&args, &mut config, &mut io)? {
+    return Ok(());
   }
 
+  if args.repo.is_none() {
+    if is_terminal {
+      interactive_mode(&mut args, &mut io)?;
+    } else {
+      return Err("no repository specified".into());
+    }
+  }
+
+  check_prerequisites(&mut io)?;
+
+  io.verbose = args.connection.verbose;
+  io.timing = args.diagnostic.timing;
+
   let mut runner = ProcessRunner {
-    verbose: args.connection.verbose,
+    verbose: io.verbose,
   };
   let mut ctx = RunCtx {
-    io: IoCtx {
-      input: &mut stdin,
-      output: &mut stdout,
-      verbose: args.connection.verbose,
-      timing: args.diagnostic.timing,
-    },
+    io,
     runner: &mut runner,
   };
 

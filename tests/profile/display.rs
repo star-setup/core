@@ -1,10 +1,8 @@
+use super::common::{empty_input, make_io, sink};
 use star_setup::{
   config::SetupConfig,
-  profile::{
-    insert_profile, list_profiles,
-  },
+  profile::{insert_profile, list_profiles},
 };
-use super::common::{empty_input, sink, make_io};
 
 #[test]
 fn test_list_profiles_empty() {

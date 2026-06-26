@@ -1,10 +1,8 @@
+use super::common::{empty_input, make_io, sink};
 use star_setup::{
   config::{load_config, save_config, SetupConfig},
-  profile::{
-    add_profile, has_profile, insert_profile, remove_profile, remove_profile_entry,
-  },
+  profile::{add_profile, has_profile, insert_profile, remove_profile, remove_profile_entry},
 };
-use super::common::{empty_input, make_io, sink};
 
 #[test]
 fn test_insert_profile() {
