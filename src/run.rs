@@ -11,7 +11,9 @@ use crate::{
   utils::check_prerequisites,
 };
 use std::{
-  error::Error, io::{self, IsTerminal}, path::{Path, PathBuf},
+  error::Error,
+  io::{self, IsTerminal},
+  path::{Path, PathBuf},
 };
 
 fn handle_early_commands(

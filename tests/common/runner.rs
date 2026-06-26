@@ -10,7 +10,10 @@ pub struct MockRunner {
 impl MockRunner {
   #[allow(dead_code)]
   pub fn new() -> Self {
-    Self { calls: vec![], fail_on: None }
+    Self {
+      calls: vec![],
+      fail_on: None,
+    }
   }
 }
 

@@ -1,5 +1,5 @@
 use crate::{
-  cli::{detect_mono_build_system, ResolvedArgs},
+  cli::{detect_build_system, detect_mono_build_system, ResolvedArgs},
   commands::{
     build_project, build_repo_list,
     mono::{clone_mono_repos, generate_mono_config, prepare_build_dir, print_setup_complete},
@@ -9,7 +9,10 @@ use crate::{
   ctx::RunCtx,
   repository::repo_dir_name,
 };
-use std::{fs, path::{Path, PathBuf}};
+use std::{
+  fs,
+  path::{Path, PathBuf},
+};
 
 /// Clones and configures a mono-repo ecosystem from a profile or explicit repository list.
 /// # Errors
@@ -71,7 +74,15 @@ pub fn mono_repo_mode(
     build_path.display()
   )
   .ok();
-  build_project(args, build_path.as_path(), &mono_repo_path, true, ctx)?;
+  let build_system = detect_build_system(&mono_repo_path, ctx)?;
+  build_project(
+    args,
+    build_path.as_path(),
+    &mono_repo_path,
+    build_system,
+    true,
+    ctx,
+  )?;
 
   print_setup_complete(
     canonical_map,

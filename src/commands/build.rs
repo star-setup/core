@@ -1,7 +1,7 @@
 //! Build system dispatch and per-system build functions.
 
 use crate::{
-  cli::{detect_build_system, BuildSystem, ResolvedArgs},
+  cli::{BuildSystem, ResolvedArgs},
   ctx::RunCtx,
 };
 use std::path::Path;
@@ -90,10 +90,11 @@ pub fn build_project(
   args: &ResolvedArgs,
   build_path: &Path,
   source_path: &Path,
+  build_system: BuildSystem,
   mono: bool,
   ctx: &mut RunCtx<'_>,
 ) -> Result<(), String> {
-  match detect_build_system(source_path, ctx)? {
+  match build_system {
     BuildSystem::Cmake => cmake_build(args, build_path, mono, ctx),
     BuildSystem::Meson => meson_build(args, build_path, source_path, ctx),
   }

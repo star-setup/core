@@ -1,5 +1,5 @@
 mod common;
-use common::{empty_input, sink, make_io, MockRunner};
+use common::{empty_input, make_io, sink, MockRunner};
 use star_setup::{
   ctx::{IoCtx, ProcessRunner, RunCtx},
   repository::{clone_repository, repo_dir_name, resolve_repo_url},

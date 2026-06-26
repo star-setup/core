@@ -4,3 +4,5 @@ mod common;
 mod header;
 #[path = "commands/mono.rs"]
 mod mono;
+#[path = "commands/single.rs"]
+mod single;

@@ -1,5 +1,5 @@
 use crate::{
-  cli::ResolvedArgs,
+  cli::{detect_build_system, ResolvedArgs},
   commands::{build_project, print_mode_header, ModeHeader},
   ctx::RunCtx,
   prompts::confirm,
@@ -10,7 +10,11 @@ use std::{fs, path::Path};
 /// Clones and configures a single repository.
 /// # Errors
 /// Returns an error if no repository is specified, or if any git or build system fails.
-pub fn single_repo_mode(args: &ResolvedArgs, base_dir: &Path, ctx: &mut RunCtx<'_>) -> Result<(), String> {
+pub fn single_repo_mode(
+  args: &ResolvedArgs,
+  base_dir: &Path,
+  ctx: &mut RunCtx<'_>,
+) -> Result<(), String> {
   let total = std::time::Instant::now();
   let repo = args.repo.as_deref().ok_or("No repository specified")?;
   let repo_url = resolve_repo_url(repo, args.connection.ssh);
@@ -68,7 +72,15 @@ pub fn single_repo_mode(args: &ResolvedArgs, base_dir: &Path, ctx: &mut RunCtx<'
   });
 
   writeln!(ctx.io.output, "Configuring project\n").ok();
-  build_project(args, build_path.as_path(), Path::new(&dir_name), false, ctx)?;
+  let build_system = detect_build_system(&repo_path, ctx)?;
+  build_project(
+    args,
+    build_path.as_path(),
+    &repo_path,
+    build_system,
+    false,
+    ctx,
+  )?;
 
   writeln!(
     ctx.io.output,
