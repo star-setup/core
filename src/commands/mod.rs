@@ -10,3 +10,5 @@ pub use mono::{
 };
 pub mod single;
 pub use single::single_repo_mode;
+pub mod setup;
+pub use setup::{configure_and_build, extract_repo_input, prepare_build_dir};

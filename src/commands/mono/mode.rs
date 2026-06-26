@@ -1,9 +1,9 @@
 use crate::{
-  cli::{detect_build_system, detect_mono_build_system, ResolvedArgs},
+  cli::{detect_mono_build_system, ResolvedArgs},
   commands::{
-    build_project, build_repo_list,
-    mono::{clone_mono_repos, generate_mono_config, prepare_build_dir, print_setup_complete},
-    resolve_repos_for_mono, resolve_test_repo,
+    build_repo_list, configure_and_build, extract_repo_input,
+    mono::{clone_mono_repos, generate_mono_config, print_setup_complete},
+    prepare_build_dir, resolve_repos_for_mono, resolve_test_repo,
   },
   config::SetupConfig,
   ctx::RunCtx,
@@ -25,9 +25,7 @@ pub fn mono_repo_mode(
 ) -> Result<(), String> {
   let total = std::time::Instant::now();
 
-  let repo_input = args.repo.as_deref().ok_or("No repository specified")?;
-  let repo_input = repo_input.trim_end_matches('/');
-
+  let repo_input = extract_repo_input(args)?;
   let test_repo = resolve_test_repo(repo_input)?;
   let deps = resolve_repos_for_mono(args, config, &test_repo, &mut ctx.io)?;
   let repos = build_repo_list(&test_repo, &deps);
@@ -67,22 +65,7 @@ pub fn mono_repo_mode(
 
   let build_path = mono_repo_path.join(&args.build.build_dir);
   prepare_build_dir(build_path.as_path(), args.build.clean, ctx)?;
-
-  writeln!(
-    ctx.io.output,
-    "Configuring project in {}\n",
-    build_path.display()
-  )
-  .ok();
-  let build_system = detect_build_system(&mono_repo_path, ctx)?;
-  build_project(
-    args,
-    build_path.as_path(),
-    &mono_repo_path,
-    build_system,
-    true,
-    ctx,
-  )?;
+  configure_and_build(args, &mono_repo_path, &build_path, true, ctx)?;
 
   print_setup_complete(
     canonical_map,

@@ -1,11 +1,13 @@
 use crate::{
-  cli::{detect_build_system, ResolvedArgs},
-  commands::{build_project, print_mode_header, ModeHeader},
+  cli::ResolvedArgs,
+  commands::{
+    configure_and_build, extract_repo_input, prepare_build_dir, print_mode_header, ModeHeader,
+  },
   ctx::RunCtx,
   prompts::confirm,
   repository::{repo_dir_name, resolve_repo_url},
 };
-use std::{fs, path::Path};
+use std::path::Path;
 
 /// Clones and configures a single repository.
 /// # Errors
@@ -16,7 +18,8 @@ pub fn single_repo_mode(
   ctx: &mut RunCtx<'_>,
 ) -> Result<(), String> {
   let total = std::time::Instant::now();
-  let repo = args.repo.as_deref().ok_or("No repository specified")?;
+
+  let repo = extract_repo_input(args)?;
   let repo_url = resolve_repo_url(repo, args.connection.ssh);
   let dir_name = repo_dir_name(repo);
 
@@ -41,7 +44,7 @@ pub fn single_repo_mode(
       crate::time!(ctx.io.timing, ctx.io.output, "Update", {
         ctx
           .runner
-          .run(&["git", "pull"], Some(Path::new(&dir_name)), &mut ctx.io)?;
+          .run(&["git", "pull"], Some(&repo_path), &mut ctx.io)?;
       });
     }
   } else {
@@ -53,34 +56,9 @@ pub fn single_repo_mode(
     });
   }
 
-  let build_path = base_dir.join(&dir_name).join(&args.build.build_dir);
-  if args.build.clean && build_path.exists() {
-    writeln!(ctx.io.output, "Cleaning build directory\n").ok();
-    crate::time!(ctx.io.timing, ctx.io.output, "Clean", {
-      fs::remove_dir_all(&build_path).map_err(|e| e.to_string())?;
-    });
-  }
-
-  writeln!(
-    ctx.io.output,
-    "Creating build directory: {}\n",
-    args.build.build_dir
-  )
-  .ok();
-  crate::time!(ctx.io.timing, ctx.io.output, "Create build directory", {
-    fs::create_dir_all(&build_path).map_err(|e| e.to_string())?;
-  });
-
-  writeln!(ctx.io.output, "Configuring project\n").ok();
-  let build_system = detect_build_system(&repo_path, ctx)?;
-  build_project(
-    args,
-    build_path.as_path(),
-    &repo_path,
-    build_system,
-    false,
-    ctx,
-  )?;
+  let build_path = repo_path.join(&args.build.build_dir);
+  prepare_build_dir(&build_path, args.build.clean, ctx)?;
+  configure_and_build(args, &repo_path, &build_path, false, ctx)?;
 
   writeln!(
     ctx.io.output,

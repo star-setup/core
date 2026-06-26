@@ -11,4 +11,4 @@ pub use resolve::{resolve_repos_for_mono, resolve_test_repo};
 pub mod wraps;
 pub use wraps::hoist_wraps;
 pub mod setup;
-pub use setup::{build_repo_list, generate_mono_config, prepare_build_dir};
+pub use setup::{build_repo_list, generate_mono_config};

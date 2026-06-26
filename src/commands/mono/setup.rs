@@ -4,7 +4,7 @@ use crate::{
   ctx::RunCtx,
   repository::repo_dir_name,
 };
-use std::{fs, path::PathBuf};
+use std::path::PathBuf;
 
 /// Generates root build configuration files for the mono-repo.
 /// # Errors
@@ -40,28 +40,6 @@ pub fn generate_mono_config(
       Ok(Some(map))
     }
   }
-}
-
-/// Prepares the build directory, optionally cleaning it first.
-/// # Errors
-/// Returns an error if the build directory cannot be created or removed.
-pub fn prepare_build_dir(
-  build_path: &std::path::Path,
-  clean: bool,
-  ctx: &mut RunCtx<'_>,
-) -> Result<(), String> {
-  if clean && build_path.exists() {
-    writeln!(ctx.io.output, "Cleaning build directory\n").ok();
-    crate::time!(ctx.io.timing, ctx.io.output, "Clean", {
-      fs::remove_dir_all(build_path).map_err(|e| e.to_string())?;
-    });
-  }
-
-  writeln!(ctx.io.output, "Creating build directory\n").ok();
-  crate::time!(ctx.io.timing, ctx.io.output, "Create build directory", {
-    fs::create_dir_all(build_path).map_err(|e| e.to_string())?;
-  });
-  Ok(())
 }
 
 /// Builds the full ordered list of repositories, deduplicating by directory name.
