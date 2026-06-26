@@ -30,12 +30,7 @@ pub struct RunCtx<'a> {
 
 pub struct ProcessRunner;
 impl Runner for ProcessRunner {
-  fn run(
-    &mut self,
-    cmd: &[&str],
-    cwd: Option<&Path>,
-    io: &mut IoCtx<'_>,
-  ) -> Result<(), String> {
+  fn run(&mut self, cmd: &[&str], cwd: Option<&Path>, io: &mut IoCtx<'_>) -> Result<(), String> {
     run_command(cmd, cwd, io.verbose, io.output)
   }
 }

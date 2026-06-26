@@ -24,9 +24,7 @@ pub fn cmake_build(
   cmake_cmd.extend(args.build.cmake_flags.iter().map(String::as_str));
 
   crate::time!(ctx.io.timing, ctx.io.output, "CMake configure", {
-    ctx
-      .runner
-      .run(&cmake_cmd, Some(build_path), &mut ctx.io)?;
+    ctx.runner.run(&cmake_cmd, Some(build_path), &mut ctx.io)?;
   });
 
   if !args.build.no_build {
