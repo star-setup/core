@@ -35,6 +35,7 @@ fn test_run_command_fails_with_stderr() {
     &mut output,
   );
   assert!(result.is_err());
+  assert!(result.unwrap_err().contains("Command failed"));
 }
 
 #[test]
@@ -43,6 +44,7 @@ fn test_run_command_fails_no_stderr() {
   let result =
     star_setup::utils::run_command(&["git", "invalid-command-xyz"], None, false, &mut output);
   assert!(result.is_err());
+  assert!(result.unwrap_err().contains("Command failed"));
 }
 
 #[test]
