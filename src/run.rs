@@ -67,8 +67,8 @@ const CONFIG_FILE_NAME: &str = ".star-setup.json";
 /// Returns an error if the configuration file is missing or corrupted.
 pub fn run() -> Result<(), Box<dyn Error>> {
   let mut stdin = io::stdin().lock();
-  let is_terminal = stdin.is_terminal() && io::stdout().is_terminal();
   let mut stdout = io::stdout();
+  let is_terminal = stdin.is_terminal() && stdout.is_terminal();
 
   let locations = vec![
     PathBuf::from(CONFIG_FILE_NAME),
