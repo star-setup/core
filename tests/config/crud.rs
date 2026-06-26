@@ -1,16 +1,12 @@
 use super::{
-  common::{empty_input, sink},
+  common::{empty_input, make_io, sink},
   fixtures::sample_entry,
 };
 use star_setup::{
-  cli::build::BuildType,
+  cli::BuildType,
   config::{
-    crud::{
-      add_config, create_default_config, has_config, insert_config, list_configs, remove_config,
-      remove_config_entry,
-    },
-    io::save_config,
-    types::{ConfigEntry, SetupConfig},
+    add_config, create_default_config, has_config, insert_config, list_configs, remove_config,
+    remove_config_entry, save_config, ConfigEntry, SetupConfig,
   },
 };
 
@@ -34,15 +30,11 @@ fn test_add_config_inserts_and_saves() {
   let mut config = SetupConfig::new();
   config.path = Some(path.clone());
 
-  add_config(
-    &mut config,
-    "myconfig",
-    sample_entry(),
-    true,
-    &mut empty_input(),
-    &mut sink(),
-  )
-  .unwrap();
+  let mut input = empty_input();
+  let mut output = sink();
+  let mut io = make_io(&mut input, &mut output);
+
+  add_config(&mut config, "myconfig", sample_entry(), true, &mut io).unwrap();
   assert!(has_config(&config, "myconfig"));
   assert!(path.exists());
 }
@@ -54,7 +46,10 @@ fn test_add_config_aborts_when_exists_and_not_confirmed() {
   config.path = Some(tmp.path().join(".star-setup.json"));
   insert_config(&mut config, "myconfig", sample_entry());
 
-  let input = b"n\n";
+  let mut input = b"n\n".as_ref();
+  let mut output = sink();
+  let mut io = make_io(&mut input, &mut output);
+
   add_config(
     &mut config,
     "myconfig",
@@ -71,8 +66,7 @@ fn test_add_config_aborts_when_exists_and_not_confirmed() {
       meson_flags: vec![],
     },
     false,
-    &mut input.as_ref(),
-    &mut sink(),
+    &mut io,
   )
   .unwrap();
   assert!(config.configs["myconfig"].ssh);
@@ -99,7 +93,11 @@ fn test_create_default_config_creates_file() {
   let tmp = tempfile::TempDir::new().unwrap();
   let path = tmp.path().join(".star-setup.json");
 
-  create_default_config(path.clone(), true, &mut empty_input(), &mut sink()).unwrap();
+  let mut input = empty_input();
+  let mut output = sink();
+  let mut io = make_io(&mut input, &mut output);
+
+  create_default_config(path.clone(), true, &mut io).unwrap();
   assert!(path.exists());
 }
 
@@ -109,16 +107,21 @@ fn test_create_default_config_aborts_when_exists_and_not_confirmed() {
   let path = tmp.path().join(".star-setup.json");
   std::fs::write(&path, "original").unwrap();
 
-  let input = b"n\n";
-  create_default_config(path.clone(), false, &mut input.as_ref(), &mut sink()).unwrap();
+  let mut input = b"n\n".as_ref();
+  let mut output = sink();
+  let mut io = make_io(&mut input, &mut output);
+
+  create_default_config(path.clone(), false, &mut io).unwrap();
   assert_eq!(std::fs::read_to_string(&path).unwrap(), "original");
 }
 
 #[test]
 fn test_list_configs_empty() {
   let config = SetupConfig::new();
+  let mut input = empty_input();
   let mut output = sink();
-  list_configs(&config, &mut output);
+  let mut io = make_io(&mut input, &mut output);
+  list_configs(&config, &mut io);
   let out = String::from_utf8(output).unwrap();
   assert!(out.contains("No configurations created"));
 }
@@ -127,8 +130,12 @@ fn test_list_configs_empty() {
 fn test_list_configs_with_entries() {
   let mut config = SetupConfig::new();
   insert_config(&mut config, "myconfig", sample_entry());
+
+  let mut input = empty_input();
   let mut output = sink();
-  list_configs(&config, &mut output);
+  let mut io = make_io(&mut input, &mut output);
+
+  list_configs(&config, &mut io);
   let out = String::from_utf8(output).unwrap();
   assert!(out.contains("myconfig"));
   assert!(out.contains("Configurations:"));
@@ -149,28 +156,23 @@ fn test_remove_config_removes_and_saves() {
   insert_config(&mut config, "myconfig", sample_entry());
   save_config(&mut config).unwrap();
 
-  remove_config(
-    &mut config,
-    "myconfig",
-    true,
-    &mut empty_input(),
-    &mut sink(),
-  )
-  .unwrap();
+  let mut input = empty_input();
+  let mut output = sink();
+  let mut io = make_io(&mut input, &mut output);
+
+  remove_config(&mut config, "myconfig", true, &mut io).unwrap();
   assert!(!has_config(&config, "myconfig"));
 }
 
 #[test]
 fn test_remove_config_not_found() {
   let mut config = SetupConfig::new();
-  remove_config(
-    &mut config,
-    "nonexistent",
-    true,
-    &mut empty_input(),
-    &mut sink(),
-  )
-  .unwrap();
+
+  let mut input = empty_input();
+  let mut output = sink();
+  let mut io = make_io(&mut input, &mut output);
+
+  remove_config(&mut config, "nonexistent", true, &mut io).unwrap();
 }
 
 #[test]
@@ -180,14 +182,10 @@ fn test_remove_config_aborts_when_not_confirmed() {
   config.path = Some(tmp.path().join(".star-setup.json"));
   insert_config(&mut config, "myconfig", sample_entry());
 
-  let input = b"n\n";
-  remove_config(
-    &mut config,
-    "myconfig",
-    false,
-    &mut input.as_ref(),
-    &mut sink(),
-  )
-  .unwrap();
+  let mut input = b"n\n".as_ref();
+  let mut output = sink();
+  let mut io = make_io(&mut input, &mut output);
+
+  remove_config(&mut config, "myconfig", false, &mut io).unwrap();
   assert!(has_config(&config, "myconfig"));
 }

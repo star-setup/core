@@ -1,9 +1,10 @@
 use std::{
   collections::HashMap,
   fs,
-  io::Write,
   path::{Path, PathBuf},
 };
+
+use crate::ctx::IoCtx;
 
 /// Parses the `project()` name from `meson.build` content.
 /// Returns the name with hyphens replaced by underscores, or `None` if not found.
@@ -67,10 +68,9 @@ pub fn parse_provide_pairs(content: &str) -> HashMap<String, String> {
 pub fn hoist_wraps(
   repos_dir: &Path,
   repo_dirs: &[PathBuf],
-  output: &mut impl Write,
-  timing: bool,
+  io: &mut IoCtx<'_>,
 ) -> Result<HashMap<String, String>, String> {
-  crate::time!(timing, output, "Hoist wraps", {
+  crate::time!(io.timing, io.output, "Hoist wraps", {
     // normalized project name -> owner-prefixed dir name
     let mut project_to_dir: HashMap<String, String> = HashMap::new();
     for dir in repo_dirs {
@@ -117,7 +117,7 @@ pub fn hoist_wraps(
       let wrap_path = repos_dir.join(format!("{canonical_name}.wrap"));
       fs::write(&wrap_path, &wrap_content).map_err(|e| e.to_string())?;
       writeln!(
-        output,
+        io.output,
         "  Generated wrap: {canonical_name}.wrap -> {dir_name}"
       )
       .ok();

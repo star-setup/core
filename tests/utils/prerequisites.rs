@@ -1,15 +1,25 @@
-use star_setup::utils::prerequisites::check_prerequisites;
+use super::common::make_io;
+use star_setup::{ctx::IoCtx, utils::check_prerequisites};
 
 #[test]
 fn test_check_prerequisites_succeeds_with_tools_present() {
-  let result = check_prerequisites(false, &mut Vec::new(), false);
-  assert!(result.is_ok());
+  let mut input = b"".as_ref();
+  let mut output = Vec::new();
+  let mut io = make_io(&mut input, &mut output);
+  assert!(check_prerequisites(&mut io).is_ok());
 }
 
 #[test]
 fn test_check_prerequisites_verbose_outputs_found() {
+  let mut input = b"".as_ref();
   let mut output = Vec::new();
-  check_prerequisites(true, &mut output, false).unwrap();
+  let mut io = IoCtx {
+    input: &mut input,
+    output: &mut output,
+    verbose: true,
+    timing: false,
+  };
+  check_prerequisites(&mut io).unwrap();
   let out = String::from_utf8(output).unwrap();
   assert!(out.contains("Found git"));
   assert!(out.contains("Found cmake"));

@@ -1,29 +1,25 @@
 use crate::{
-  cli::ResolvedArgs,
+  cli::{detect_build_system, ResolvedArgs},
   commands::{
-    build::build_project,
-    header::{print_mode_header, ModeHeader},
+    configure_and_build, extract_repo_input, prepare_build_dir, print_mode_header, ModeHeader,
   },
+  ctx::RunCtx,
   prompts::confirm,
   repository::{repo_dir_name, resolve_repo_url},
-  utils::process::run_command,
 };
-use std::{
-  fs,
-  io::{BufRead, Write},
-  path::{Path, PathBuf},
-};
+use std::path::Path;
 
 /// Clones and configures a single repository.
 /// # Errors
 /// Returns an error if no repository is specified, or if any git or build system fails.
 pub fn single_repo_mode(
   args: &ResolvedArgs,
-  input: &mut impl BufRead,
-  output: &mut impl Write,
+  base_dir: &Path,
+  ctx: &mut RunCtx<'_>,
 ) -> Result<(), String> {
   let total = std::time::Instant::now();
-  let repo = args.repo.as_deref().ok_or("No repository specified")?;
+
+  let repo = extract_repo_input(args)?;
   let repo_url = resolve_repo_url(repo, args.connection.ssh);
   let dir_name = repo_dir_name(repo);
 
@@ -37,73 +33,43 @@ pub fn single_repo_mode(
       profile: None,
       lib_count: None,
     },
-    output,
+    &mut ctx.io,
   );
 
-  let repo_path = Path::new(&dir_name);
+  let repo_path = base_dir.join(&dir_name);
   if repo_path.exists() {
-    writeln!(output, "Repository {dir_name} already exists").ok();
-    if confirm("Update existing repository?", args.yes, input, output)? {
-      writeln!(output, "Updating {dir_name}\n").ok();
-      crate::time!(args.diagnostic.timing, output, "Update", {
-        run_command(
-          &["git", "pull"],
-          Some(Path::new(&dir_name)),
-          args.connection.verbose,
-          output,
-        )?;
+    writeln!(ctx.io.output, "Repository {dir_name} already exists").ok();
+    if confirm("Update existing repository?", args.yes, &mut ctx.io)? {
+      writeln!(ctx.io.output, "Updating {dir_name}\n").ok();
+      crate::time!(ctx.io.timing, ctx.io.output, "Update", {
+        ctx
+          .runner
+          .run(&["git", "pull"], Some(&repo_path), &mut ctx.io)?;
       });
     }
   } else {
-    writeln!(output, "Cloning {dir_name}\n").ok();
-    crate::time!(args.diagnostic.timing, output, "Clone", {
-      run_command(
-        &["git", "clone", &repo_url, &dir_name],
-        None,
-        args.connection.verbose,
-        output,
-      )?;
+    writeln!(ctx.io.output, "Cloning {dir_name}\n").ok();
+    crate::time!(ctx.io.timing, ctx.io.output, "Clone", {
+      ctx
+        .runner
+        .run(&["git", "clone", &repo_url, &dir_name], None, &mut ctx.io)?;
     });
   }
 
-  let build_path = PathBuf::from(&dir_name).join(&args.build.build_dir);
-  if args.build.clean && build_path.exists() {
-    writeln!(output, "Cleaning build directory\n").ok();
-    crate::time!(args.diagnostic.timing, output, "Clean", {
-      fs::remove_dir_all(&build_path).map_err(|e| e.to_string())?;
-    });
-  }
+  let build_path = repo_path.join(&args.build.build_dir);
+  prepare_build_dir(&build_path, args.build.clean, ctx)?;
+  let build_system = detect_build_system(&repo_path, ctx)?;
+  configure_and_build(args, &repo_path, &build_path, build_system, false, ctx)?;
 
   writeln!(
-    output,
-    "Creating build directory: {}\n",
-    args.build.build_dir
-  )
-  .ok();
-  crate::time!(args.diagnostic.timing, output, "Create build directory", {
-    fs::create_dir_all(&build_path).map_err(|e| e.to_string())?;
-  });
-
-  writeln!(output, "Configuring project\n").ok();
-  build_project(
-    args,
-    build_path.as_path(),
-    Path::new(&dir_name),
-    false,
-    input,
-    output,
-    args.diagnostic.timing,
-  )?;
-
-  writeln!(
-    output,
+    ctx.io.output,
     "Project finished in {dir_name}/{}",
     args.build.build_dir
   )
   .ok();
 
-  if args.diagnostic.timing {
-    writeln!(output, "[timing] Total: {:.2?}", total.elapsed()).ok();
+  if ctx.io.timing {
+    writeln!(ctx.io.output, "[timing] Total: {:.2?}", total.elapsed()).ok();
   }
   Ok(())
 }

@@ -1,16 +1,10 @@
 use crate::{
-  cli::build::BuildType,
-  config::{
-    display::format_entry,
-    io::save_config,
-    types::{ConfigEntry, SetupConfig},
-  },
+  cli::BuildType,
+  config::{format_entry, save_config, ConfigEntry, SetupConfig},
+  ctx::IoCtx,
   prompts::confirm,
 };
-use std::{
-  io::{BufRead, Write},
-  path::PathBuf,
-};
+use std::path::PathBuf;
 
 /// Inserts or overwrites a named configuration entry.
 pub fn insert_config(config: &mut SetupConfig, name: &str, entry: ConfigEntry) {
@@ -31,21 +25,15 @@ pub fn has_config(config: &SetupConfig, name: &str) -> bool {
 /// Creates a default configuration file in the current directory.
 /// # Errors
 /// Returns an error if the config file cannot be written.
-pub fn create_default_config(
-  path: PathBuf,
-  yes: bool,
-  input: &mut impl BufRead,
-  output: &mut impl Write,
-) -> Result<(), String> {
+pub fn create_default_config(path: PathBuf, yes: bool, io: &mut IoCtx<'_>) -> Result<(), String> {
   if path.exists()
     && !confirm(
       &format!("{} already exists. Overwrite?", path.display()),
       yes,
-      input,
-      output,
+      io,
     )?
   {
-    writeln!(output, "Aborted.").ok();
+    writeln!(io.output, "Aborted.").ok();
     return Ok(());
   }
 
@@ -70,15 +58,15 @@ pub fn create_default_config(
   save_config(&mut config)?;
 
   writeln!(
-    output,
+    io.output,
     "Created config file: {}",
     dunce::canonicalize(&path).unwrap_or(path).display()
   )
   .ok();
-  writeln!(output, "Edit this file to customize your defaults.").ok();
-  writeln!(output, "\nConfig files are checked in this order:").ok();
-  writeln!(output, "  1. ./.star-setup.json (current directory)").ok();
-  writeln!(output, "  2. ~/.star-setup.json (home directory)").ok();
+  writeln!(io.output, "Edit this file to customize your defaults.").ok();
+  writeln!(io.output, "\nConfig files are checked in this order:").ok();
+  writeln!(io.output, "  1. ./.star-setup.json (current directory)").ok();
+  writeln!(io.output, "  2. ~/.star-setup.json (home directory)").ok();
 
   Ok(())
 }
@@ -91,18 +79,16 @@ pub fn add_config(
   name: &str,
   entry: ConfigEntry,
   yes: bool,
-  input: &mut impl BufRead,
-  output: &mut impl Write,
+  io: &mut IoCtx<'_>,
 ) -> Result<(), String> {
   if has_config(config, name)
     && !confirm(
       &format!("Warning: Configuration '{name}' already exists. Overwrite?"),
       yes,
-      input,
-      output,
+      io,
     )?
   {
-    writeln!(output, "Aborted.").ok();
+    writeln!(io.output, "Aborted.").ok();
     return Ok(());
   }
 
@@ -111,13 +97,13 @@ pub fn add_config(
 
   let e = &config.configs[name];
   writeln!(
-    output,
+    io.output,
     "Configuration '{name}' added successfully to {}",
     path.display()
   )
   .ok();
-  writeln!(output, "Configuration details:").ok();
-  write!(output, "{}", format_entry(e)).ok();
+  writeln!(io.output, "Configuration details:").ok();
+  write!(io.output, "{}", format_entry(e)).ok();
 
   Ok(())
 }
@@ -129,50 +115,25 @@ pub fn remove_config(
   config: &mut SetupConfig,
   name: &str,
   yes: bool,
-  input: &mut impl BufRead,
-  output: &mut impl Write,
+  io: &mut IoCtx<'_>,
 ) -> Result<(), String> {
   let Some(e) = config.configs.get(name) else {
-    writeln!(output, "\nWarning: Config '{name}' not found.\n").ok();
+    writeln!(io.output, "\nWarning: Config '{name}' not found.\n").ok();
     return Ok(());
   };
 
-  writeln!(output, "Config {name}").ok();
-  writeln!(output, "Configuration details:").ok();
-  write!(output, "{}", format_entry(e)).ok();
+  writeln!(io.output, "Config {name}").ok();
+  writeln!(io.output, "Configuration details:").ok();
+  write!(io.output, "{}", format_entry(e)).ok();
 
-  if !confirm(
-    "\nAre you sure you want to remove this config?",
-    yes,
-    input,
-    output,
-  )? {
-    writeln!(output, "Aborted.").ok();
+  if !confirm("\nAre you sure you want to remove this config?", yes, io)? {
+    writeln!(io.output, "Aborted.").ok();
     return Ok(());
   }
 
   remove_config_entry(config, name);
   let path = save_config(config)?;
-  writeln!(output, "\nConfig '{name}' was successfully removed").ok();
-  writeln!(output, "Configuration saved to: {}\n", path.display()).ok();
+  writeln!(io.output, "\nConfig '{name}' was successfully removed").ok();
+  writeln!(io.output, "Configuration saved to: {}\n", path.display()).ok();
   Ok(())
-}
-
-/// Lists all saved configuration entries.
-pub fn list_configs(config: &SetupConfig, output: &mut impl Write) {
-  if config.configs.is_empty() {
-    writeln!(output, "  No configurations created.").ok();
-    writeln!(
-      output,
-      "  Run with --init-config to create a default configuration."
-    )
-    .ok();
-    return;
-  }
-
-  writeln!(output, "Configurations:").ok();
-  for (name, e) in &config.configs {
-    writeln!(output, "\n{name}:").ok();
-    write!(output, "{}", format_entry(e)).ok();
-  }
 }

@@ -1,9 +1,10 @@
-use star_setup::cli::flags::DiagnosticFlags;
-use star_setup::cli::{
-  build::BuildType, resolve_bool, resolve_with_config, Args, BuildFlags, ConfigFlags,
-  ConnectionFlags, MonoRepoFlags, ProfileFlags,
+use star_setup::{
+  cli::{
+    resolve_bool, resolve_with_config, Args, BuildFlags, BuildType, ConfigFlags, ConnectionFlags,
+    DiagnosticFlags, MonoRepoFlags, ProfileFlags,
+  },
+  config::{ConfigEntry, SetupConfig},
 };
-use star_setup::config::types::{ConfigEntry, SetupConfig};
 
 #[test]
 fn test_resolve_bool() {

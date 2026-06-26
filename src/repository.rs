@@ -1,7 +1,7 @@
 //! Repository functions including cloning and URL resolution.
 
-use crate::utils::process::run_command;
-use std::{io::Write, path::Path};
+use crate::ctx::RunCtx;
+use std::path::Path;
 
 /// Converts a repository path or URL to a local directory name (`owner-repo`).
 #[must_use]
@@ -41,25 +41,25 @@ pub fn clone_repository(
   repo_path: &str,
   target_dir: &Path,
   use_ssh: bool,
-  verbose: bool,
-  output: &mut impl Write,
+  ctx: &mut RunCtx<'_>,
 ) -> Result<(), String> {
   let repo_name = repo_dir_name(repo_path);
   let repo_dir = target_dir.join(&repo_name);
 
   if repo_dir.exists() {
-    writeln!(output, "\n  {repo_name} already exists").ok();
+    writeln!(ctx.io.output, "\n  {repo_name} already exists").ok();
     return Ok(());
   }
 
-  writeln!(output, "\n  Cloning {repo_name}").ok();
+  writeln!(ctx.io.output, "\n  Cloning {repo_name}").ok();
   let repo_url = resolve_repo_url(repo_path, use_ssh);
 
-  run_command(
-    &["git", "clone", &repo_url, &repo_name],
-    Some(target_dir),
-    verbose,
-    output,
-  )
-  .map_err(|e| format!("Failed to clone {repo_path}: {e}"))
+  ctx
+    .runner
+    .run(
+      &["git", "clone", &repo_url, &repo_name],
+      Some(target_dir),
+      &mut ctx.io,
+    )
+    .map_err(|e| format!("Failed to clone {repo_path}: {e}"))
 }

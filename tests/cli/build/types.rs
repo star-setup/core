@@ -1,4 +1,4 @@
-use star_setup::cli::build::BuildType;
+use star_setup::cli::BuildType;
 
 #[test]
 fn test_to_cmake_all_variants() {

@@ -1,6 +1,9 @@
-use star_setup::repository::{clone_repository, repo_dir_name, resolve_repo_url};
 mod common;
-use common::sink;
+use common::{empty_input, make_io, sink, MockRunner};
+use star_setup::{
+  ctx::{IoCtx, ProcessRunner, RunCtx},
+  repository::{clone_repository, repo_dir_name, resolve_repo_url},
+};
 
 #[test]
 fn test_repo_dir_name() {
@@ -67,7 +70,38 @@ fn test_clone_skips_existing_directory() {
   let repo_dir = tmp.path().join("owner-repo");
   std::fs::create_dir_all(&repo_dir).unwrap();
 
-  let result = clone_repository("owner/repo", tmp.path(), false, false, &mut sink());
+  let mut runner = ProcessRunner;
+  let mut ctx = RunCtx {
+    io: IoCtx {
+      input: &mut b"".as_ref(),
+      output: &mut Vec::new(),
+      verbose: false,
+      timing: false,
+    },
+    runner: &mut runner,
+  };
+  let result = clone_repository("owner/repo", tmp.path(), false, &mut ctx);
   assert!(result.is_ok());
   assert!(repo_dir.exists());
+}
+
+#[test]
+fn test_clone_repository_calls_git_clone() {
+  let tmp = tempfile::TempDir::new().unwrap();
+  let mut input = empty_input();
+  let mut output = sink();
+  let mut runner = MockRunner::new();
+  let mut ctx = RunCtx {
+    io: make_io(&mut input, &mut output),
+    runner: &mut runner,
+  };
+
+  clone_repository("user/repo", tmp.path(), false, &mut ctx).unwrap();
+
+  assert_eq!(runner.calls.len(), 1);
+  let (cmd, cwd) = &runner.calls[0];
+  assert_eq!(cmd[0], "git");
+  assert_eq!(cmd[1], "clone");
+  assert!(cmd[2].contains("user/repo"));
+  assert_eq!(cwd.as_deref(), Some(tmp.path()));
 }

@@ -1,12 +1,11 @@
-use crate::repository::repo_dir_name;
-use std::{fs, io::Write, path::Path};
+use crate::{ctx::IoCtx, repository::repo_dir_name};
+use std::{fs, path::Path};
 
 /// Shared helper to generate, write, and log monorepo build configuration files.
 fn write_mono_repo_config(
   mono_dir: &Path,
   repos: &[String],
-  output: &mut impl Write,
-  timing: bool,
+  io: &mut IoCtx<'_>,
   filename: &str,
   format_modules: impl Fn(&[String]) -> String,
   render_template: impl Fn(&str) -> String,
@@ -16,14 +15,14 @@ fn write_mono_repo_config(
   let content = render_template(&modules_str);
   let file_path = mono_dir.join(filename);
 
-  crate::time!(timing, output, &format!("Generate {filename}"), {
+  crate::time!(io.timing, io.output, &format!("Generate {filename}"), {
     fs::write(&file_path, content).map_err(|e| e.to_string())?;
   });
 
   // .to_string() is required to force an allocation and satisfy line coverage tracking
   #[allow(clippy::to_string_in_format_args)]
   writeln!(
-    output,
+    io.output,
     "Created root {} at {}\n",
     filename.to_string(),
     mono_dir.display()
@@ -39,15 +38,13 @@ fn write_mono_repo_config(
 pub fn create_mono_repo_cmakelists(
   mono_dir: &Path,
   repos: &[String],
-  output: &mut impl Write,
-  timing: bool,
+  io: &mut IoCtx<'_>,
 ) -> Result<(), String> {
-  writeln!(output, "  Creating CMake configuration").ok();
+  writeln!(io.output, "  Creating CMake configuration").ok();
   write_mono_repo_config(
     mono_dir,
     repos,
-    output,
-    timing,
+    io,
     "CMakeLists.txt",
     |modules| modules.join("\n  "),
     |modules_cmake| {
@@ -83,15 +80,13 @@ set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER \"External\")
 pub fn create_mono_repo_mesonbuild(
   mono_dir: &Path,
   repos: &[String],
-  output: &mut impl Write,
-  timing: bool,
+  io: &mut IoCtx<'_>,
 ) -> Result<(), String> {
-  writeln!(output, "  Creating Meson configuration").ok();
+  writeln!(io.output, "  Creating Meson configuration").ok();
   write_mono_repo_config(
     mono_dir,
     repos,
-    output,
-    timing,
+    io,
     "meson.build",
     |modules| {
       modules

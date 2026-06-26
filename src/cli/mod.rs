@@ -1,6 +1,7 @@
 pub mod args;
 pub use args::Args;
 pub mod build;
+pub use build::{detect_build_system, detect_mono_build_system, BuildSystem, BuildType};
 pub mod flags;
 pub use flags::{
   BuildFlags, ConfigFlags, ConnectionFlags, DiagnosticFlags, MonoRepoFlags, ProfileFlags,

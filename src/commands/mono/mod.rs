@@ -1,8 +1,14 @@
+pub mod clone;
+pub use clone::clone_mono_repos;
 pub mod config;
 pub use config::{create_mono_repo_cmakelists, create_mono_repo_mesonbuild};
+pub mod display;
+pub use display::print_setup_complete;
 pub mod mode;
-pub use mode::{build_repo_list, mono_repo_mode};
+pub use mode::mono_repo_mode;
 pub mod resolve;
 pub use resolve::{resolve_repos_for_mono, resolve_test_repo};
 pub mod wraps;
 pub use wraps::hoist_wraps;
+pub mod setup;
+pub use setup::{build_repo_list, generate_mono_config};

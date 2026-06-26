@@ -1,12 +1,9 @@
 use crate::{
   cli::{
-    flags::{
-      BuildFlags, ConfigFlags, ConnectionFlags, DiagnosticFlags, MonoRepoFlags, ProfileFlags,
-    },
-    resolve::resolve_with_config,
-    resolved::ResolvedArgs,
+    resolve_with_config, BuildFlags, ConfigFlags, ConnectionFlags, DiagnosticFlags, MonoRepoFlags,
+    ProfileFlags, ResolvedArgs,
   },
-  config::types::SetupConfig,
+  config::SetupConfig,
 };
 use clap::Parser;
 

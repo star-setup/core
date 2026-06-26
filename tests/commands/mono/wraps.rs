@@ -1,3 +1,4 @@
+use super::super::common::{empty_input, make_io, sink};
 use star_setup::commands::{hoist_wraps, parse_project_name, parse_provide_pairs};
 use tempfile::TempDir;
 
@@ -91,8 +92,10 @@ fn make_repo(project_name: &str) -> TempDir {
 #[test]
 fn test_hoist_wraps_empty_repos() {
   let repos_dir = TempDir::new().unwrap();
-  let mut output = Vec::new();
-  let result = hoist_wraps(repos_dir.path(), &[], &mut output, false).unwrap();
+  let mut input = empty_input();
+  let mut output = sink();
+  let mut io = make_io(&mut input, &mut output);
+  let result = hoist_wraps(repos_dir.path(), &[], &mut io).unwrap();
   assert!(result.is_empty());
 }
 
@@ -100,14 +103,10 @@ fn test_hoist_wraps_empty_repos() {
 fn test_hoist_wraps_skips_repo_without_meson_build() {
   let repos_dir = TempDir::new().unwrap();
   let repo = TempDir::new().unwrap();
-  let mut output = Vec::new();
-  let result = hoist_wraps(
-    repos_dir.path(),
-    &[repo.path().to_path_buf()],
-    &mut output,
-    false,
-  )
-  .unwrap();
+  let mut input = empty_input();
+  let mut output = sink();
+  let mut io = make_io(&mut input, &mut output);
+  let result = hoist_wraps(repos_dir.path(), &[repo.path().to_path_buf()], &mut io).unwrap();
   assert!(result.is_empty());
 }
 
@@ -115,14 +114,10 @@ fn test_hoist_wraps_skips_repo_without_meson_build() {
 fn test_hoist_wraps_emits_wrap_without_provide() {
   let repos_dir = TempDir::new().unwrap();
   let repo = make_repo("my-lib");
-  let mut output = Vec::new();
-  let result = hoist_wraps(
-    repos_dir.path(),
-    &[repo.path().to_path_buf()],
-    &mut output,
-    false,
-  )
-  .unwrap();
+  let mut input = empty_input();
+  let mut output = sink();
+  let mut io = make_io(&mut input, &mut output);
+  let result = hoist_wraps(repos_dir.path(), &[repo.path().to_path_buf()], &mut io).unwrap();
   assert!(result.contains_key("my_lib"));
   let wrap = repos_dir.path().join("my_lib.wrap");
   assert!(wrap.exists());
@@ -143,14 +138,10 @@ fn test_hoist_wraps_emits_wrap_with_provide() {
   )
   .unwrap();
   std::fs::write(subprojects.join("readme.txt"), "ignore me").unwrap();
-  let mut output = Vec::new();
-  let result = hoist_wraps(
-    repos_dir.path(),
-    &[repo.path().to_path_buf()],
-    &mut output,
-    false,
-  )
-  .unwrap();
+  let mut input = empty_input();
+  let mut output = sink();
+  let mut io = make_io(&mut input, &mut output);
+  let result = hoist_wraps(repos_dir.path(), &[repo.path().to_path_buf()], &mut io).unwrap();
   assert!(result.contains_key("my_lib"));
   let wrap = repos_dir.path().join("my_lib.wrap");
   let content = std::fs::read_to_string(&wrap).unwrap();
