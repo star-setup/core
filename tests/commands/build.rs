@@ -153,7 +153,10 @@ fn test_npm_build_install_only() {
   let mut input = empty_input();
   let mut output = sink();
   let mut runner = MockRunner::new();
-  let mut ctx = RunCtx { io: make_io(&mut input, &mut output), runner: &mut runner };
+  let mut ctx = RunCtx {
+    io: make_io(&mut input, &mut output),
+    runner: &mut runner,
+  };
   star_setup::commands::npm_build(&args, tmp.path(), &mut ctx).unwrap();
   assert_eq!(runner.calls.len(), 1);
   assert!(runner.calls[0].0.contains(&"install".to_string()));
@@ -166,7 +169,10 @@ fn test_npm_build_with_build_step() {
   let mut input = empty_input();
   let mut output = sink();
   let mut runner = MockRunner::new();
-  let mut ctx = RunCtx { io: make_io(&mut input, &mut output), runner: &mut runner };
+  let mut ctx = RunCtx {
+    io: make_io(&mut input, &mut output),
+    runner: &mut runner,
+  };
   star_setup::commands::npm_build(&args, tmp.path(), &mut ctx).unwrap();
   assert_eq!(runner.calls.len(), 2);
   assert!(runner.calls[1].0.contains(&"build".to_string()));
@@ -179,7 +185,18 @@ fn test_build_project_dispatches_npm() {
   let mut input = empty_input();
   let mut output = sink();
   let mut runner = MockRunner::new();
-  let mut ctx = RunCtx { io: make_io(&mut input, &mut output), runner: &mut runner };
-  build_project(&args, tmp.path(), tmp.path(), BuildSystem::Npm, false, &mut ctx).unwrap();
+  let mut ctx = RunCtx {
+    io: make_io(&mut input, &mut output),
+    runner: &mut runner,
+  };
+  build_project(
+    &args,
+    tmp.path(),
+    tmp.path(),
+    BuildSystem::Npm,
+    false,
+    &mut ctx,
+  )
+  .unwrap();
   assert!(runner.calls[0].0.contains(&"install".to_string()));
 }

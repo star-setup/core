@@ -92,12 +92,16 @@ pub fn npm_build(
   ctx: &mut RunCtx<'_>,
 ) -> Result<(), String> {
   crate::time!(ctx.io.timing, ctx.io.output, "npm install", {
-    ctx.runner.run(&["npm", "install"], Some(source_path), &mut ctx.io)?;
+    ctx
+      .runner
+      .run(&["npm", "install"], Some(source_path), &mut ctx.io)?;
   });
   if !args.build.no_build {
     writeln!(ctx.io.output, "Building project\n").ok();
     crate::time!(ctx.io.timing, ctx.io.output, "npm build", {
-      ctx.runner.run(&["npm", "run", "build"], Some(source_path), &mut ctx.io)?;
+      ctx
+        .runner
+        .run(&["npm", "run", "build"], Some(source_path), &mut ctx.io)?;
     });
   }
   Ok(())
@@ -117,6 +121,6 @@ pub fn build_project(
   match build_system {
     BuildSystem::Cmake => cmake_build(args, build_path, mono, ctx),
     BuildSystem::Meson => meson_build(args, build_path, source_path, ctx),
-    BuildSystem::Npm => npm_build(args, source_path, ctx)
+    BuildSystem::Npm => npm_build(args, source_path, ctx),
   }
 }
