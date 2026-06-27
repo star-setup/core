@@ -10,3 +10,4 @@ pub mod prompts;
 pub mod repository;
 pub mod run;
 pub mod utils;
+pub mod workspace;

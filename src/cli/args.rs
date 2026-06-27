@@ -1,7 +1,7 @@
 use crate::{
   cli::{
-    commands::{ConfigCommand, ProfileCommand},
-    resolve_with_config, BuildFlags, ConnectionFlags, DiagnosticFlags, MonoRepoFlags, ResolvedArgs,
+    resolve_with_config, BuildFlags, ConfigCommand, ConnectionFlags, DiagnosticFlags,
+    MonoRepoFlags, ProfileCommand, ResolvedArgs, WorkspaceCommand,
   },
   config::SetupConfig,
 };
@@ -13,6 +13,8 @@ pub enum Command {
   Config(ConfigCommand),
   /// Manage saved profiles.
   Profile(ProfileCommand),
+  /// Manage an existing workspace.
+  Workspace(WorkspaceCommand),
 }
 
 /// Top-level CLI arguments for star-setup.

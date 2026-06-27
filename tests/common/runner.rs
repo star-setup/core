@@ -5,6 +5,7 @@ use std::path::Path;
 pub struct MockRunner {
   pub calls: Vec<(Vec<String>, Option<std::path::PathBuf>)>,
   pub fail_on: Option<String>,
+  pub capture_output: String,
 }
 
 impl MockRunner {
@@ -13,6 +14,7 @@ impl MockRunner {
     Self {
       calls: vec![],
       fail_on: None,
+      capture_output: String::new(),
     }
   }
 }
@@ -27,5 +29,11 @@ impl Runner for MockRunner {
     }
     self.calls.push((cmd_vec, cwd.map(Path::to_path_buf)));
     Ok(())
+  }
+
+  fn run_capture(&mut self, cmd: &[&str], cwd: Option<&Path>) -> Result<String, String> {
+    let cmd_vec: Vec<String> = cmd.iter().map(ToString::to_string).collect();
+    self.calls.push((cmd_vec, cwd.map(Path::to_path_buf)));
+    Ok(self.capture_output.clone())
   }
 }

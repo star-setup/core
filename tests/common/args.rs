@@ -1,9 +1,7 @@
 #![allow(dead_code)]
 
 use star_setup::{
-  cli::{
-    resolve_with_config, Args, BuildFlags, ConnectionFlags, DiagnosticFlags, MonoRepoFlags,
-  },
+  cli::{resolve_with_config, Args, BuildFlags, ConnectionFlags, DiagnosticFlags, MonoRepoFlags},
   config::SetupConfig,
 };
 

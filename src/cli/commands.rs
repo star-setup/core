@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use crate::cli::{BuildFlags, ConnectionFlags, DiagnosticFlags, MonoRepoFlags};
 use clap::{Parser, Subcommand};
 
@@ -59,4 +61,47 @@ pub enum ProfileAction {
   },
   /// List all saved profiles.
   List,
+}
+
+/// Workspace subcommand.
+#[derive(Parser)]
+pub struct WorkspaceCommand {
+  #[command(subcommand)]
+  pub action: WorkspaceAction,
+}
+
+/// Workspace subcommand actions.
+#[derive(Subcommand)]
+pub enum WorkspaceAction {
+  /// Pull latest changes for all repos in the workspace.
+  Update {
+    /// Workspace root directory (default: current directory).
+    #[arg(long)]
+    path: Option<PathBuf>,
+    /// Mono-repo workspace directory name (default: build-mono).
+    #[arg(long)]
+    mono_dir: Option<String>,
+    #[arg(long)]
+    build_dir: Option<String>,
+  },
+  /// Show status of all repos in the workspace.
+  Status {
+    #[arg(long)]
+    path: Option<PathBuf>,
+    #[arg(long)]
+    mono_dir: Option<String>,
+    #[arg(long)]
+    build_dir: Option<String>,
+    #[arg(long)]
+    fetch: bool,
+  },
+  /// Remove the build directory from the workspace.
+  Clean {
+    #[arg(long)]
+    path: Option<PathBuf>,
+    #[arg(long)]
+    mono_dir: Option<String>,
+    #[arg(long)]
+    build_dir: Option<String>,
+  },
 }

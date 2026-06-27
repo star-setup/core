@@ -12,4 +12,6 @@ pub use resolved::{
   ResolvedMonoFlags,
 };
 pub mod commands;
-pub use commands::{ConfigAction, ConfigCommand, ProfileAction, ProfileCommand};
+pub use commands::{
+  ConfigAction, ConfigCommand, ProfileAction, ProfileCommand, WorkspaceAction, WorkspaceCommand,
+};
