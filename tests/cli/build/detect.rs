@@ -16,6 +16,12 @@ fn meson_dir() -> TempDir {
   tmp
 }
 
+fn npm_dir() -> TempDir {
+  let tmp = TempDir::new().unwrap();
+  std::fs::write(tmp.path().join("package.json"), "{}").unwrap();
+  tmp
+}
+
 #[test]
 fn test_detect_build_system_none() {
   let dir = TempDir::new().unwrap();
@@ -238,4 +244,54 @@ fn test_detect_mono_build_system_timing_output() {
   detect_mono_build_system(&[dir.path().to_path_buf()], &mut ctx).unwrap();
   let out = String::from_utf8(output).unwrap();
   assert!(out.contains("[timing] Detect:"));
+}
+
+#[test]
+fn test_detect_build_system_npm() {
+  let dir = npm_dir();
+  let mut runner = ProcessRunner;
+  let mut ctx = RunCtx {
+    io: IoCtx { input: &mut b"".as_ref(), output: &mut Vec::new(), verbose: false, timing: false, dry_run: false },
+    runner: &mut runner,
+  };
+  let result = detect_build_system(dir.path(), &mut ctx).unwrap();
+  assert!(matches!(result, BuildSystem::Npm));
+}
+
+#[test]
+fn test_detect_build_system_cmake_and_npm_picks_npm() {
+  let dir = cmake_dir();
+  std::fs::write(dir.path().join("package.json"), "{}").unwrap();
+  let mut runner = ProcessRunner;
+  let mut ctx = RunCtx {
+    io: IoCtx { input: &mut b"2\n".as_ref(), output: &mut Vec::new(), verbose: false, timing: false, dry_run: false },
+    runner: &mut runner,
+  };
+  let result = detect_build_system(dir.path(), &mut ctx).unwrap();
+  assert!(matches!(result, BuildSystem::Npm));
+}
+
+#[test]
+fn test_detect_mono_build_system_npm() {
+  let dir = npm_dir();
+  let mut runner = ProcessRunner;
+  let mut ctx = RunCtx {
+    io: IoCtx { input: &mut b"".as_ref(), output: &mut Vec::new(), verbose: false, timing: false, dry_run: false },
+    runner: &mut runner,
+  };
+  let result = detect_mono_build_system(&[dir.path().to_path_buf()], &mut ctx).unwrap();
+  assert!(matches!(result, BuildSystem::Npm));
+}
+
+#[test]
+fn test_detect_mono_build_system_cmake_and_npm_picks_npm() {
+  let dir = cmake_dir();
+  std::fs::write(dir.path().join("package.json"), "{}").unwrap();
+  let mut runner = ProcessRunner;
+  let mut ctx = RunCtx {
+    io: IoCtx { input: &mut b"2\n".as_ref(), output: &mut Vec::new(), verbose: false, timing: false, dry_run: false },
+    runner: &mut runner,
+  };
+  let result = detect_mono_build_system(&[dir.path().to_path_buf()], &mut ctx).unwrap();
+  assert!(matches!(result, BuildSystem::Npm));
 }
