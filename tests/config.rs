@@ -8,3 +8,5 @@ mod display;
 mod fixtures;
 #[path = "config/io.rs"]
 mod io;
+#[path = "config/types.rs"]
+mod types;
