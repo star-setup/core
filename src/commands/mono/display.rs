@@ -1,4 +1,4 @@
-use crate::{ctx::IoCtx, repository::repo_dir_name};
+use crate::{cli::BuildSystem, ctx::IoCtx, repository::repo_dir_name};
 use std::{
   collections::HashMap,
   path::{Path, PathBuf},
@@ -21,6 +21,7 @@ pub fn resolve_setup_paths<S: std::hash::BuildHasher>(
   mono_repo_path: &Path,
   build_path: &Path,
   test_repo: &str,
+  build_system: Option<BuildSystem>,
 ) -> SetupPaths {
   let mono_repo_disp =
     dunce::canonicalize(mono_repo_path).unwrap_or_else(|_| mono_repo_path.to_path_buf());
@@ -44,8 +45,12 @@ pub fn resolve_setup_paths<S: std::hash::BuildHasher>(
       });
     (exe_path, None)
   } else {
-    let build_disp = dunce::canonicalize(build_path).unwrap_or_else(|_| build_path.to_path_buf());
-    (None, Some(build_disp))
+    let build_disp = if build_system == Some(BuildSystem::Npm) {
+      None
+    } else {
+      Some(dunce::canonicalize(build_path).unwrap_or_else(|_| build_path.to_path_buf()))
+    };
+    (None, build_disp)
   };
 
   SetupPaths {

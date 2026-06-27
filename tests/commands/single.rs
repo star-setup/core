@@ -1,7 +1,6 @@
 use super::common::{default_resolved, make_io, sink, MockRunner};
 use star_setup::{
-  commands::single_repo_mode,
-  ctx::{DryRunRunner, RunCtx},
+  cli::BuildSystem, commands::single_repo_mode, ctx::{DryRunRunner, RunCtx},
 };
 use tempfile::TempDir;
 
@@ -133,6 +132,7 @@ fn test_single_repo_mode_dry_run_clean_prints_would_remove() {
   let mut args = default_resolved();
   args.diagnostic.dry_run = true;
   args.build.clean = true;
+  args.build.build_system = Some(BuildSystem::Cmake);
 
   let mut input = b"".as_ref();
   let mut output = Vec::new();

@@ -14,6 +14,7 @@ fn test_print_setup_complete_no_map() {
     tmp.path(),
     &tmp.path().join("build"),
     "user/repo",
+    None,
   );
   print_setup_complete(&paths, std::time::Instant::now(), &mut io);
   let out = String::from_utf8(output).unwrap();
@@ -34,6 +35,7 @@ fn test_print_setup_complete_with_map() {
     tmp.path(),
     &tmp.path().join("build"),
     "user/repo",
+    None,
   );
   print_setup_complete(&paths, std::time::Instant::now(), &mut io);
   let out = String::from_utf8(output).unwrap();
@@ -58,6 +60,7 @@ fn test_print_setup_complete_timing() {
     tmp.path(),
     &tmp.path().join("build"),
     "user/repo",
+    None,
   );
   print_setup_complete(&paths, std::time::Instant::now(), &mut io);
   let out = String::from_utf8(output).unwrap();

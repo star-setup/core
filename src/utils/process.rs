@@ -79,6 +79,19 @@ pub fn run_command(
     }
   }
 
+  #[cfg(target_os = "windows")]
+  let npm_cmd;
+  #[cfg(target_os = "windows")]
+  let cmd = if cmd[0] == "npm" {
+    npm_cmd = std::iter::once("cmd")
+      .chain(std::iter::once("/c"))
+      .chain(cmd.iter().copied())
+      .collect::<Vec<_>>();
+    npm_cmd.as_slice()
+  } else {
+    cmd
+  };
+
   let mut command = Command::new(cmd[0]);
   command.stdin(Stdio::null());
   if cmd[0] == "git" {

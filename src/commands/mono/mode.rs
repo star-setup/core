@@ -1,17 +1,9 @@
 use crate::{
-  cli::{detect_mono_build_system, ResolvedArgs},
-  commands::{
-    build_repo_list, configure_and_build, extract_repo_input,
-    mono::{
-      clone_mono_repos,
-      display::{resolve_setup_paths, SetupPaths},
-      generate_mono_config, print_setup_complete,
-    },
-    prepare_build_dir, resolve_repos_for_mono, resolve_test_repo,
-  },
-  config::SetupConfig,
-  ctx::RunCtx,
-  repository::repo_dir_name,
+  cli::{BuildSystem, ResolvedArgs, detect_mono_build_system}, commands::{
+    build_repo_list, configure_and_build, extract_repo_input, mono::{
+      clone_mono_repos, display::{SetupPaths, resolve_setup_paths}, generate_mono_config, print_setup_complete,
+    }, prepare_build_dir, resolve_repos_for_mono, resolve_test_repo,
+  }, config::SetupConfig, ctx::RunCtx, repository::repo_dir_name,
 };
 use std::{
   fs,
@@ -69,7 +61,9 @@ pub fn mono_repo_mode(
 
   let canonical_map = if let Some(bs) = build_system {
     let map = generate_mono_config(bs, &mono_repo_path, &repos_path, &repo_dirs, &repos, ctx)?;
-    prepare_build_dir(build_path.as_path(), args.build.clean, ctx)?;
+    if bs != BuildSystem::Npm {
+      prepare_build_dir(build_path.as_path(), args.build.clean, ctx)?;
+    }
     configure_and_build(args, &mono_repo_path, &build_path, bs, true, ctx)?;
     map
   } else {
@@ -89,6 +83,7 @@ pub fn mono_repo_mode(
       &mono_repo_path,
       &build_path,
       &test_repo,
+      build_system
     )
   };
 
