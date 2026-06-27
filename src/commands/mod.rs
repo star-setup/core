@@ -1,10 +1,11 @@
 pub mod build;
-pub use build::{build_project, cmake_build, meson_build};
+pub use build::{build_project, cmake_build, meson_build, npm_build};
 pub mod header;
 pub use header::{print_mode_header, ModeHeader};
 pub mod mono;
 pub use mono::{
-  build_repo_list, create_mono_repo_cmakelists, create_mono_repo_mesonbuild, hoist_wraps,
+  build_repo_list, hoist_wraps,
+  create_mono_repo_cmakelists, create_mono_repo_mesonbuild, create_mono_repo_package_json,
   mono_repo_mode, resolve_repos_for_mono, resolve_test_repo,
   wraps::{parse_project_name, parse_provide_pairs},
 };

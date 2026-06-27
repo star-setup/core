@@ -60,3 +60,19 @@ fn test_create_mono_repo_mesonbuild_empty_repos() {
     assert!(tmp_path.join("meson.build").exists());
   });
 }
+
+#[test]
+fn test_create_mono_repo_package_json_creates_file() {
+  let tmp = tempfile::TempDir::new().unwrap();
+  let repos = vec!["user/lib1".to_string(), "user/lib2".to_string()];
+  let mut input = empty_input();
+  let mut output = sink();
+  let mut io = make_io(&mut input, &mut output);
+  star_setup::commands::create_mono_repo_package_json(tmp.path(), &repos, &mut io).unwrap();
+  let pkg = tmp.path().join("package.json");
+  assert!(pkg.exists());
+  let content = std::fs::read_to_string(&pkg).unwrap();
+  assert!(content.contains("workspaces"));
+  assert!(content.contains("repos/user-lib1"));
+  assert!(content.contains("repos/user-lib2"));
+}
