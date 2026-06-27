@@ -162,3 +162,35 @@ fn test_generate_mono_config_meson() {
   let content = std::fs::read_to_string(&meson_build).unwrap();
   assert!(content.contains("user_lib1") || content.contains("user-lib1"));
 }
+
+#[test]
+fn test_generate_mono_config_npm() {
+  let tmp = TempDir::new().unwrap();
+  let repos_path = tmp.path().join("repos");
+  std::fs::create_dir_all(&repos_path).unwrap();
+
+  let mut input = empty_input();
+  let mut output = sink();
+  let mut runner = MockRunner::new();
+  let mut ctx = RunCtx {
+    io: make_io(&mut input, &mut output),
+    runner: &mut runner,
+  };
+
+  let result = generate_mono_config(
+    star_setup::cli::BuildSystem::Npm,
+    tmp.path(),
+    &repos_path,
+    &[],
+    &["user/lib1".to_string(), "user/lib2".to_string()],
+    &mut ctx,
+  );
+
+  assert!(result.is_ok());
+  assert!(result.unwrap().is_none());
+  let pkg = tmp.path().join("package.json");
+  assert!(pkg.exists());
+  let content = std::fs::read_to_string(&pkg).unwrap();
+  assert!(content.contains("workspaces"));
+  assert!(content.contains("repos/user-lib1"));
+}
