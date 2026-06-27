@@ -4,6 +4,7 @@ use std::{
 };
 
 /// A resolved workspace with paths to key directories and cloned repos.
+#[derive(Debug)]
 pub struct Workspace {
   /// Workspace root directory (e.g. `./build-mono`).
   pub root: PathBuf,
