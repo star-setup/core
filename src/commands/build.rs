@@ -96,6 +96,7 @@ pub fn meson_build(
 pub fn npm_build(
   args: &ResolvedArgs,
   source_path: &Path,
+  is_mono: bool,
   ctx: &mut RunCtx<'_>,
 ) -> Result<(), String> {
   crate::time!(ctx.io.timing, ctx.io.output, "npm install", {
@@ -103,7 +104,7 @@ pub fn npm_build(
       .runner
       .run(&["npm", "install"], Some(source_path), &mut ctx.io)?;
   });
-  if !args.build.no_build {
+  if !args.build.no_build && !is_mono {
     writeln!(ctx.io.output, "Building project\n").ok();
     crate::time!(ctx.io.timing, ctx.io.output, "npm build", {
       ctx
@@ -128,6 +129,6 @@ pub fn build_project(
   match build_system {
     BuildSystem::Cmake => cmake_build(args, build_path, mono, ctx),
     BuildSystem::Meson => meson_build(args, build_path, source_path, ctx),
-    BuildSystem::Npm => npm_build(args, source_path, ctx),
+    BuildSystem::Npm => npm_build(args, source_path, mono, ctx),
   }
 }

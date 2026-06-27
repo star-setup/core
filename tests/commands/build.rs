@@ -83,7 +83,7 @@ fn test_npm_build_install_only() {
     io: make_io(&mut input, &mut output),
     runner: &mut runner,
   };
-  star_setup::commands::npm_build(&args, tmp.path(), &mut ctx).unwrap();
+  star_setup::commands::npm_build(&args, tmp.path(), false, &mut ctx).unwrap();
   assert_eq!(runner.calls.len(), 1);
   assert!(runner.calls[0].0.contains(&"install".to_string()));
 }
@@ -99,7 +99,7 @@ fn test_npm_build_with_build_step() {
     io: make_io(&mut input, &mut output),
     runner: &mut runner,
   };
-  star_setup::commands::npm_build(&args, tmp.path(), &mut ctx).unwrap();
+  star_setup::commands::npm_build(&args, tmp.path(), false, &mut ctx).unwrap();
   assert_eq!(runner.calls.len(), 2);
   assert!(runner.calls[1].0.contains(&"build".to_string()));
 }

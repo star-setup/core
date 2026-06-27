@@ -14,6 +14,7 @@ fn test_print_setup_complete_no_map() {
         tmp_path,
         &tmp_path.join("build"),
         "user/repo",
+        None,
       );
       print_setup_complete(&paths, Instant::now(), io, &make_flags());
     });
@@ -30,7 +31,13 @@ fn test_print_setup_complete_with_map() {
       let mut map = HashMap::new();
       map.insert("my_lib".to_string(), "user-repo".to_string());
 
-      let paths = resolve_setup_paths(Some(&map), tmp_path, &tmp_path.join("build"), "user/repo");
+      let paths = resolve_setup_paths(
+        Some(&map),
+        tmp_path,
+        &tmp_path.join("build"),
+        "user/repo",
+        None,
+      );
       print_setup_complete(&paths, Instant::now(), io, &make_flags());
     });
   });
@@ -48,6 +55,7 @@ fn test_print_setup_complete_timing() {
         tmp_path,
         &tmp_path.join("build"),
         "user/repo",
+        None,
       );
       print_setup_complete(
         &paths,

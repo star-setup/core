@@ -31,7 +31,9 @@ impl FromStr for BuildSystem {
       }
     }
 
-    Err(format!("Unknown build system '{s}'. Valid: cmake, meson, npm"))
+    Err(format!(
+      "Unknown build system '{s}'. Valid: cmake, meson, npm"
+    ))
   }
 }
 
