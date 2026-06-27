@@ -33,14 +33,17 @@ pub fn resolve_workspace(
     return Err(format!("Workspace not found: {}", root.display()));
   }
   if !repos_path.exists() {
-    return Err(format!("Repos directory not found: {}", repos_path.display()));
+    return Err(format!(
+      "Repos directory not found: {}",
+      repos_path.display()
+    ));
   }
 
   let repo_dirs = fs::read_dir(&repos_path)
     .map_err(|e| format!("Failed to read repos directory: {e}"))?
     .filter_map(Result::ok)
     .map(|entry| entry.path())
-    .filter(|p| p.is_dir())
+    .filter(|p| p.is_dir() && p.join(".git").exists())
     .collect();
 
   Ok(Workspace {

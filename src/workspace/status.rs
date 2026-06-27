@@ -17,12 +17,18 @@ pub fn status_workspace(
       .unwrap_or_default();
 
     if fetch {
-      ctx.runner.run(&["git", "fetch"], Some(repo_dir), &mut ctx.io)?;
+      ctx
+        .runner
+        .run(&["git", "fetch"], Some(repo_dir), &mut ctx.io)?;
     }
 
     let branch = ctx
       .runner
-      .run_capture(&["git", "rev-parse", "--abbrev-ref", "HEAD"], Some(repo_dir))?;
+      .run_capture(
+        &["git", "rev-parse", "--abbrev-ref", "HEAD"],
+        Some(repo_dir),
+      )
+      .unwrap_or_else(|_| "(unknown)".to_string());
 
     let dirty = !ctx
       .runner
@@ -34,11 +40,17 @@ pub fn status_workspace(
     let ahead_behind = if fetch {
       let ahead = ctx
         .runner
-        .run_capture(&["git", "rev-list", "--count", "@{u}..HEAD"], Some(repo_dir))
+        .run_capture(
+          &["git", "rev-list", "--count", "@{u}..HEAD"],
+          Some(repo_dir),
+        )
         .unwrap_or_else(|_| "?".to_string());
       let behind = ctx
         .runner
-        .run_capture(&["git", "rev-list", "--count", "HEAD..@{u}"], Some(repo_dir))
+        .run_capture(
+          &["git", "rev-list", "--count", "HEAD..@{u}"],
+          Some(repo_dir),
+        )
         .unwrap_or_else(|_| "?".to_string());
       format!("  ↑{ahead} ↓{behind}")
     } else {

@@ -1,7 +1,14 @@
 use crate::{
-  cli::{Args, ConfigAction, ProfileAction, WorkspaceAction, args::Command, resolve_with_config}, commands::{mono_repo_mode, single_repo_mode}, config::{
-    ConfigEntry, add_config, create_default_config, list_configs, load_config, remove_config,
-  }, ctx::{DryRunRunner, IoCtx, ProcessRunner, RunCtx, Runner}, interactive::interactive_mode, profile::{add_profile, list_profiles, remove_profile}, utils::check_prerequisites, workspace::{clean_workspace, resolve_workspace, status_workspace, update_workspace},
+  cli::{args::Command, resolve_with_config, Args, ConfigAction, ProfileAction, WorkspaceAction},
+  commands::{mono_repo_mode, single_repo_mode},
+  config::{
+    add_config, create_default_config, list_configs, load_config, remove_config, ConfigEntry,
+  },
+  ctx::{DryRunRunner, IoCtx, ProcessRunner, RunCtx, Runner},
+  interactive::interactive_mode,
+  profile::{add_profile, list_profiles, remove_profile},
+  utils::check_prerequisites,
+  workspace::{clean_workspace, resolve_workspace, status_workspace, update_workspace},
 };
 use clap::Parser;
 use std::{
@@ -15,6 +22,7 @@ const CONFIG_FILE_NAME: &str = ".star-setup.json";
 /// Runs the setup process.
 /// # Errors
 /// Returns an error if the configuration file is missing or corrupted.
+#[allow(clippy::too_many_lines)]
 pub fn run() -> Result<(), Box<dyn Error>> {
   let mut stdin = io::stdin().lock();
   let mut stdout = io::stdout();
@@ -70,25 +78,52 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         }
       },
       Command::Workspace(cmd) => match cmd.action {
-        WorkspaceAction::Update { path, mono_dir, build_dir } => {
-          let workspace = resolve_workspace(path.as_deref(), mono_dir.as_deref(), build_dir.as_deref())?;
+        WorkspaceAction::Update {
+          path,
+          mono_dir,
+          build_dir,
+        } => {
+          let workspace =
+            resolve_workspace(path.as_deref(), mono_dir.as_deref(), build_dir.as_deref())?;
           let mut dry = DryRunRunner;
           let mut real = ProcessRunner;
-          let runner: &mut dyn Runner = if raw.diagnostic.dry_run { &mut dry } else { &mut real };
+          let runner: &mut dyn Runner = if raw.diagnostic.dry_run {
+            &mut dry
+          } else {
+            &mut real
+          };
           let mut ctx = RunCtx { io, runner };
           update_workspace(&workspace, &mut ctx)?;
         }
-        WorkspaceAction::Status { path, mono_dir, build_dir, fetch } => {
-          let workspace = resolve_workspace(path.as_deref(), mono_dir.as_deref(), build_dir.as_deref())?;
+        WorkspaceAction::Status {
+          path,
+          mono_dir,
+          build_dir,
+          fetch,
+        } => {
+          let workspace =
+            resolve_workspace(path.as_deref(), mono_dir.as_deref(), build_dir.as_deref())?;
           let mut real = ProcessRunner;
-          let mut ctx = RunCtx { io, runner: &mut real };
+          let mut ctx = RunCtx {
+            io,
+            runner: &mut real,
+          };
           status_workspace(&workspace, fetch, &mut ctx)?;
         }
-        WorkspaceAction::Clean { path, mono_dir, build_dir } => {
-          let workspace = resolve_workspace(path.as_deref(), mono_dir.as_deref(), build_dir.as_deref())?;
+        WorkspaceAction::Clean {
+          path,
+          mono_dir,
+          build_dir,
+        } => {
+          let workspace =
+            resolve_workspace(path.as_deref(), mono_dir.as_deref(), build_dir.as_deref())?;
           let mut dry = DryRunRunner;
           let mut real = ProcessRunner;
-          let runner: &mut dyn Runner = if raw.diagnostic.dry_run { &mut dry } else { &mut real };
+          let runner: &mut dyn Runner = if raw.diagnostic.dry_run {
+            &mut dry
+          } else {
+            &mut real
+          };
           let mut ctx = RunCtx { io, runner };
           clean_workspace(&workspace, &mut ctx)?;
         }

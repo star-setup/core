@@ -15,7 +15,10 @@ fn test_clean_workspace_no_build_dir() {
   let mut input = empty_input();
   let mut output = Vec::new();
   let mut runner = MockRunner::new();
-  let mut ctx = RunCtx { io: make_io(&mut input, &mut output), runner: &mut runner };
+  let mut ctx = RunCtx {
+    io: make_io(&mut input, &mut output),
+    runner: &mut runner,
+  };
   star_setup::workspace::clean_workspace(&ws, &mut ctx).unwrap();
   let out = String::from_utf8(output).unwrap();
   assert!(out.contains("does not exist"));
@@ -36,7 +39,10 @@ fn test_clean_workspace_removes_build_dir() {
   let mut input = empty_input();
   let mut output = sink();
   let mut runner = MockRunner::new();
-  let mut ctx = RunCtx { io: make_io(&mut input, &mut output), runner: &mut runner };
+  let mut ctx = RunCtx {
+    io: make_io(&mut input, &mut output),
+    runner: &mut runner,
+  };
   star_setup::workspace::clean_workspace(&ws, &mut ctx).unwrap();
   assert!(!build.exists());
 }
