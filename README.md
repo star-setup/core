@@ -171,13 +171,13 @@ build-mono/
 Profiles represent a saved ecosystem of libraries commonly used together.
 ```bash
 # Add a profile
-star-setup --profile-add myprofile user/lib1 user/lib2
+star-setup profile add myprofile user/lib1 user/lib2
 
 # List profiles
-star-setup --list-profiles
+star-setup profile list
 
 # Remove a profile
-star-setup --profile-remove myprofile
+star-setup profile remove myprofile
 
 # Use a profile
 star-setup username/repo --profile myprofile
@@ -190,16 +190,16 @@ Config files are checked in this order:
 
 ```bash
 # Initialize a default config file
-star-setup --init-config
+star-setup config init
 
 # Add a named config
-star-setup --config-add myconfig --ssh --build-type Release
+star-setup config add myconfig --ssh --build-type Release
 
 # List configs
-star-setup --list-configs
+star-setup config list
 
 # Remove a config
-star-setup --config-remove myconfig
+star-setup config remove myconfig
 
 # Use a config
 star-setup username/repo --config myconfig
