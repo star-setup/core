@@ -1,64 +1,14 @@
 use crate::{
-  cli::{Args, ResolvedArgs},
-  commands::{mono_repo_mode, single_repo_mode},
-  config::{
-    add_config, create_default_config, list_configs, load_config, remove_config, ConfigEntry,
-    SetupConfig,
-  },
-  ctx::{DryRunRunner, IoCtx, ProcessRunner, RunCtx, Runner},
-  interactive::interactive_mode,
-  profile::{add_profile, list_profiles, remove_profile},
-  utils::check_prerequisites,
+  cli::{Args, ConfigAction, ProfileAction, args::Command, resolve_with_config}, commands::{mono_repo_mode, single_repo_mode}, config::{
+    ConfigEntry, add_config, create_default_config, list_configs, load_config, remove_config,
+  }, ctx::{DryRunRunner, IoCtx, ProcessRunner, RunCtx, Runner}, interactive::interactive_mode, profile::{add_profile, list_profiles, remove_profile}, utils::check_prerequisites,
 };
 use std::{
   error::Error,
   io::{self, IsTerminal},
   path::{Path, PathBuf},
 };
-
-fn handle_early_commands(
-  args: &ResolvedArgs,
-  config: &mut SetupConfig,
-  io: &mut IoCtx<'_>,
-) -> Result<bool, Box<dyn Error>> {
-  if args.config.init_config {
-    create_default_config(PathBuf::from(CONFIG_FILE_NAME), args.yes, io)?;
-    return Ok(true);
-  }
-
-  if args.config.list_configs {
-    list_configs(config, io);
-    return Ok(true);
-  }
-
-  if args.profile.list_profiles {
-    list_profiles(config, io);
-    return Ok(true);
-  }
-
-  if let Some(name) = args.config.config_remove.as_deref() {
-    remove_config(config, name, args.yes, io)?;
-    return Ok(true);
-  }
-
-  if let Some(name) = args.config.config_add.as_deref() {
-    let entry = ConfigEntry::from(args);
-    add_config(config, name, entry, args.yes, io)?;
-    return Ok(true);
-  }
-
-  if let Some(name) = args.profile.profile_remove.as_deref() {
-    remove_profile(config, name, args.yes, io)?;
-    return Ok(true);
-  }
-
-  if let Some(vals) = args.profile.profile_add.as_ref() {
-    add_profile(config, vals, args.yes, io)?;
-    return Ok(true);
-  }
-
-  Ok(false)
-}
+use clap::Parser;
 
 const CONFIG_FILE_NAME: &str = ".star-setup.json";
 
@@ -78,20 +28,52 @@ pub fn run() -> Result<(), Box<dyn Error>> {
   ];
 
   let mut config = load_config(&locations, &mut stdout);
-  let mut args = Args::parse_with_config(&config)?;
+  let raw = Args::parse();
 
   let mut io = IoCtx {
     input: &mut stdin,
     output: &mut stdout,
-    verbose: args.connection.verbose,
-    timing: args.diagnostic.timing,
-    dry_run: args.diagnostic.dry_run,
+    verbose: raw.connection.verbose,
+    timing: raw.diagnostic.timing,
+    dry_run: raw.diagnostic.dry_run,
   };
 
-  if handle_early_commands(&args, &mut config, &mut io)? {
+  if let Some(command) = raw.command {
+    match command {
+      Command::Config(cmd) => match cmd.action {
+        ConfigAction::Init => {
+          create_default_config(PathBuf::from(CONFIG_FILE_NAME), raw.yes, &mut io)?;
+        }
+        ConfigAction::List => list_configs(&config, &mut io),
+        ConfigAction::Remove { name } => {
+          remove_config(&mut config, &name, raw.yes, &mut io)?;
+        }
+        ConfigAction::Add {
+          name,
+          connection,
+          build,
+          mono,
+          diagnostic,
+        } => {
+          let entry = ConfigEntry::from_flags(&connection, &build, &mono, &diagnostic);
+          add_config(&mut config, &name, entry, raw.yes, &mut io)?;
+        }
+      },
+      Command::Profile(cmd) => match cmd.action {
+        ProfileAction::List => list_profiles(&config, &mut io),
+        ProfileAction::Remove { name } => {
+          remove_profile(&mut config, &name, raw.yes, &mut io)?;
+        }
+        ProfileAction::Add { name, repos } => {
+          let vals = std::iter::once(name).chain(repos).collect::<Vec<_>>();
+          add_profile(&mut config, &vals, raw.yes, &mut io)?;
+        }
+      },
+    }
     return Ok(());
   }
 
+  let mut args = resolve_with_config(raw, &config).map_err(Box::<dyn Error>::from)?;
   if args.repo.is_none() {
     if is_terminal {
       interactive_mode(&mut args, &mut io)?;

@@ -23,8 +23,8 @@ pub fn resolve_bool(positive: bool, negative: bool, config: Option<bool>, defaul
 /// # Errors
 /// Returns an error if the named config does not exist in the provided `SetupConfig`.
 pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<ResolvedArgs, String> {
-  let config_name = args.config.config_name.as_deref().unwrap_or("default");
-  if let Some(name) = &args.config.config_name {
+  let config_name = args.config_name.as_deref().unwrap_or("default");
+  if let Some(name) = &args.config_name {
     if !config.configs.contains_key(name.as_str()) {
       return Err(format!("Configuration '{name}' not found"));
     }
@@ -111,7 +111,5 @@ pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<Resol
       repos,
       profile,
     },
-    config: args.config,
-    profile: args.profile,
   })
 }
