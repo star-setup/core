@@ -1,7 +1,7 @@
 pub mod clone;
 pub use clone::clone_mono_repos;
 pub mod config;
-pub use config::{create_mono_repo_cmakelists, create_mono_repo_mesonbuild};
+pub use config::{create_mono_repo_cmakelists, create_mono_repo_mesonbuild, create_mono_repo_package_json};
 pub mod display;
 pub use display::print_setup_complete;
 pub mod mode;

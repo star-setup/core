@@ -6,6 +6,8 @@ pub enum BuildSystem {
   Cmake,
   /// Meson build system (`meson.build`).
   Meson,
+  /// npm build system (`package.json`).
+  Npm,
 }
 
 #[derive(Default, Clone, Serialize, Deserialize, PartialEq, Debug)]
@@ -54,7 +56,10 @@ impl std::str::FromStr for BuildSystem {
     match s.to_lowercase().as_str() {
       "cmake" => Ok(Self::Cmake),
       "meson" => Ok(Self::Meson),
-      _ => Err(format!("Unknown build system '{s}'. Valid: cmake, meson")),
+      "npm" => Ok(Self::Npm),
+      _ => Err(format!(
+        "Unknown build system '{s}'. Valid: cmake, meson, npm"
+      )),
     }
   }
 }

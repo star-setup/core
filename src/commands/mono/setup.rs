@@ -1,8 +1,5 @@
 use crate::{
-  cli::BuildSystem,
-  commands::{create_mono_repo_cmakelists, create_mono_repo_mesonbuild, hoist_wraps},
-  ctx::RunCtx,
-  repository::repo_dir_name,
+  cli::BuildSystem, commands::{create_mono_repo_cmakelists, create_mono_repo_mesonbuild, hoist_wraps, mono::create_mono_repo_package_json}, ctx::RunCtx, repository::repo_dir_name,
 };
 use std::path::PathBuf;
 
@@ -38,6 +35,10 @@ pub fn generate_mono_config(
         .collect();
       create_mono_repo_mesonbuild(mono_repo_path, &subproject_names, &mut ctx.io)?;
       Ok(Some(map))
+    }
+    BuildSystem::Npm => {
+      create_mono_repo_package_json(mono_repo_path, repos, &mut ctx.io)?;
+      Ok(None)
     }
   }
 }
