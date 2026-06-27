@@ -1,11 +1,19 @@
 use crate::{
   cli::{
-    resolve_with_config, BuildFlags, ConfigFlags, ConnectionFlags, DiagnosticFlags, MonoRepoFlags,
-    ProfileFlags, ResolvedArgs,
+    commands::{ConfigCommand, ProfileCommand},
+    resolve_with_config, BuildFlags, ConnectionFlags, DiagnosticFlags, MonoRepoFlags, ResolvedArgs,
   },
   config::SetupConfig,
 };
-use clap::Parser;
+use clap::{Parser, Subcommand};
+
+#[derive(Subcommand)]
+pub enum Command {
+  /// Manage saved configurations.
+  Config(ConfigCommand),
+  /// Manage saved profiles.
+  Profile(ProfileCommand),
+}
 
 /// Top-level CLI arguments for star-setup.
 #[derive(Parser)]
@@ -22,6 +30,13 @@ pub struct Args {
   #[arg(short = 'y', long)]
   pub yes: bool,
 
+  /// Select a named configuration to use
+  #[arg(long = "config")]
+  pub config_name: Option<String>,
+
+  #[command(subcommand)]
+  pub command: Option<Command>,
+
   #[command(flatten)]
   pub connection: ConnectionFlags,
 
@@ -30,12 +45,6 @@ pub struct Args {
 
   #[command(flatten)]
   pub mono: MonoRepoFlags,
-
-  #[command(flatten)]
-  pub config: ConfigFlags,
-
-  #[command(flatten)]
-  pub profile: ProfileFlags,
 
   #[command(flatten)]
   pub diagnostic: DiagnosticFlags,

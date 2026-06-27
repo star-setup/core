@@ -2,8 +2,7 @@
 
 use star_setup::{
   cli::{
-    resolve_with_config, Args, BuildFlags, ConfigFlags, ConnectionFlags, DiagnosticFlags,
-    MonoRepoFlags, ProfileFlags,
+    resolve_with_config, Args, BuildFlags, ConnectionFlags, DiagnosticFlags, MonoRepoFlags,
   },
   config::SetupConfig,
 };
@@ -12,6 +11,8 @@ pub fn default_args() -> Args {
   Args {
     repo: None,
     yes: false,
+    config_name: None,
+    command: None,
     diagnostic: DiagnosticFlags {
       timing: false,
       dry_run: false,
@@ -38,18 +39,6 @@ pub fn default_args() -> Args {
       mono_dir: None,
       repos: None,
       profile: None,
-    },
-    config: ConfigFlags {
-      init_config: false,
-      config_name: None,
-      config_add: None,
-      config_remove: None,
-      list_configs: false,
-    },
-    profile: ProfileFlags {
-      profile_add: None,
-      profile_remove: None,
-      list_profiles: false,
     },
   }
 }

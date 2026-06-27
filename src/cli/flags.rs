@@ -77,45 +77,6 @@ pub struct MonoRepoFlags {
 }
 
 #[derive(ClapArgs)]
-#[allow(clippy::struct_excessive_bools)]
-pub struct ConfigFlags {
-  /// Create a default config file in the current directory
-  #[arg(long)]
-  pub init_config: bool,
-
-  /// Select a named configuration to use
-  #[arg(long = "config")]
-  pub config_name: Option<String>,
-
-  /// Add a new config
-  #[arg(long)]
-  pub config_add: Option<String>,
-
-  /// Remove a saved configuration
-  #[arg(long)]
-  pub config_remove: Option<String>,
-
-  /// List all saved configs
-  #[arg(long)]
-  pub list_configs: bool,
-}
-
-#[derive(ClapArgs)]
-pub struct ProfileFlags {
-  /// Add a new profile: NAME REPO1 [REPO2 ...]
-  #[arg(long, num_args = 2..)]
-  pub profile_add: Option<Vec<String>>,
-
-  /// Remove a saved profile
-  #[arg(long)]
-  pub profile_remove: Option<String>,
-
-  /// List all saved profiles
-  #[arg(long)]
-  pub list_profiles: bool,
-}
-
-#[derive(ClapArgs)]
 pub struct DiagnosticFlags {
   /// Show timing information for each phase
   #[arg(long)]

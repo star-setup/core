@@ -143,7 +143,7 @@ fn test_resolve_with_config_cli_overrides_config() {
 fn test_resolve_with_config_errors_on_missing_config_name() {
   let config = SetupConfig::new();
   let mut args = default_args();
-  args.config.config_name = Some("nonexistent".to_string());
+  args.config_name = Some("nonexistent".to_string());
   let result = resolve_with_config(args, &config);
   assert!(result.is_err());
 }
@@ -186,7 +186,7 @@ fn test_resolve_with_config_named_config_pulls_correct_values() {
     },
   );
   let mut args = default_args();
-  args.config.config_name = Some("myconfig".to_string());
+  args.config_name = Some("myconfig".to_string());
   let resolved = resolve_with_config(args, &config).unwrap();
   assert!(resolved.connection.ssh);
   assert_eq!(resolved.build.build_type, BuildType::RelWithDebInfo);
