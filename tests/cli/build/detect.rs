@@ -158,7 +158,13 @@ fn test_detect_build_system_npm() {
   let dir = npm_dir();
   let mut runner = ProcessRunner;
   let mut ctx = RunCtx {
-    io: IoCtx { input: &mut b"".as_ref(), output: &mut Vec::new(), verbose: false, timing: false, dry_run: false },
+    io: IoCtx {
+      input: &mut b"".as_ref(),
+      output: &mut Vec::new(),
+      verbose: false,
+      timing: false,
+      dry_run: false,
+    },
     runner: &mut runner,
   };
   let result = detect_build_system(dir.path(), &mut ctx).unwrap();
@@ -171,7 +177,13 @@ fn test_detect_build_system_cmake_and_npm_picks_npm() {
   std::fs::write(dir.path().join("package.json"), "{}").unwrap();
   let mut runner = ProcessRunner;
   let mut ctx = RunCtx {
-    io: IoCtx { input: &mut b"2\n".as_ref(), output: &mut Vec::new(), verbose: false, timing: false, dry_run: false },
+    io: IoCtx {
+      input: &mut b"2\n".as_ref(),
+      output: &mut Vec::new(),
+      verbose: false,
+      timing: false,
+      dry_run: false,
+    },
     runner: &mut runner,
   };
   let result = detect_build_system(dir.path(), &mut ctx).unwrap();
@@ -183,7 +195,13 @@ fn test_detect_mono_build_system_npm() {
   let dir = npm_dir();
   let mut runner = ProcessRunner;
   let mut ctx = RunCtx {
-    io: IoCtx { input: &mut b"".as_ref(), output: &mut Vec::new(), verbose: false, timing: false, dry_run: false },
+    io: IoCtx {
+      input: &mut b"".as_ref(),
+      output: &mut Vec::new(),
+      verbose: false,
+      timing: false,
+      dry_run: false,
+    },
     runner: &mut runner,
   };
   let result = detect_mono_build_system(&[dir.path().to_path_buf()], &mut ctx).unwrap();
@@ -196,7 +214,13 @@ fn test_detect_mono_build_system_cmake_and_npm_picks_npm() {
   std::fs::write(dir.path().join("package.json"), "{}").unwrap();
   let mut runner = ProcessRunner;
   let mut ctx = RunCtx {
-    io: IoCtx { input: &mut b"2\n".as_ref(), output: &mut Vec::new(), verbose: false, timing: false, dry_run: false },
+    io: IoCtx {
+      input: &mut b"2\n".as_ref(),
+      output: &mut Vec::new(),
+      verbose: false,
+      timing: false,
+      dry_run: false,
+    },
     runner: &mut runner,
   };
   let result = detect_mono_build_system(&[dir.path().to_path_buf()], &mut ctx).unwrap();
