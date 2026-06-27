@@ -38,7 +38,14 @@ impl Runner for MockRunner {
 
   fn run_capture(&mut self, cmd: &[&str], cwd: Option<&Path>) -> Result<String, String> {
     let cmd_vec: Vec<String> = cmd.iter().map(ToString::to_string).collect();
-    self.calls.push((cmd_vec, cwd.map(Path::to_path_buf)));
+    self
+      .calls
+      .push((cmd_vec.clone(), cwd.map(Path::to_path_buf)));
+    if let Some(fail) = &self.fail_on {
+      if cmd_vec.contains(fail) {
+        return Err(format!("MockRunner: forced failure on {fail}"));
+      }
+    }
     Ok(
       self
         .capture_responses
