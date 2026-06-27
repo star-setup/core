@@ -122,3 +122,32 @@ endforeach
     },
   )
 }
+
+/// Generates a root `package.json` wiring all repositories as npm workspaces.
+/// # Errors
+/// Returns an error if the `package.json` file cannot be written to `mono_dir`.
+pub fn create_mono_repo_package_json(
+  mono_dir: &Path,
+  repos: &[String],
+  io: &mut IoCtx<'_>,
+) -> Result<(), String> {
+  writeln!(io.output, "  Creating npm workspace configuration").ok();
+  write_mono_repo_config(
+    mono_dir,
+    repos,
+    io,
+    "package.json",
+    |modules| {
+      modules
+        .iter()
+        .map(|m| format!("    \"repos/{m}\""))
+        .collect::<Vec<_>>()
+        .join(",\n")
+    },
+    |modules_npm| {
+      format!(
+        "{{\n  \"name\": \"star-setup-workspace\",\n  \"private\": true,\n  \"workspaces\": [\n{modules_npm}\n  ]\n}}\n"
+      )
+    },
+  )
+}
