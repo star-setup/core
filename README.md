@@ -167,6 +167,30 @@ build-mono/
 └── build/          # Build output
 ```
 
+#### Workspace Mode
+Manage an existing mono-repo workspace.
+
+```bash
+# Pull latest changes for all repos
+star-setup workspace update
+
+# Show status of all repos
+star-setup workspace status
+
+# Show status with ahead/behind remote
+star-setup workspace status --fetch
+
+# Remove build directory
+star-setup workspace clean
+```
+
+Workspace flags:
+| Flag | Description |
+|------|-------------|
+| `--path <DIR>` | Workspace root directory (default: current directory) |
+| `--mono-dir <DIR>` | Workspace directory name (default: `build-mono`) |
+| `--build-dir <DIR>` | Build directory name (default: `build`) |
+
 ### Profile Mode
 Profiles represent a saved ecosystem of libraries commonly used together.
 ```bash
