@@ -13,34 +13,22 @@ pub fn interactive_mode(args: &mut ResolvedArgs, io: &mut IoCtx<'_>) -> Result<(
   writeln!(io.output, "Star Setup Interactive Mode").ok();
 
   if args.repo.is_none() {
-    loop {
-      let repo = ask("Enter repository (user/repo or URL)", io)?;
-      if !repo.is_empty() {
-        args.repo = Some(repo);
-        break;
-      }
-    }
+    args.repo = Some(ask_required("Enter repository (user/repo or URL)", io)?);
   }
 
-  if !args.connection.ssh {
-    args.connection.ssh = ask_yesno("Use SSH?", false, io)?;
-  }
-  if !args.connection.verbose {
-    args.connection.verbose = ask_yesno("Verbose?", false, io)?;
-    io.verbose = args.connection.verbose;
-  }
-  if !args.diagnostic.timing {
-    args.diagnostic.timing = ask_yesno("Show timing?", false, io)?;
-    io.timing = args.diagnostic.timing;
-  }
-  if !args.build.clean {
-    args.build.clean = ask_yesno("Clean build directory if exists?", false, io)?;
-  }
+  args.connection.ssh = ask_bool_if("Use SSH?", args.connection.ssh, io)?;
+
+  args.connection.verbose = ask_bool_if("Verbose?", args.connection.verbose, io)?;
+  io.verbose = args.connection.verbose;
+
+  args.diagnostic.timing = ask_bool_if("Show timing?", args.diagnostic.timing, io)?;
+  io.timing = args.diagnostic.timing;
+
+  args.build.clean = ask_bool_if("Clean build directory if exists?", args.build.clean, io)?;
 
   if !args.mono.mono_repo {
     loop {
-      let mode = ask("Select mode: (1) Single Repo (2) Mono-Repo", io)?;
-      match mode.as_str() {
+      match ask("Select mode: (1) Single Repo (2) Mono-Repo", io)?.as_str() {
         "1" => break,
         "2" => {
           args.mono.mono_repo = true;
@@ -53,29 +41,17 @@ pub fn interactive_mode(args: &mut ResolvedArgs, io: &mut IoCtx<'_>) -> Result<(
 
   if args.mono.mono_repo && args.mono.profile.is_none() && args.mono.repos.is_none() {
     loop {
-      let choice = ask("Mono-repo: (1) Use profile (2) Manual repo list", io)?;
-      match choice.as_str() {
+      match ask("Mono-repo: (1) Use profile (2) Manual repo list", io)?.as_str() {
         "1" => {
-          loop {
-            let profile = ask("Profile name", io)?;
-            if !profile.is_empty() {
-              args.mono.profile = Some(profile);
-              break;
-            }
-          }
+          args.mono.profile = Some(ask_required("Profile name", io)?);
           break;
         }
         "2" => {
-          loop {
-            let repo_list = ask(
-              "Enter repos (space separated 'username/lib1 username/lib2')",
-              io,
-            )?;
-            if !repo_list.is_empty() {
-              args.mono.repos = Some(repo_list.split_whitespace().map(String::from).collect());
-              break;
-            }
-          }
+          let repo_list = ask_required(
+            "Enter repos (space separated 'username/lib1 username/lib2')",
+            io,
+          )?;
+          args.mono.repos = Some(repo_list.split_whitespace().map(String::from).collect());
           break;
         }
         _ => {}
@@ -87,10 +63,27 @@ pub fn interactive_mode(args: &mut ResolvedArgs, io: &mut IoCtx<'_>) -> Result<(
   args.build.build_type = build_type_str.parse::<BuildType>()?;
   args.build.build_dir = ask_default("Build directory", &args.build.build_dir, io)?;
 
-  if !args.build.no_build {
-    args.build.no_build = ask_yesno("Configure only (skip build)?", false, io)?;
-  }
+  args.build.no_build = ask_bool_if("Configure only (skip build)?", args.build.no_build, io)?;
 
   writeln!(io.output, "\nInteractive mode complete").ok();
   Ok(())
+}
+
+/// Helper to ask a boolean question only if the condition isn't already met.
+fn ask_bool_if(prompt: &str, current_val: bool, io: &mut IoCtx<'_>) -> Result<bool, String> {
+  if !current_val {
+    ask_yesno(prompt, false, io)
+  } else {
+    Ok(current_val)
+  }
+}
+
+/// Helper to repeatedly prompt until a non-empty string is provided.
+fn ask_required(prompt: &str, io: &mut IoCtx<'_>) -> Result<String, String> {
+  loop {
+    let response = ask(prompt, io)?;
+    if !response.is_empty() {
+      return Ok(response);
+    }
+  }
 }
