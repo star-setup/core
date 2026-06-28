@@ -6,6 +6,12 @@ use crate::{
 };
 use std::path::Path;
 
+fn to_str(path: &Path) -> Result<&str, String> {
+  path
+    .to_str()
+    .ok_or_else(|| format!("Invalid path: {}", path.display()))
+}
+
 /// Runs `CMake` configuration and optionally builds the project in `build_path`.
 /// # Errors
 /// Returns an error if any `CMake` command fails.
@@ -58,8 +64,8 @@ pub fn meson_build(
   let buildtype_flag = format!("--buildtype={}", args.build.build_type.to_meson());
   let mut meson_cmd = vec!["meson", "setup"];
   meson_cmd.push(&buildtype_flag);
-  meson_cmd.push(build_path.to_str().ok_or("Invalid build path")?);
-  meson_cmd.push(source_path.to_str().ok_or("Invalid source path")?);
+  meson_cmd.push(to_str(build_path)?);
+  meson_cmd.push(to_str(source_path)?);
   meson_cmd.extend(args.build.meson_flags.iter().map(String::as_str));
 
   crate::time!(ctx.io.timing, ctx.io.output, "Meson setup", {
@@ -69,12 +75,7 @@ pub fn meson_build(
     writeln!(ctx.io.output, "Building project\n").ok();
     crate::time!(ctx.io.timing, ctx.io.output, "Meson compile", {
       ctx.runner.run(
-        &[
-          "meson",
-          "compile",
-          "-C",
-          build_path.to_str().ok_or("Invalid build path")?,
-        ],
+        &["meson", "compile", "-C", to_str(build_path)?],
         None,
         &mut ctx.io,
       )?;
