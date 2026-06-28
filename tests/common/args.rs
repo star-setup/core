@@ -31,6 +31,8 @@ pub fn default_args() -> Args {
       no_clean: false,
       cmake_flags: vec![],
       meson_flags: vec![],
+      watch: false,
+      no_watch: false,
     },
     mono: MonoRepoFlags {
       mono_repo: false,

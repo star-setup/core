@@ -5,7 +5,7 @@ use crate::{
     mono::{
       clone_mono_repos,
       display::{resolve_setup_paths, SetupPaths},
-      generate_mono_config, print_setup_complete,
+      generate_mono_config, generate_watch_scripts, open_watch_scripts, print_setup_complete,
     },
     prepare_build_dir, resolve_repos_for_mono, resolve_test_repo,
   },
@@ -79,11 +79,22 @@ pub fn mono_repo_mode(
     None
   };
 
+  if build_system == Some(BuildSystem::Npm) && !args.build.no_watch && !ctx.flags.dry_run {
+    generate_watch_scripts(&mono_repo_path, &repos_path, &repos, &mut ctx.io)?;
+    if args.build.watch {
+      open_watch_scripts(&mono_repo_path, &mut ctx.io)?;
+    }
+  }
+
   let paths = if ctx.flags.dry_run {
     SetupPaths {
       mono_repo_disp: mono_repo_path.clone(),
       exe_path: None,
-      build_disp: Some(build_path.clone()),
+      build_disp: if build_system == Some(BuildSystem::Npm) {
+        None
+      } else {
+        Some(build_path.clone())
+      },
     }
   } else {
     resolve_setup_paths(

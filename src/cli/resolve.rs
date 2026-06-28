@@ -102,6 +102,8 @@ pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<Resol
       clean,
       cmake_flags,
       meson_flags,
+      watch: args.build.watch,
+      no_watch: args.build.no_watch,
     },
     mono: ResolvedMonoFlags {
       mono_repo,

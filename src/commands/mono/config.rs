@@ -128,26 +128,65 @@ endforeach
 /// Returns an error if the `package.json` file cannot be written to `mono_dir`.
 pub fn create_mono_repo_package_json(
   mono_dir: &Path,
+  repos_path: &Path,
   repos: &[String],
   io: &mut IoCtx<'_>,
 ) -> Result<(), String> {
   writeln!(io.output, "  Creating npm workspace configuration").ok();
-  write_mono_repo_config(
-    mono_dir,
-    repos,
-    io,
-    "package.json",
-    |modules| {
-      modules
-        .iter()
-        .map(|m| format!("    \"repos/{m}\""))
-        .collect::<Vec<_>>()
-        .join(",\n")
-    },
-    |modules_npm| {
-      format!(
-        "{{\n  \"name\": \"star-setup-workspace\",\n  \"private\": true,\n  \"workspaces\": [\n{modules_npm}\n  ]\n}}\n"
+
+  let module_names: Vec<String> = repos.iter().map(|r| repo_dir_name(r)).collect();
+
+  let workspaces = module_names
+    .iter()
+    .map(|m| format!("    \"repos/{m}\""))
+    .collect::<Vec<_>>()
+    .join(",\n");
+
+  // Read package name from each lib repo (skip first — test repo)
+  let mut overrides = Vec::new();
+  for (i, dir) in module_names.iter().enumerate() {
+    if i == 0 {
+      continue;
+    }
+    let pkg_path = repos_path.join(dir).join("package.json");
+    if let Ok(content) = fs::read_to_string(&pkg_path) {
+      if let Ok(json) = serde_json::from_str::<serde_json::Value>(&content) {
+        if let Some(name) = json.get("name").and_then(|n| n.as_str()) {
+          overrides.push(format!("    \"{name}\": \"*\""));
+        }
+      }
+    } else if io.verbose {
+      writeln!(
+        io.output,
+        "  Warning: could not read {dir}/package.json, skipping override"
       )
-    },
+      .ok();
+    }
+  }
+
+  let overrides_block = if overrides.is_empty() {
+    String::new()
+  } else {
+    format!(",\n  \"overrides\": {{\n{}\n  }}", overrides.join(",\n"))
+  };
+
+  let content = format!(
+    "{{\n  \"name\": \"star-setup-workspace\",\n  \"private\": true,\n  \"workspaces\": [\n{workspaces}\n  ]{overrides_block}\n}}\n"
+  );
+
+  let file_path = mono_dir.join("package.json");
+  crate::time!(io.timing, io.output, "Generate package.json", {
+    fs::write(&file_path, content).map_err(|e| e.to_string())?;
+  });
+
+  #[allow(clippy::to_string_in_format_args)]
+  writeln!(
+    io.output,
+    "Created root {} at {}\n",
+    "package.json".to_string(),
+    mono_dir.display()
   )
+  .ok();
+
+  Ok(())
 }
