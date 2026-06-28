@@ -1,10 +1,5 @@
-use std::path::Path;
-
-use super::super::common::{empty_input, make_io, sink};
-use star_setup::{
-  commands::{hoist_wraps, parse_project_name, parse_provide_pairs},
-  ctx::IoCtx,
-};
+use crate::common::with_io_dir;
+use star_setup::commands::{hoist_wraps, parse_project_name, parse_provide_pairs};
 use tempfile::TempDir;
 
 #[test]
@@ -72,21 +67,9 @@ fn make_repo(project_name: &str) -> TempDir {
   tmp
 }
 
-fn run_hoist_test<F>(test_logic: F)
-where
-  F: FnOnce(&Path, &mut IoCtx<'_>),
-{
-  let repos_dir = TempDir::new().unwrap();
-  let mut input = empty_input();
-  let mut output = sink();
-  let mut io = make_io(&mut input, &mut output);
-
-  test_logic(repos_dir.path(), &mut io);
-}
-
 #[test]
 fn test_hoist_wraps_empty_repos() {
-  run_hoist_test(|repos_dir, io| {
+  with_io_dir(|repos_dir, io| {
     let result = hoist_wraps(repos_dir, &[], io).unwrap();
     assert!(result.is_empty());
   });
@@ -94,7 +77,7 @@ fn test_hoist_wraps_empty_repos() {
 
 #[test]
 fn test_hoist_wraps_skips_repo_without_meson_build() {
-  run_hoist_test(|repos_dir, io| {
+  with_io_dir(|repos_dir, io| {
     let repo = TempDir::new().unwrap();
     let result = hoist_wraps(repos_dir, &[repo.path().to_path_buf()], io).unwrap();
     assert!(result.is_empty());
@@ -103,7 +86,7 @@ fn test_hoist_wraps_skips_repo_without_meson_build() {
 
 #[test]
 fn test_hoist_wraps_emits_wrap_without_provide() {
-  run_hoist_test(|repos_dir, io| {
+  with_io_dir(|repos_dir, io| {
     let repo = make_repo("my-lib");
     let result = hoist_wraps(repos_dir, &[repo.path().to_path_buf()], io).unwrap();
 
@@ -119,7 +102,7 @@ fn test_hoist_wraps_emits_wrap_without_provide() {
 
 #[test]
 fn test_hoist_wraps_emits_wrap_with_provide() {
-  run_hoist_test(|repos_dir, io| {
+  with_io_dir(|repos_dir, io| {
     let repo = make_repo("my-lib");
     let subprojects = repo.path().join("subprojects");
     std::fs::create_dir(&subprojects).unwrap();
