@@ -1,5 +1,6 @@
 use crate::utils::process::run_command;
 use std::{
+  error::Error,
   io::{BufRead, Write},
   path::Path,
 };
@@ -78,4 +79,18 @@ pub struct IoCtx<'a> {
 pub struct RunCtx<'io, 'run> {
   pub io: IoCtx<'io>,
   pub runner: &'run mut dyn Runner,
+}
+
+/// Helper to quickly execute a workspace/repo task with the correct runner.
+/// # Errors
+/// Returns an error if the closure function `f` execution returns an error block.
+pub fn with_runner<F>(io: IoCtx, f: F) -> Result<(), Box<dyn Error>>
+where
+  F: FnOnce(&mut RunCtx) -> Result<(), Box<dyn Error>>,
+{
+  let mut dry = DryRunRunner;
+  let mut real = ProcessRunner;
+  let runner: &mut dyn Runner = if io.dry_run { &mut dry } else { &mut real };
+  let mut ctx = RunCtx { io, runner };
+  f(&mut ctx)
 }
