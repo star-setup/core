@@ -3,7 +3,7 @@
 use crate::{
   cli::{BuildType, ResolvedArgs},
   ctx::IoCtx,
-  prompts::{ask, ask_default, ask_required, ask_bool_if},
+  prompts::{ask, ask_bool_if, ask_default, ask_required},
 };
 
 /// Interactive CLI mode — prompts for any unset arguments.
