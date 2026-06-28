@@ -6,7 +6,7 @@ use crate::{ctx::RunCtx, workspace::resolve::Workspace};
 pub fn status_workspace(
   workspace: &Workspace,
   fetch: bool,
-  ctx: &mut RunCtx<'_>,
+  ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
   writeln!(ctx.io.output, "Workspace status:\n").ok();
 

@@ -4,7 +4,7 @@ use std::fs;
 /// Removes the build directory from the workspace.
 /// # Errors
 /// Returns an error if the build directory cannot be removed.
-pub fn clean_workspace(workspace: &Workspace, ctx: &mut RunCtx<'_>) -> Result<(), String> {
+pub fn clean_workspace(workspace: &Workspace, ctx: &mut RunCtx<'_, '_>) -> Result<(), String> {
   if !workspace.build_path.exists() {
     writeln!(
       ctx.io.output,

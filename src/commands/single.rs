@@ -15,7 +15,7 @@ use std::path::Path;
 pub fn single_repo_mode(
   args: &ResolvedArgs,
   base_dir: &Path,
-  ctx: &mut RunCtx<'_>,
+  ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
   let total = std::time::Instant::now();
 

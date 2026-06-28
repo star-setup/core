@@ -19,6 +19,18 @@ use std::{
 
 const CONFIG_FILE_NAME: &str = ".star-setup.json";
 
+/// Helper to quickly execute a workspace/repo task with the correct runner
+fn with_runner<F>(io: IoCtx, f: F) -> Result<(), Box<dyn Error>>
+where
+  F: FnOnce(&mut RunCtx) -> Result<(), Box<dyn Error>>,
+{
+  let mut dry = DryRunRunner;
+  let mut real = ProcessRunner;
+  let runner: &mut dyn Runner = if io.dry_run { &mut dry } else { &mut real };
+  let mut ctx = RunCtx { io, runner };
+  f(&mut ctx)
+}
+
 /// Runs the setup process.
 /// # Errors
 /// Returns an error if the configuration file is missing or corrupted.
@@ -83,17 +95,10 @@ pub fn run() -> Result<(), Box<dyn Error>> {
           mono_dir,
           build_dir,
         } => {
-          let workspace =
-            resolve_workspace(path.as_deref(), mono_dir.as_deref(), build_dir.as_deref())?;
-          let mut dry = DryRunRunner;
-          let mut real = ProcessRunner;
-          let runner: &mut dyn Runner = if raw.diagnostic.dry_run {
-            &mut dry
-          } else {
-            &mut real
-          };
-          let mut ctx = RunCtx { io, runner };
-          update_workspace(&workspace, &mut ctx)?;
+          let ws = resolve_workspace(path.as_deref(), mono_dir.as_deref(), build_dir.as_deref())?;
+          with_runner(io, |ctx| {
+            update_workspace(&ws, ctx).map_err(Box::<dyn Error>::from)
+          })?;
         }
         WorkspaceAction::Status {
           path,
@@ -101,31 +106,22 @@ pub fn run() -> Result<(), Box<dyn Error>> {
           build_dir,
           fetch,
         } => {
-          let workspace =
-            resolve_workspace(path.as_deref(), mono_dir.as_deref(), build_dir.as_deref())?;
-          let mut real = ProcessRunner;
-          let mut ctx = RunCtx {
-            io,
-            runner: &mut real,
-          };
-          status_workspace(&workspace, fetch, &mut ctx)?;
+          let ws = resolve_workspace(path.as_deref(), mono_dir.as_deref(), build_dir.as_deref())?;
+          let mut status_io = io;
+          status_io.dry_run = false;
+          with_runner(status_io, |ctx| {
+            status_workspace(&ws, fetch, ctx).map_err(Box::<dyn Error>::from)
+          })?;
         }
         WorkspaceAction::Clean {
           path,
           mono_dir,
           build_dir,
         } => {
-          let workspace =
-            resolve_workspace(path.as_deref(), mono_dir.as_deref(), build_dir.as_deref())?;
-          let mut dry = DryRunRunner;
-          let mut real = ProcessRunner;
-          let runner: &mut dyn Runner = if raw.diagnostic.dry_run {
-            &mut dry
-          } else {
-            &mut real
-          };
-          let mut ctx = RunCtx { io, runner };
-          clean_workspace(&workspace, &mut ctx)?;
+          let ws = resolve_workspace(path.as_deref(), mono_dir.as_deref(), build_dir.as_deref())?;
+          with_runner(io, |ctx| {
+            clean_workspace(&ws, ctx).map_err(Box::<dyn Error>::from)
+          })?;
         }
       },
     }
@@ -143,16 +139,14 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
   check_prerequisites(&mut io)?;
 
-  let mut dry = DryRunRunner;
-  let mut real = ProcessRunner;
-  let runner: &mut dyn Runner = if io.dry_run { &mut dry } else { &mut real };
-  let mut ctx = RunCtx { io, runner };
-
-  if args.mono.mono_repo {
-    mono_repo_mode(&args, &config, Path::new("."), &mut ctx)?;
-  } else {
-    single_repo_mode(&args, Path::new("."), &mut ctx)?;
-  }
+  with_runner(io, |ctx| {
+    if args.mono.mono_repo {
+      mono_repo_mode(&args, &config, Path::new("."), ctx)?;
+    } else {
+      single_repo_mode(&args, Path::new("."), ctx)?;
+    }
+    Ok(())
+  })?;
 
   Ok(())
 }

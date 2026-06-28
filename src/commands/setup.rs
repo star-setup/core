@@ -11,7 +11,7 @@ use std::{fs, path::Path};
 pub fn prepare_build_dir(
   build_path: &std::path::Path,
   clean: bool,
-  ctx: &mut RunCtx<'_>,
+  ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
   if clean && ctx.io.dry_run {
     writeln!(ctx.io.output, "Cleaning build directory\n").ok();
@@ -53,7 +53,7 @@ pub fn configure_and_build(
   build_path: &Path,
   build_system: BuildSystem,
   is_mono: bool,
-  ctx: &mut RunCtx<'_>,
+  ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
   writeln!(ctx.io.output, "Configuring project\n").ok();
   build_project(args, build_path, project_path, build_system, is_mono, ctx)

@@ -3,7 +3,7 @@ use crate::{ctx::RunCtx, workspace::resolve::Workspace};
 /// Pulls latest changes for all repositories in the workspace.
 /// # Errors
 /// Returns an error if any `git pull` command fails.
-pub fn update_workspace(workspace: &Workspace, ctx: &mut RunCtx<'_>) -> Result<(), String> {
+pub fn update_workspace(workspace: &Workspace, ctx: &mut RunCtx<'_, '_>) -> Result<(), String> {
   writeln!(
     ctx.io.output,
     "Updating {} repositories\n",

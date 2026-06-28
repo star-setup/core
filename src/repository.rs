@@ -41,7 +41,7 @@ pub fn clone_repository(
   repo_path: &str,
   target_dir: &Path,
   use_ssh: bool,
-  ctx: &mut RunCtx<'_>,
+  ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
   let repo_name = repo_dir_name(repo_path);
   let repo_dir = target_dir.join(&repo_name);

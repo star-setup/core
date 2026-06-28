@@ -75,7 +75,7 @@ pub struct IoCtx<'a> {
 }
 
 /// Full execution context combining IO and a command runner.
-pub struct RunCtx<'a> {
-  pub io: IoCtx<'a>,
-  pub runner: &'a mut dyn Runner,
+pub struct RunCtx<'io, 'run> {
+  pub io: IoCtx<'io>,
+  pub runner: &'run mut dyn Runner,
 }

@@ -13,7 +13,7 @@ pub fn cmake_build(
   args: &ResolvedArgs,
   build_path: &Path,
   mono: bool,
-  ctx: &mut RunCtx<'_>,
+  ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
   let build_type_flag = format!("-DCMAKE_BUILD_TYPE={}", args.build.build_type.to_cmake());
   let mut cmake_cmd = if mono {
@@ -53,7 +53,7 @@ pub fn meson_build(
   args: &ResolvedArgs,
   build_path: &Path,
   source_path: &Path,
-  ctx: &mut RunCtx<'_>,
+  ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
   let buildtype_flag = format!("--buildtype={}", args.build.build_type.to_meson());
   let mut meson_cmd = vec!["meson", "setup"];
@@ -92,7 +92,7 @@ pub fn build_project(
   source_path: &Path,
   build_system: BuildSystem,
   mono: bool,
-  ctx: &mut RunCtx<'_>,
+  ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
   match build_system {
     BuildSystem::Cmake => cmake_build(args, build_path, mono, ctx),
