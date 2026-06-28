@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum BuildSystem {
   /// `CMake` build system (`CMakeLists.txt`).
   Cmake,
@@ -8,7 +10,26 @@ pub enum BuildSystem {
   Meson,
 }
 
-#[derive(Default, Clone, Serialize, Deserialize, PartialEq, Debug)]
+impl FromStr for BuildSystem {
+  type Err = String;
+
+  /// Parses a build system string.
+  /// # Errors
+  /// Returns an error if the string does not match `cmake` or `meson`.
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    let systems = [("cmake", Self::Cmake), ("meson", Self::Meson)];
+
+    for (name, variant) in systems {
+      if s.eq_ignore_ascii_case(name) {
+        return Ok(variant);
+      }
+    }
+
+    Err(format!("Unknown build system '{s}'. Valid: cmake, meson"))
+  }
+}
+
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum BuildType {
   /// Debug build with no optimizations.
@@ -17,8 +38,10 @@ pub enum BuildType {
   /// Optimized release build.
   Release,
   /// Release build with debug info.
+  #[serde(alias = "relwithdebinfo", alias = "debugoptimized")]
   RelWithDebInfo,
   /// Minimized binary size release build.
+  #[serde(alias = "minsizerel", alias = "minsize")]
   MinSizeRel,
 }
 
@@ -44,36 +67,33 @@ impl BuildType {
   }
 }
 
-impl std::str::FromStr for BuildSystem {
-  type Err = String;
-
-  /// Parses a build system string.
-  /// # Errors
-  /// Returns an error if the string does not match `cmake` or `meson`.
-  fn from_str(s: &str) -> Result<Self, Self::Err> {
-    match s.to_lowercase().as_str() {
-      "cmake" => Ok(Self::Cmake),
-      "meson" => Ok(Self::Meson),
-      _ => Err(format!("Unknown build system '{s}'. Valid: cmake, meson")),
-    }
-  }
-}
-
-impl std::str::FromStr for BuildType {
+impl FromStr for BuildType {
   type Err = String;
 
   /// Parses a build type string, accepting canonical and system-specific aliases.
   /// # Errors
   /// Returns an error if the string does not match any known build type.
   fn from_str(s: &str) -> Result<Self, Self::Err> {
-    match s.to_lowercase().as_str() {
-      "debug" => Ok(Self::Debug),
-      "release" => Ok(Self::Release),
-      "rel-with-deb-info" | "relwithdebinfo" | "debugoptimized" => Ok(Self::RelWithDebInfo),
-      "min-size-rel" | "minsizerel" | "minsize" => Ok(Self::MinSizeRel),
-      _ => Err(format!(
-        "Unknown build type '{s}'. Canonical: debug, release, rel-with-deb-info, min-size-rel"
-      )),
+    let types: &[(&[&str], Self)] = &[
+      (&["debug"], Self::Debug),
+      (&["release"], Self::Release),
+      (
+        &["rel-with-deb-info", "relwithdebinfo", "debugoptimized"],
+        Self::RelWithDebInfo,
+      ),
+      (&["min-size-rel", "minsizerel", "minsize"], Self::MinSizeRel),
+    ];
+
+    for (aliases, variant) in types {
+      for alias in *aliases {
+        if s.eq_ignore_ascii_case(alias) {
+          return Ok(*variant);
+        }
+      }
     }
+
+    Err(format!(
+      "Unknown build type '{s}'. Canonical: debug, release, rel-with-deb-info, min-size-rel"
+    ))
   }
 }
