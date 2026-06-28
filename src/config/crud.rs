@@ -2,7 +2,7 @@ use crate::{
   cli::BuildType,
   config::{format_entry, save_config, ConfigEntry, SetupConfig},
   ctx::IoCtx,
-  prompts::confirm,
+  prompts::confirm_abort,
 };
 use std::path::PathBuf;
 
@@ -27,13 +27,12 @@ pub fn has_config(config: &SetupConfig, name: &str) -> bool {
 /// Returns an error if the config file cannot be written.
 pub fn create_default_config(path: PathBuf, yes: bool, io: &mut IoCtx<'_>) -> Result<(), String> {
   if path.exists()
-    && !confirm(
+    && !confirm_abort(
       &format!("{} already exists. Overwrite?", path.display()),
       yes,
       io,
     )?
   {
-    writeln!(io.output, "Aborted.").ok();
     return Ok(());
   }
 
@@ -85,13 +84,12 @@ pub fn add_config(
   io: &mut IoCtx<'_>,
 ) -> Result<(), String> {
   if has_config(config, name)
-    && !confirm(
+    && !confirm_abort(
       &format!("Warning: Configuration '{name}' already exists. Overwrite?"),
       yes,
       io,
     )?
   {
-    writeln!(io.output, "Aborted.").ok();
     return Ok(());
   }
 
@@ -135,8 +133,7 @@ pub fn remove_config(
   writeln!(io.output, "Configuration details:").ok();
   write!(io.output, "{}", format_entry(e)).ok();
 
-  if !confirm("\nAre you sure you want to remove this config?", yes, io)? {
-    writeln!(io.output, "Aborted.").ok();
+  if !confirm_abort("\nAre you sure you want to remove this config?", yes, io)? {
     return Ok(());
   }
 
