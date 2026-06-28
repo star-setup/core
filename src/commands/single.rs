@@ -5,7 +5,7 @@ use crate::{
   },
   ctx::RunCtx,
   prompts::confirm,
-  repository::{repo_dir_name, resolve_repo_url},
+  repository::{clone_repository, repo_dir_name},
 };
 use std::path::Path;
 
@@ -20,7 +20,6 @@ pub fn single_repo_mode(
   let total = std::time::Instant::now();
 
   let repo = extract_repo_input(args)?;
-  let repo_url = resolve_repo_url(repo, args.connection.ssh);
   let dir_name = repo_dir_name(repo);
 
   print_mode_header(
@@ -48,12 +47,7 @@ pub fn single_repo_mode(
       });
     }
   } else {
-    writeln!(ctx.io.output, "Cloning {dir_name}\n").ok();
-    crate::time!(ctx.io.timing, ctx.io.output, "Clone", {
-      ctx
-        .runner
-        .run(&["git", "clone", &repo_url, &dir_name], None, &mut ctx.io)?;
-    });
+    clone_repository(repo, base_dir, args.connection.ssh, ctx)?;
   }
 
   let build_path = repo_path.join(&args.build.build_dir);
