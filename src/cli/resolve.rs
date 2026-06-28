@@ -90,7 +90,7 @@ pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<Resol
     build: ResolvedBuildFlags {
       build_type: match args.build.build_type {
         Some(s) => s.parse::<BuildType>()?,
-        None => default.map(|e| e.build_type.clone()).unwrap_or_default(),
+        None => default.map(|e| e.build_type).unwrap_or_default(),
       },
       build_dir: args
         .build

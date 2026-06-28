@@ -65,7 +65,7 @@ pub fn ask_choice(prompt: &str, options: &[&str], io: &mut IoCtx<'_>) -> Result<
   }
 }
 
-/// Prompts ask_yesno only if the condition isn't already met.
+/// Prompts `ask_yesno` only if the condition isn't already met.
 /// # Errors
 /// Returns an error on EOF or if the selection is out of range.
 pub fn ask_bool_if(prompt: &str, current_val: bool, io: &mut IoCtx<'_>) -> Result<bool, String> {
