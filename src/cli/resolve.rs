@@ -30,7 +30,7 @@ pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<Resol
   let default = config.configs.get(config_name);
 
   if args.config_name.is_some() && default.is_none() {
-    return Err(format!("Configuration '{}' not found", config_name));
+    return Err(format!("Configuration '{config_name}' not found"));
   }
 
   let ssh = resolve_bool(

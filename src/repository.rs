@@ -63,3 +63,14 @@ pub fn clone_repository(
     )
     .map_err(|e| format!("Failed to clone {repo_path}: {e}"))
 }
+
+/// Pulls the latest changes for an existing repository.
+/// # Errors
+/// Returns an error if the `git pull` command fails.
+pub fn pull_repository(
+    repo_path: &Path,
+    ctx: &mut RunCtx<'_, '_>,
+) -> Result<(), String> {
+    ctx.runner
+        .run(&["git", "pull"], Some(repo_path), &mut ctx.io)
+}

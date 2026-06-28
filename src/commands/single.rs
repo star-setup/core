@@ -5,7 +5,7 @@ use crate::{
   },
   ctx::RunCtx,
   prompts::confirm,
-  repository::{clone_repository, repo_dir_name},
+  repository::{clone_repository, pull_repository, repo_dir_name},
 };
 use std::path::Path;
 
@@ -41,9 +41,7 @@ pub fn single_repo_mode(
     if confirm("Update existing repository?", args.yes, &mut ctx.io)? {
       writeln!(ctx.io.output, "Updating {dir_name}\n").ok();
       crate::time!(ctx.io.timing, ctx.io.output, "Update", {
-        ctx
-          .runner
-          .run(&["git", "pull"], Some(&repo_path), &mut ctx.io)?;
+        pull_repository(&repo_path, ctx)?;
       });
     }
   } else {

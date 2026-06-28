@@ -1,4 +1,4 @@
-use crate::{ctx::RunCtx, workspace::resolve::Workspace};
+use crate::{ctx::RunCtx, repository::pull_repository, workspace::resolve::Workspace};
 
 /// Pulls latest changes for all repositories in the workspace.
 /// # Errors
@@ -20,10 +20,7 @@ pub fn update_workspace(workspace: &Workspace, ctx: &mut RunCtx<'_, '_>) -> Resu
       .unwrap_or_default();
 
     writeln!(ctx.io.output, "  Updating {name}").ok();
-    if let Err(e) = ctx
-      .runner
-      .run(&["git", "pull"], Some(repo_dir), &mut ctx.io)
-    {
+    if let Err(e) = pull_repository(repo_dir, ctx) {
       writeln!(ctx.io.output, "  Failed to update {name}: {e}").ok();
       errors.push(format!("{name}: {e}"));
     }
