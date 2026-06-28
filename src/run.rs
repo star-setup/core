@@ -89,7 +89,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
           add_profile(&mut config, &vals, raw.yes, &mut io)?;
         }
       },
-      Command::Workspace(cmd) => match cmd.action {
+      Command::Workspace(ws_cmd) => match ws_cmd.action {
         WorkspaceAction::Update {
           path,
           mono_dir,
