@@ -1,5 +1,5 @@
 use super::super::common::{empty_input, make_io, sink};
-use star_setup::commands::mono::watch::{generate_watch_scripts};
+use star_setup::commands::mono::watch::generate_watch_scripts;
 use tempfile::TempDir;
 
 fn make_repo_with_scripts(repos_path: &std::path::Path, dir: &str, scripts: &str) {
@@ -91,7 +91,8 @@ fn test_generate_watch_scripts_no_scripts_field() {
   std::fs::write(
     repos_path.join("user-lib1").join("package.json"),
     r#"{"name": "@user/lib1"}"#,
-  ).unwrap();
+  )
+  .unwrap();
 
   let repos = vec!["user/game".to_string(), "user/lib1".to_string()];
   let mut input = empty_input();
@@ -101,7 +102,7 @@ fn test_generate_watch_scripts_no_scripts_field() {
   generate_watch_scripts(tmp.path(), &repos_path, &repos, &mut io).unwrap();
 
   let ps1 = std::fs::read_to_string(tmp.path().join("watch.ps1")).unwrap();
-  assert!(ps1.contains("run build -- --watch"));
+  assert!(!ps1.contains("user-lib1"));
 }
 
 #[test]

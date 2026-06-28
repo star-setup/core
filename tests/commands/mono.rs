@@ -8,7 +8,7 @@ mod mode;
 mod resolve;
 #[path = "mono/setup.rs"]
 mod setup;
-#[path = "mono/wraps.rs"]
-mod wraps;
 #[path = "mono/watch.rs"]
 mod watch;
+#[path = "mono/wraps.rs"]
+mod wraps;
