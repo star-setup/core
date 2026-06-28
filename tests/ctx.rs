@@ -1,58 +1,47 @@
 use star_setup::ctx::{DryRunRunner, IoCtx, ProcessRunner, Runner};
 use std::path::Path;
+mod common;
+use common::make_io;
+
+fn run_runner_test<R, F>(dry_run: bool, mut runner: R, test_logic: F) -> String
+where
+  R: Runner,
+  F: FnOnce(&mut R, &mut IoCtx<'_>),
+{
+  let mut input = b"".as_ref();
+  let mut output = Vec::new();
+
+  let mut io = make_io(&mut input, &mut output);
+  io.dry_run = dry_run;
+
+  test_logic(&mut runner, &mut io);
+  String::from_utf8(output).unwrap_or_default()
+}
 
 #[test]
 fn test_process_runner_runs_command() {
-  let mut input = b"".as_ref();
-  let mut output = Vec::new();
-  let mut runner = ProcessRunner;
-  let mut io = IoCtx {
-    input: &mut input,
-    output: &mut output,
-    verbose: false,
-    timing: false,
-    dry_run: false,
-  };
-  assert!(runner.run(&["git", "--version"], None, &mut io).is_ok());
+  run_runner_test(false, ProcessRunner, |runner, io| {
+    assert!(runner.run(&["git", "--version"], None, io).is_ok());
+  });
 }
 
 #[test]
 fn test_dry_run_runner_prints_command() {
-  let mut input = b"".as_ref();
-  let mut output = Vec::new();
-  let mut runner = DryRunRunner;
-  let mut io = IoCtx {
-    input: &mut input,
-    output: &mut output,
-    verbose: false,
-    timing: false,
-    dry_run: true,
-  };
-  runner.run(&["git", "clone", "foo"], None, &mut io).unwrap();
-  assert_eq!(
-    String::from_utf8(output).unwrap(),
-    "Would run: git clone foo\n"
-  );
+  let output = run_runner_test(true, DryRunRunner, |runner, io| {
+    runner.run(&["git", "clone", "foo"], None, io).unwrap();
+  });
+  assert_eq!(output, "Would run: git clone foo\n");
 }
 
 #[test]
 fn test_dry_run_runner_prints_cwd() {
-  let mut input = b"".as_ref();
-  let mut output = Vec::new();
-  let mut runner = DryRunRunner;
-  let mut io = IoCtx {
-    input: &mut input,
-    output: &mut output,
-    verbose: false,
-    timing: false,
-    dry_run: true,
-  };
-  runner
-    .run(&["cmake", ".."], Some(Path::new("/tmp/build")), &mut io)
-    .unwrap();
-  let out = String::from_utf8(output).unwrap();
-  assert!(out.contains("Would run: cmake .."));
-  assert!(out.contains("  in directory: /tmp/build"));
+  let output = run_runner_test(true, DryRunRunner, |runner, io| {
+    runner
+      .run(&["cmake", ".."], Some(Path::new("/tmp/build")), io)
+      .unwrap();
+  });
+  assert!(output.contains("Would run: cmake .."));
+  assert!(output.contains("  in directory: /tmp/build"));
 }
 
 #[test]
