@@ -2,21 +2,49 @@ use crate::{ctx::IoCtx, repository::repo_dir_name};
 use std::{fs, path::Path};
 
 /// Reads a lib's package.json and returns the appropriate watch command.
-fn get_watch_command(repos_path: &Path, dir: &str) -> String {
+fn get_watch_command(repos_path: &Path, dir: &str, io: &mut IoCtx<'_>) -> Option<String> {
   let pkg_path = repos_path.join(dir).join("package.json");
-  if let Ok(content) = fs::read_to_string(&pkg_path) {
-    if let Ok(json) = serde_json::from_str::<serde_json::Value>(&content) {
-      if let Some(scripts) = json.get("scripts") {
-        if scripts.get("watch").is_some() {
-          return format!("npm --workspace=repos/{dir} run watch");
+  match fs::read_to_string(&pkg_path) {
+    Err(_) => {
+      if io.verbose {
+        writeln!(
+          io.output,
+          "  Warning: could not read {dir}/package.json, skipping"
+        )
+        .ok();
+      }
+      None
+    }
+    Ok(content) => match serde_json::from_str::<serde_json::Value>(&content) {
+      Err(_) => {
+        if io.verbose {
+          writeln!(
+            io.output,
+            "  Warning: malformed {dir}/package.json, skipping"
+          )
+          .ok();
         }
-        if scripts.get("build").is_some() {
-          return format!("npm --workspace=repos/{dir} run build -- --watch");
+        None
+      }
+      Ok(json) => {
+        let scripts = json.get("scripts")?;
+        if scripts.get("watch").is_some() {
+          Some(format!("npm --workspace=repos/{dir} run watch"))
+        } else if scripts.get("build").is_some() {
+          Some(format!("npm --workspace=repos/{dir} run build -- --watch"))
+        } else {
+          if io.verbose {
+            writeln!(
+              io.output,
+              "  Warning: {dir} has no watch or build script, skipping"
+            )
+            .ok();
+          }
+          None
         }
       }
-    }
+    },
   }
-  format!("npm --workspace=repos/{dir} run build -- --watch")
 }
 
 /// Generates watch scripts for npm mono-repo mode.
@@ -36,26 +64,27 @@ pub fn generate_watch_scripts(
 
   let ps1_lines: Vec<String> = lib_dirs
     .iter()
-    .map(|d| {
-      let cmd = get_watch_command(repos_path, d);
-      format!(
-        "Start-Process powershell -ArgumentList '-NoExit', '-Command', 'cd \"{}\"; {cmd}'",
-        mono_dir.display()
-      )
+    .filter_map(|d| {
+      get_watch_command(repos_path, d, io).map(|cmd| {
+        format!(
+          "Start-Process powershell -ArgumentList '-NoExit', '-Command', 'cd \"{}\"; {cmd}'",
+          mono_dir.display()
+        )
+      })
     })
     .collect();
 
   let sh_lines: Vec<String> = lib_dirs
     .iter()
-    .map(|d| {
-      let cmd = get_watch_command(repos_path, d);
-      format!("cd \"{}\" && {cmd} &", mono_dir.display())
+    .filter_map(|d| {
+      get_watch_command(repos_path, d, io)
+        .map(|cmd| format!("cd \"{}\" && {cmd} &", mono_dir.display()))
     })
     .collect();
 
   let ps1_content = format!("# Watch all lib repositories\n{}\n", ps1_lines.join("\n"));
   let sh_content = format!(
-    "#!/bin/bash\n# Watch all lib repositories\n{}\nwait\n",
+    "#!/bin/bash\ntrap 'kill $(jobs -p)' EXIT\n# Watch all lib repositories\n{}\nwait\n",
     sh_lines.join("\n")
   );
 
