@@ -7,22 +7,25 @@ use std::process::Command;
 /// Returns an error if any required tool is missing from PATH.
 pub fn check_prerequisites(io: &mut IoCtx<'_>) -> Result<(), String> {
   crate::time!(io.timing, io.output, "Check prerequisites", {
-    let mut missing: Vec<&str> = Vec::new();
+    let missing: Vec<&str> = ["git", "cmake", "meson"]
+      .into_iter()
+      .filter(|&tool| {
+        let is_missing = Command::new(tool)
+          .arg("--version")
+          .output()
+          .map_or(true, |o| !o.status.success());
 
-    for tool in &["git", "cmake", "meson"] {
-      if Command::new(tool)
-        .arg("--version")
-        .output()
-        .map_or(true, |o| !o.status.success())
-      {
-        missing.push(tool);
-      } else if io.verbose {
-        writeln!(io.output, "  Found {tool}").ok();
-      }
-    }
+        if !is_missing && io.verbose {
+          let _ = writeln!(io.output, "   Found {tool}");
+        }
+        is_missing
+      })
+      .collect();
+
     if !missing.is_empty() {
       return Err(format!("Missing required tools: {}", missing.join(", ")));
     }
+
     Ok(())
   })
 }
