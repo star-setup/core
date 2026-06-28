@@ -58,9 +58,9 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     dry_run: raw.diagnostic.dry_run,
   };
 
-  if let Some(command) = raw.command {
-    match command {
-      Command::Config(cmd) => match cmd.action {
+  if let Some(cmd) = raw.command {
+    match cmd {
+      Command::Config(config_cmd) => match config_cmd.action {
         ConfigAction::Init => {
           create_default_config(PathBuf::from(CONFIG_FILE_NAME), raw.yes, &mut io)?;
         }
@@ -79,7 +79,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
           add_config(&mut config, &name, entry, raw.yes, &mut io)?;
         }
       },
-      Command::Profile(cmd) => match cmd.action {
+      Command::Profile(profile_cmd) => match profile_cmd.action {
         ProfileAction::List => list_profiles(&config, &mut io),
         ProfileAction::Remove { name } => {
           remove_profile(&mut config, &name, raw.yes, &mut io)?;
