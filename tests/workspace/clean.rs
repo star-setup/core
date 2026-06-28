@@ -1,10 +1,10 @@
 use crate::common::{empty_input, make_io, sink, MockRunner};
-use star_setup::{ctx::RunCtx, workspace::resolve::Workspace};
+use star_setup::{ctx::RunCtx, workspace::types::Workspace};
 use std::fs;
 use tempfile::TempDir;
 
 #[test]
-fn test_clean_workspace_no_build_dir() {
+fn test_workspace_clean_no_build_dir() {
   let tmp = TempDir::new().unwrap();
   let ws = Workspace {
     root: tmp.path().to_path_buf(),
@@ -19,13 +19,13 @@ fn test_clean_workspace_no_build_dir() {
     io: make_io(&mut input, &mut output),
     runner: &mut runner,
   };
-  star_setup::workspace::clean_workspace(&ws, &mut ctx).unwrap();
+  ws.clean(&mut ctx).unwrap();
   let out = String::from_utf8(output).unwrap();
   assert!(out.contains("does not exist"));
 }
 
 #[test]
-fn test_clean_workspace_removes_build_dir() {
+fn test_workspace_clean_removes_build_dir() {
   let tmp = TempDir::new().unwrap();
   let build = tmp.path().join("build");
   fs::create_dir_all(&build).unwrap();
@@ -43,12 +43,12 @@ fn test_clean_workspace_removes_build_dir() {
     io: make_io(&mut input, &mut output),
     runner: &mut runner,
   };
-  star_setup::workspace::clean_workspace(&ws, &mut ctx).unwrap();
+  ws.clean(&mut ctx).unwrap();
   assert!(!build.exists());
 }
 
 #[test]
-fn test_clean_workspace_dry_run() {
+fn test_workspace_clean_dry_run() {
   let tmp = TempDir::new().unwrap();
   let build = tmp.path().join("build");
   fs::create_dir_all(&build).unwrap();
@@ -71,7 +71,7 @@ fn test_clean_workspace_dry_run() {
     },
     runner: &mut runner,
   };
-  star_setup::workspace::clean_workspace(&ws, &mut ctx).unwrap();
+  ws.clean(&mut ctx).unwrap();
   assert!(build.exists());
   let out = String::from_utf8(output).unwrap();
   assert!(out.contains("Would remove directory:"));

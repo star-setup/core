@@ -71,10 +71,10 @@ pub fn interactive_mode(args: &mut ResolvedArgs, io: &mut IoCtx<'_>) -> Result<(
 
 /// Helper to ask a boolean question only if the condition isn't already met.
 fn ask_bool_if(prompt: &str, current_val: bool, io: &mut IoCtx<'_>) -> Result<bool, String> {
-  if !current_val {
-    ask_yesno(prompt, false, io)
-  } else {
+  if current_val {
     Ok(current_val)
+  } else {
+    ask_yesno(prompt, false, io)
   }
 }
 

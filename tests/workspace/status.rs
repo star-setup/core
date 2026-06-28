@@ -1,5 +1,5 @@
 use crate::common::{empty_input, make_io, MockRunner};
-use star_setup::{ctx::RunCtx, workspace::resolve::Workspace};
+use star_setup::{ctx::RunCtx, workspace::Workspace};
 use std::path::PathBuf;
 
 fn make_workspace(repo_dirs: Vec<PathBuf>) -> Workspace {
@@ -21,7 +21,7 @@ fn test_status_workspace_empty() {
     io: make_io(&mut input, &mut output),
     runner: &mut runner,
   };
-  star_setup::workspace::status_workspace(&ws, false, &mut ctx).unwrap();
+  ws.status(false, &mut ctx).unwrap();
   let out = String::from_utf8(output).unwrap();
   assert!(out.contains("Workspace status:"));
 }
@@ -38,7 +38,7 @@ fn test_status_workspace_shows_repos() {
     io: make_io(&mut input, &mut output),
     runner: &mut runner,
   };
-  star_setup::workspace::status_workspace(&ws, false, &mut ctx).unwrap();
+  ws.status(false, &mut ctx).unwrap();
   let out = String::from_utf8(output).unwrap();
   assert!(out.contains("user-lib1"));
   assert!(out.contains("clean"));
@@ -58,7 +58,7 @@ fn test_status_workspace_with_fetch() {
     io: make_io(&mut input, &mut output),
     runner: &mut runner,
   };
-  star_setup::workspace::status_workspace(&ws, true, &mut ctx).unwrap();
+  ws.status(true, &mut ctx).unwrap();
   let out = String::from_utf8(output).unwrap();
   assert!(out.contains("↑2 ↓1"));
   assert!(runner

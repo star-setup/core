@@ -1,5 +1,5 @@
 use crate::common::{empty_input, make_io, sink, MockRunner};
-use star_setup::{ctx::RunCtx, workspace::resolve::Workspace};
+use star_setup::{ctx::RunCtx, workspace::types::Workspace};
 use std::path::PathBuf;
 
 fn make_workspace(repo_dirs: Vec<PathBuf>) -> Workspace {
@@ -21,7 +21,7 @@ fn test_update_workspace_empty() {
     io: make_io(&mut input, &mut output),
     runner: &mut runner,
   };
-  star_setup::workspace::update_workspace(&ws, &mut ctx).unwrap();
+  ws.update(&mut ctx).unwrap();
   assert!(runner.calls.is_empty());
 }
 
@@ -38,7 +38,7 @@ fn test_update_workspace_pulls_each_repo() {
     io: make_io(&mut input, &mut output),
     runner: &mut runner,
   };
-  star_setup::workspace::update_workspace(&ws, &mut ctx).unwrap();
+  ws.update(&mut ctx).unwrap();
   assert_eq!(runner.calls.len(), 2);
   assert!(runner
     .calls
@@ -60,7 +60,7 @@ fn test_update_workspace_continues_on_failure() {
     io: make_io(&mut input, &mut output),
     runner: &mut runner,
   };
-  let result = star_setup::workspace::update_workspace(&ws, &mut ctx);
+  let result = ws.update(&mut ctx);
   assert!(result.is_err());
   assert_eq!(runner.calls.len(), 2);
   let out = String::from_utf8(output).unwrap();
