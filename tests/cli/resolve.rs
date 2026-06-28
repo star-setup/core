@@ -21,6 +21,13 @@ fn create_test_config_entry() -> ConfigEntry {
   }
 }
 
+/// Helper to quickly build a `SetupConfig` with a populated profile entry.
+fn config_with_entry(name: &str, entry: ConfigEntry) -> SetupConfig {
+  let mut config = SetupConfig::new();
+  config.configs.insert(name.to_string(), entry);
+  config
+}
+
 #[test]
 fn test_resolve_bool() {
   #[allow(clippy::struct_excessive_bools)]
@@ -102,9 +109,8 @@ fn test_resolve_with_config_defaults_when_no_config() {
 
 #[test]
 fn test_resolve_with_config_applies_config_defaults() {
-  let mut config = SetupConfig::new();
-  config.configs.insert(
-    "default".to_string(),
+  let config = config_with_entry(
+    "default",
     ConfigEntry {
       ssh: true,
       verbose: true,
@@ -116,6 +122,7 @@ fn test_resolve_with_config_applies_config_defaults() {
       ..create_test_config_entry()
     },
   );
+
   let resolved = resolve_with_config(default_args(), &config).unwrap();
   assert!(resolved.connection.ssh);
   assert!(resolved.connection.verbose);
@@ -128,10 +135,7 @@ fn test_resolve_with_config_applies_config_defaults() {
 
 #[test]
 fn test_resolve_with_config_cli_overrides_config() {
-  let mut config = SetupConfig::new();
-  config
-    .configs
-    .insert("default".to_string(), create_test_config_entry());
+  let config = config_with_entry("default", create_test_config_entry());
 
   let mut args = default_args();
   args.connection.ssh = true;
@@ -173,9 +177,8 @@ fn test_resolve_with_config_mono_repo_from_profile() {
 
 #[test]
 fn test_resolve_with_config_named_config_pulls_correct_values() {
-  let mut config = SetupConfig::new();
-  config.configs.insert(
-    "myconfig".to_string(),
+  let config = config_with_entry(
+    "myconfig",
     ConfigEntry {
       ssh: true,
       build_type: BuildType::RelWithDebInfo,
@@ -197,9 +200,8 @@ fn test_resolve_with_config_named_config_pulls_correct_values() {
 
 #[test]
 fn test_resolve_with_config_cli_cmake_flags_not_overwritten_by_config() {
-  let mut config = SetupConfig::new();
-  config.configs.insert(
-    "default".to_string(),
+  let config = config_with_entry(
+    "default",
     ConfigEntry {
       cmake_flags: vec!["-DCONFIG_FLAG=ON".to_string()],
       ..create_test_config_entry()
@@ -215,9 +217,8 @@ fn test_resolve_with_config_cli_cmake_flags_not_overwritten_by_config() {
 
 #[test]
 fn test_resolve_with_config_negative_flags_override_config() {
-  let mut config = SetupConfig::new();
-  config.configs.insert(
-    "default".to_string(),
+  let config = config_with_entry(
+    "default",
     ConfigEntry {
       ssh: true,
       verbose: true,
