@@ -6,6 +6,8 @@ A lightweight CLI to clone, configure, and wire single or multi-repo ecosystems.
 [![CI](https://github.com/star-setup/core/actions/workflows/ci.yml/badge.svg)](https://github.com/star-setup/core/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/github/license/star-setup/core)](./LICENSE)
 
+> **Note:** This tool is primarily designed for my own projects and workflows. While it may work for other ecosystems, it is not guaranteed to work with all project structures or build configurations.
+
 ## Quick Start
 
 ```bash
