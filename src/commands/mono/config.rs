@@ -150,9 +150,20 @@ pub fn create_mono_repo_package_json(
     }
     let pkg_path = repos_path.join(dir).join("package.json");
     if let Ok(content) = fs::read_to_string(&pkg_path) {
-      if let Ok(json) = serde_json::from_str::<serde_json::Value>(&content) {
-        if let Some(name) = json.get("name").and_then(|n| n.as_str()) {
-          overrides.push(format!("    \"{name}\": \"*\""));
+      match serde_json::from_str::<serde_json::Value>(&content) {
+        Ok(json) => {
+          if let Some(name) = json.get("name").and_then(|n| n.as_str()) {
+            overrides.push(format!("    \"{name}\": \"*\""));
+          }
+        }
+        Err(_) => {
+          if io.verbose {
+            writeln!(
+              io.output,
+              "  Warning: malformed {dir}/package.json, skipping override"
+            )
+            .ok();
+          }
         }
       }
     } else if io.verbose {
