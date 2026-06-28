@@ -1,5 +1,5 @@
-use std::{fs, path::Path};
 use crate::workspace::Workspace;
+use std::{fs, path::Path};
 
 /// Resolves a workspace from optional path overrides.
 /// # Errors

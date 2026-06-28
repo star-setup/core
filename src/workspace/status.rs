@@ -4,11 +4,7 @@ impl Workspace {
   /// Shows the status of all repositories.
   /// # Errors
   /// Returns an error if any git command fails.
-  pub fn status(
-    &self,
-    fetch: bool,
-    ctx: &mut RunCtx<'_, '_>,
-  ) -> Result<(), String> {
+  pub fn status(&self, fetch: bool, ctx: &mut RunCtx<'_, '_>) -> Result<(), String> {
     writeln!(ctx.io.output, "Workspace status:\n").ok();
 
     for repo_dir in &self.repo_dirs {

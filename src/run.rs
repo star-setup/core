@@ -15,22 +15,24 @@ use std::{
   path::{Path, PathBuf},
 };
 
-const CONFIG_FILE_NAME: &str = ".star-setup.json";
-
 /// Runs the setup process.
 /// # Errors
 /// Returns an error if the configuration file is missing or corrupted.
-pub fn run() -> Result<(), Box<dyn Error>> {
+pub fn run(config_path: PathBuf) -> Result<(), Box<dyn Error>> {
   let mut stdin = io::stdin().lock();
   let mut stdout = io::stdout();
   let is_terminal = stdin.is_terminal() && stdout.is_terminal();
 
   let locations = [
-    Some(PathBuf::from(CONFIG_FILE_NAME)),
-    dirs::home_dir().map(|h| h.join(CONFIG_FILE_NAME)),
+    Some(config_path.as_path()),
+    dirs::home_dir()
+      .as_deref()
+      .map(|h| h.join(&config_path))
+      .as_deref(),
   ]
   .into_iter()
   .flatten()
+  .map(Path::to_path_buf)
   .collect::<Vec<_>>();
 
   let mut config = load_config(&locations, &mut stdout);
@@ -46,13 +48,9 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
   if let Some(cmd) = raw.command {
     match cmd {
-      Command::Config(c) => handle_config_cmd(
-        c.action,
-        &mut config,
-        PathBuf::from(CONFIG_FILE_NAME),
-        raw.yes,
-        &mut io,
-      )?,
+      Command::Config(c) => {
+        handle_config_cmd(c.action, &mut config, config_path, raw.yes, &mut io)?;
+      }
       Command::Profile(p) => handle_profile_cmd(p.action, &mut config, raw.yes, &mut io)?,
       Command::Workspace(w) => handle_workspace_cmd(w.action, io)?,
     }

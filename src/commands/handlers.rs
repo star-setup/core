@@ -5,7 +5,7 @@ use crate::{
   },
   ctx::{with_runner, IoCtx},
   profile::{add_profile, list_profiles, remove_profile},
-  workspace::{resolve_workspace},
+  workspace::resolve_workspace,
 };
 use std::{error::Error, path::PathBuf};
 
@@ -79,9 +79,7 @@ pub fn handle_workspace_cmd(action: WorkspaceAction, io: IoCtx) -> Result<(), Bo
       let ws = resolve_workspace(path.as_deref(), mono_dir.as_deref(), build_dir.as_deref())?;
       let mut status_io = io;
       status_io.dry_run = false;
-      with_runner(status_io, |ctx| {
-        ws.status(fetch, ctx).map_err(Into::into)
-      })?;
+      with_runner(status_io, |ctx| ws.status(fetch, ctx).map_err(Into::into))?;
     }
     WorkspaceAction::Clean {
       path,
