@@ -9,22 +9,22 @@ use tempfile::TempDir;
 
 #[test]
 fn test_parse_project_name() {
-    let cases = [
-        ("project('my-lib', 'cpp')", Some("my_lib")),
-        (r#"project("my-lib", "cpp")"#, Some("my_lib")),
-        ("project('mylib', 'cpp')", Some("mylib")),
-        ("myproject('mylib', 'cpp')", None),
-        ("cmake_minimum_required(VERSION 3.20)", None),
-        ("project(mylib, cpp)", None),
-    ];
+  let cases = [
+    ("project('my-lib', 'cpp')", Some("my_lib")),
+    (r#"project("my-lib", "cpp")"#, Some("my_lib")),
+    ("project('mylib', 'cpp')", Some("mylib")),
+    ("myproject('mylib', 'cpp')", None),
+    ("cmake_minimum_required(VERSION 3.20)", None),
+    ("project(mylib, cpp)", None),
+  ];
 
-    for (input, expected) in cases {
-        assert_eq!(
-            parse_project_name(input),
-            expected.map(String::from),
-            "Failed on input: {input}"
-        );
-    }
+  for (input, expected) in cases {
+    assert_eq!(
+      parse_project_name(input),
+      expected.map(String::from),
+      "Failed on input: {input}"
+    );
+  }
 }
 
 #[test]
