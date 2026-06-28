@@ -10,3 +10,5 @@ mod resolve;
 mod setup;
 #[path = "mono/wraps.rs"]
 mod wraps;
+#[path = "mono/watch.rs"]
+mod watch;
