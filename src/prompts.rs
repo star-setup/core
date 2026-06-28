@@ -65,6 +65,29 @@ pub fn ask_choice(prompt: &str, options: &[&str], io: &mut IoCtx<'_>) -> Result<
   }
 }
 
+/// Prompts ask_yesno only if the condition isn't already met.
+/// # Errors
+/// Returns an error on EOF or if the selection is out of range.
+pub fn ask_bool_if(prompt: &str, current_val: bool, io: &mut IoCtx<'_>) -> Result<bool, String> {
+  if current_val {
+    Ok(current_val)
+  } else {
+    ask_yesno(prompt, false, io)
+  }
+}
+
+/// Repeatedly ask until a non-empty string is provided.
+/// # Errors
+/// Returns an error on EOF or if the selection is out of range.
+pub fn ask_required(prompt: &str, io: &mut IoCtx<'_>) -> Result<String, String> {
+  loop {
+    let response = ask(prompt, io)?;
+    if !response.is_empty() {
+      return Ok(response);
+    }
+  }
+}
+
 /// Returns `true` if `yes` is set or the user enters `y`/`Y`.
 /// # Errors
 /// Returns an error if stdin reaches EOF unexpectedly.
