@@ -1,6 +1,8 @@
 use super::common::{default_resolved, make_io, sink, MockRunner};
 use star_setup::{
-  cli::BuildSystem, commands::single_repo_mode, ctx::{DryRunRunner, RunCtx},
+  cli::BuildSystem,
+  commands::single_repo_mode,
+  ctx::{DryRunRunner, RunCtx},
 };
 use tempfile::TempDir;
 

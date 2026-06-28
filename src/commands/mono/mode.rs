@@ -1,9 +1,17 @@
 use crate::{
-  cli::{BuildSystem, ResolvedArgs, detect_mono_build_system}, commands::{
-    build_repo_list, configure_and_build, extract_repo_input, mono::{
-      clone_mono_repos, display::{SetupPaths, resolve_setup_paths}, generate_mono_config, print_setup_complete,
-    }, prepare_build_dir, resolve_repos_for_mono, resolve_test_repo,
-  }, config::SetupConfig, ctx::RunCtx, repository::repo_dir_name,
+  cli::{detect_mono_build_system, BuildSystem, ResolvedArgs},
+  commands::{
+    build_repo_list, configure_and_build, extract_repo_input,
+    mono::{
+      clone_mono_repos,
+      display::{resolve_setup_paths, SetupPaths},
+      generate_mono_config, generate_watch_scripts, open_watch_scripts, print_setup_complete,
+    },
+    prepare_build_dir, resolve_repos_for_mono, resolve_test_repo,
+  },
+  config::SetupConfig,
+  ctx::RunCtx,
+  repository::repo_dir_name,
 };
 use std::{
   fs,
@@ -71,11 +79,22 @@ pub fn mono_repo_mode(
     None
   };
 
+  if build_system == Some(BuildSystem::Npm) && !args.build.no_watch && !ctx.io.dry_run {
+    generate_watch_scripts(&mono_repo_path, &repos_path, &repos, &mut ctx.io)?;
+    if args.build.watch {
+      open_watch_scripts(&mono_repo_path, &mut ctx.io)?;
+    }
+  }
+
   let paths = if ctx.io.dry_run {
     SetupPaths {
       mono_repo_disp: mono_repo_path.clone(),
       exe_path: None,
-      build_disp: Some(build_path.clone()),
+      build_disp: if build_system == Some(BuildSystem::Npm) {
+        None
+      } else {
+        Some(build_path.clone())
+      },
     }
   } else {
     resolve_setup_paths(
@@ -83,7 +102,7 @@ pub fn mono_repo_mode(
       &mono_repo_path,
       &build_path,
       &test_repo,
-      build_system
+      build_system,
     )
   };
 

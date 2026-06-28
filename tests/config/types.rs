@@ -22,6 +22,8 @@ fn test_from_flags_defaults() {
     no_clean: false,
     cmake_flags: vec![],
     meson_flags: vec![],
+    watch: false,
+    no_watch: false,
   };
   let mono = MonoRepoFlags {
     mono_repo: false,
@@ -65,6 +67,8 @@ fn test_from_flags_with_values() {
     no_clean: false,
     cmake_flags: vec!["-DFOO=ON".to_string()],
     meson_flags: vec![],
+    watch: false,
+    no_watch: false,
   };
   let mono = MonoRepoFlags {
     mono_repo: false,

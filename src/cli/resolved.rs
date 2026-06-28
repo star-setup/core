@@ -13,6 +13,7 @@ pub struct ResolvedDiagnosticFlags {
 }
 
 /// Resolved build flags after applying config and CLI overrides.
+#[allow(clippy::struct_excessive_bools)]
 pub struct ResolvedBuildFlags {
   pub build_type: BuildType,
   pub build_dir: String,
@@ -21,6 +22,8 @@ pub struct ResolvedBuildFlags {
   pub clean: bool,
   pub cmake_flags: Vec<String>,
   pub meson_flags: Vec<String>,
+  pub watch: bool,
+  pub no_watch: bool,
 }
 
 /// Resolved mono-repo flags after applying config and CLI overrides.
