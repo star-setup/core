@@ -1,42 +1,31 @@
-use star_setup::ctx::{DryRunRunner, IoCtx, ProcessRunner, Runner};
+use star_setup::ctx::{DryRunRunner, ProcessRunner, Runner};
 use std::path::Path;
 mod common;
-use common::make_io;
-
-fn run_runner_test<R, F>(dry_run: bool, mut runner: R, test_logic: F) -> String
-where
-  R: Runner,
-  F: FnOnce(&mut R, &mut IoCtx<'_>),
-{
-  let mut input = b"".as_ref();
-  let mut output = Vec::new();
-
-  let mut io = make_io(&mut input, &mut output);
-  io.dry_run = dry_run;
-
-  test_logic(&mut runner, &mut io);
-  String::from_utf8(output).unwrap_or_default()
-}
+use common::{with_io, with_io_output};
 
 #[test]
 fn test_process_runner_runs_command() {
-  run_runner_test(false, ProcessRunner, |runner, io| {
-    assert!(runner.run(&["git", "--version"], None, io).is_ok());
+  with_io(|io| {
+    assert!(ProcessRunner.run(&["git", "--version"], None, io).is_ok());
   });
 }
 
 #[test]
 fn test_dry_run_runner_prints_command() {
-  let output = run_runner_test(true, DryRunRunner, |runner, io| {
-    runner.run(&["git", "clone", "foo"], None, io).unwrap();
+  let (_, output) = with_io_output(|io| {
+    io.dry_run = true;
+    DryRunRunner
+      .run(&["git", "clone", "foo"], None, io)
+      .unwrap();
   });
   assert_eq!(output, "Would run: git clone foo\n");
 }
 
 #[test]
 fn test_dry_run_runner_prints_cwd() {
-  let output = run_runner_test(true, DryRunRunner, |runner, io| {
-    runner
+  let (_, output) = with_io_output(|io| {
+    io.dry_run = true;
+    DryRunRunner
       .run(&["cmake", ".."], Some(Path::new("/tmp/build")), io)
       .unwrap();
   });

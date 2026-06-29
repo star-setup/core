@@ -29,6 +29,15 @@ pub fn with_io_input<T>(input: &[u8], f: impl FnOnce(&mut IoCtx<'_>) -> T) -> T 
 }
 
 #[allow(dead_code)]
+pub fn with_io_output<T>(f: impl FnOnce(&mut IoCtx<'_>) -> T) -> (T, String) {
+  let mut input = empty_input();
+  let mut output = Vec::new();
+  let mut io = make_io(&mut input, &mut output);
+  let result = f(&mut io);
+  (result, String::from_utf8(output).unwrap_or_default())
+}
+
+#[allow(dead_code)]
 pub fn with_io_input_output<T>(input: &[u8], f: impl FnOnce(&mut IoCtx<'_>) -> T) -> (T, String) {
   let mut input_slice = input;
   let mut output = Vec::new();

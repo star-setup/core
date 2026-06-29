@@ -1,5 +1,6 @@
 #[path = "common/mod.rs"]
 mod common;
+
 #[path = "config/crud.rs"]
 mod crud;
 #[path = "config/display.rs"]
