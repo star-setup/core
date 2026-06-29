@@ -9,8 +9,6 @@ fn test_from_flags_defaults() {
   let connection = ConnectionFlags {
     ssh: false,
     https: false,
-    verbose: false,
-    no_verbose: false,
   };
   let build = BuildFlags {
     build_type: None,
@@ -32,8 +30,12 @@ fn test_from_flags_defaults() {
     profile: None,
   };
   let diagnostic = DiagnosticFlags {
+    verbose: false,
+    no_verbose: false,
     timing: false,
+    no_timing: false,
     dry_run: false,
+    no_dry_run: false,
   };
 
   let entry = ConfigEntry::from_flags(&connection, &build, &mono, &diagnostic);
@@ -54,8 +56,6 @@ fn test_from_flags_with_values() {
   let connection = ConnectionFlags {
     ssh: true,
     https: false,
-    verbose: true,
-    no_verbose: false,
   };
   let build = BuildFlags {
     build_type: Some("release".to_string()),
@@ -77,8 +77,12 @@ fn test_from_flags_with_values() {
     profile: None,
   };
   let diagnostic = DiagnosticFlags {
+    verbose: true,
+    no_verbose: false,
     timing: true,
+    no_timing: false,
     dry_run: true,
+    no_dry_run: false,
   };
 
   let entry = ConfigEntry::from_flags(&connection, &build, &mono, &diagnostic);

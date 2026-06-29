@@ -3,11 +3,11 @@ use crate::cli::{BuildSystem, BuildType};
 /// Resolved connection flags after applying config and CLI overrides.
 pub struct ResolvedConnectionFlags {
   pub ssh: bool,
-  pub verbose: bool,
 }
 
 /// Resolved diagnostic flags after applying config and CLI overrides.
 pub struct ResolvedDiagnosticFlags {
+  pub verbose: bool,
   pub timing: bool,
   pub dry_run: bool,
 }

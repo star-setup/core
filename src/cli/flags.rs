@@ -10,13 +10,6 @@ pub struct ConnectionFlags {
   /// Use HTTPS instead of SSH for cloning
   #[arg(long, conflicts_with = "ssh")]
   pub https: bool,
-
-  /// Show detailed command output
-  #[arg(short = 'v', long, conflicts_with = "no_verbose")]
-  pub verbose: bool,
-  /// Suppress detailed command output
-  #[arg(long, conflicts_with = "verbose")]
-  pub no_verbose: bool,
 }
 
 #[allow(clippy::struct_excessive_bools)]
@@ -34,12 +27,12 @@ pub struct BuildFlags {
   #[arg(long, value_name = "BUILD_SYSTEM")]
   pub build_system: Option<BuildSystem>,
 
+  // Build after configuring (overrides config)
+  #[arg(long, conflicts_with = "no_build")]
+  pub build: bool,
   /// Skip building, only configure
   #[arg(short = 'n', long, conflicts_with = "build")]
   pub no_build: bool,
-  /// Build after configuring (overrides config `no_build`)
-  #[arg(long, conflicts_with = "no_build")]
-  pub build: bool,
 
   /// Clean build directory before building
   #[arg(short = 'c', long, conflicts_with = "no_clean")]
@@ -83,13 +76,27 @@ pub struct MonoRepoFlags {
   pub profile: Option<String>,
 }
 
+#[allow(clippy::struct_excessive_bools)]
 #[derive(ClapArgs)]
 pub struct DiagnosticFlags {
+  /// Show detailed command output
+  #[arg(short = 'v', long, conflicts_with = "no_verbose")]
+  pub verbose: bool,
+  /// Suppress detailed command output (overrides config)
+  #[arg(long, conflicts_with = "verbose")]
+  pub no_verbose: bool,
+
   /// Show timing information for each phase
-  #[arg(long)]
+  #[arg(long, conflicts_with = "no_timing")]
   pub timing: bool,
+  /// Suppress timing information (overrides config)
+  #[arg(long, conflicts_with = "timing")]
+  pub no_timing: bool,
 
   /// If set, print commands instead of executing them without making any changes.
   #[arg(long)]
   pub dry_run: bool,
+  /// Do not use dry-run mode (overrides config)
+  #[arg(long, conflicts_with = "no_dry_run")]
+  pub no_dry_run: bool,
 }

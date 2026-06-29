@@ -22,8 +22,8 @@ pub fn interactive_mode(
 
   args.connection.ssh = ask_bool_if("Use SSH?", args.connection.ssh, io)?;
 
-  args.connection.verbose = ask_bool_if("Verbose?", args.connection.verbose, io)?;
-  flags.verbose = args.connection.verbose;
+  args.diagnostic.verbose = ask_bool_if("Verbose?", args.diagnostic.verbose, io)?;
+  flags.verbose = args.diagnostic.verbose;
 
   args.diagnostic.timing = ask_bool_if("Show timing?", args.diagnostic.timing, io)?;
   flags.timing = args.diagnostic.timing;

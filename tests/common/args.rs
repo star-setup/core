@@ -12,14 +12,16 @@ pub fn default_args() -> Args {
     config_name: None,
     command: None,
     diagnostic: DiagnosticFlags {
+      verbose: false,
+      no_verbose: false,
       timing: false,
+      no_timing: false,
       dry_run: false,
+      no_dry_run: false,
     },
     connection: ConnectionFlags {
       ssh: false,
       https: false,
-      verbose: false,
-      no_verbose: false,
     },
     build: BuildFlags {
       build_type: None,

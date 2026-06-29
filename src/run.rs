@@ -44,7 +44,7 @@ pub fn run(config_path: PathBuf) -> Result<(), Box<dyn Error>> {
   };
 
   let mut flags = RunFlags {
-    verbose: raw.connection.verbose,
+    verbose: raw.diagnostic.verbose,
     timing: raw.diagnostic.timing,
     dry_run: raw.diagnostic.dry_run,
   };
