@@ -1,6 +1,6 @@
-use star_setup::ctx::{IoCtx, Runner};
+use star_setup::ctx::{RunFlags, Runner};
 use std::collections::VecDeque;
-use std::path::Path;
+use std::{io::Write, path::Path};
 
 pub struct MockRunner {
   pub calls: Vec<(Vec<String>, Option<std::path::PathBuf>)>,
@@ -22,7 +22,13 @@ impl MockRunner {
 }
 
 impl Runner for MockRunner {
-  fn run(&mut self, cmd: &[&str], cwd: Option<&Path>, _io: &mut IoCtx<'_>) -> Result<(), String> {
+  fn run(
+    &mut self,
+    cmd: &[&str],
+    cwd: Option<&Path>,
+    _flags: &RunFlags,
+    _output: &mut dyn Write,
+  ) -> Result<(), String> {
     let cmd_vec: Vec<String> = cmd.iter().map(ToString::to_string).collect();
     self
       .calls

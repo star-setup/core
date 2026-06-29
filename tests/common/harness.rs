@@ -1,4 +1,4 @@
-use super::io::{empty_input, make_io, sink};
+use crate::common::io::{empty_input, make_flags, make_io, sink};
 use star_setup::ctx::{IoCtx, RunCtx, Runner};
 use std::path::Path;
 use tempfile::TempDir;
@@ -57,6 +57,7 @@ pub fn with_ctx<R: Runner>(
   {
     let mut ctx = RunCtx {
       io: make_io(&mut input, &mut output),
+      flags: make_flags(),
       runner: &mut runner,
     };
     f(tmp.path(), &mut ctx);

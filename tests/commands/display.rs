@@ -1,4 +1,4 @@
-use crate::common::{with_io_dir, with_io_input_output};
+use crate::common::{make_flags, with_io_dir, with_io_input_output};
 use star_setup::commands::mono::display::{print_setup_complete, resolve_setup_paths};
 use std::collections::HashMap;
 
@@ -12,7 +12,7 @@ fn test_print_setup_complete_no_map() {
         &tmp_path.join("build"),
         "user/repo",
       );
-      print_setup_complete(&paths, std::time::Instant::now(), io);
+      print_setup_complete(&paths, std::time::Instant::now(), io, &mut make_flags());
     });
   });
 
@@ -28,7 +28,7 @@ fn test_print_setup_complete_with_map() {
       map.insert("my_lib".to_string(), "user-repo".to_string());
 
       let paths = resolve_setup_paths(Some(&map), tmp_path, &tmp_path.join("build"), "user/repo");
-      print_setup_complete(&paths, std::time::Instant::now(), io);
+      print_setup_complete(&paths, std::time::Instant::now(), io, &mut make_flags());
     });
   });
 
@@ -39,8 +39,6 @@ fn test_print_setup_complete_with_map() {
 #[test]
 fn test_print_setup_complete_timing() {
   let ((), out) = with_io_input_output(b"", |io| {
-    io.timing = true;
-
     with_io_dir(|tmp_path, _| {
       let paths = resolve_setup_paths(
         None::<&HashMap<String, String>>,
@@ -48,9 +46,17 @@ fn test_print_setup_complete_timing() {
         &tmp_path.join("build"),
         "user/repo",
       );
-      print_setup_complete(&paths, std::time::Instant::now(), io);
+      print_setup_complete(
+        &paths,
+        std::time::Instant::now(),
+        io,
+        &mut star_setup::ctx::RunFlags {
+          timing: true,
+          verbose: false,
+          dry_run: false,
+        },
+      );
     });
   });
-
   assert!(out.contains("[timing] Total:"));
 }

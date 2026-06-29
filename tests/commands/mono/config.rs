@@ -1,4 +1,4 @@
-use crate::common::with_io_dir;
+use crate::common::{make_flags, with_io_dir};
 use star_setup::commands::{create_mono_repo_cmakelists, create_mono_repo_mesonbuild};
 
 // create_mono_repo_cmakelists tests
@@ -10,7 +10,7 @@ fn test_create_mono_repo_cmakelists_creates_file() {
       "user/lib1".to_string(),
       "user/lib2".to_string(),
     ];
-    create_mono_repo_cmakelists(tmp_path, &repos, io).unwrap();
+    create_mono_repo_cmakelists(tmp_path, &repos, io, &mut make_flags()).unwrap();
 
     let cmake_file = tmp_path.join("CMakeLists.txt");
     assert!(cmake_file.exists());
@@ -26,7 +26,7 @@ fn test_create_mono_repo_cmakelists_creates_file() {
 fn test_create_mono_repo_cmakelists_empty_repos() {
   with_io_dir(|tmp_path, io| {
     let repos = vec!["user-testrepo".to_string()];
-    create_mono_repo_cmakelists(tmp_path, &repos, io).unwrap();
+    create_mono_repo_cmakelists(tmp_path, &repos, io, &mut make_flags()).unwrap();
     assert!(tmp_path.join("CMakeLists.txt").exists());
   });
 }
@@ -40,7 +40,7 @@ fn test_create_mono_repo_mesonbuild_creates_file() {
       "user/lib1".to_string(),
       "user/lib2".to_string(),
     ];
-    create_mono_repo_mesonbuild(tmp_path, &repos, io).unwrap();
+    create_mono_repo_mesonbuild(tmp_path, &repos, io, &mut make_flags()).unwrap();
 
     let meson_file = tmp_path.join("meson.build");
     assert!(meson_file.exists());
@@ -56,7 +56,7 @@ fn test_create_mono_repo_mesonbuild_creates_file() {
 fn test_create_mono_repo_mesonbuild_empty_repos() {
   with_io_dir(|tmp_path, io| {
     let repos = vec!["user-testrepo".to_string()];
-    create_mono_repo_mesonbuild(tmp_path, &repos, io).unwrap();
+    create_mono_repo_mesonbuild(tmp_path, &repos, io, &mut make_flags()).unwrap();
     assert!(tmp_path.join("meson.build").exists());
   });
 }

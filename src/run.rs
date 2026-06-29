@@ -58,11 +58,11 @@ pub fn run(config_path: PathBuf) -> Result<(), Box<dyn Error>> {
           config_path,
           raw.yes,
           &mut io,
-          &mut flags,
+          &flags,
         )?;
       }
       Command::Profile(p) => {
-        handle_profile_cmd(p.action, &mut config, raw.yes, &mut io, &mut flags)?
+        handle_profile_cmd(p.action, &mut config, raw.yes, &mut io, &flags)?;
       }
       Command::Workspace(w) => handle_workspace_cmd(w.action, io, flags)?,
     }
@@ -78,7 +78,7 @@ pub fn run(config_path: PathBuf) -> Result<(), Box<dyn Error>> {
     }
   }
 
-  check_prerequisites(&mut io, &mut flags)?;
+  check_prerequisites(&mut io, &flags)?;
 
   with_runner(io, flags, |ctx| {
     if args.mono.mono_repo {

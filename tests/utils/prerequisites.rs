@@ -4,16 +4,15 @@ use star_setup::utils::check_prerequisites;
 #[test]
 fn test_check_prerequisites_succeeds_with_tools_present() {
   with_ctx(MockRunner::new(), |_, ctx| {
-    assert!(check_prerequisites(&mut ctx.io).is_ok());
+    assert!(check_prerequisites(&mut ctx.io, &ctx.flags).is_ok());
   });
 }
 
 #[test]
 fn test_check_prerequisites_verbose_outputs_found() {
   let (_, output) = with_ctx(MockRunner::new(), |_, ctx| {
-    ctx.io.verbose = true;
-
-    check_prerequisites(&mut ctx.io).unwrap();
+    ctx.flags.verbose = true;
+    check_prerequisites(&mut ctx.io, &ctx.flags).unwrap();
   });
 
   let out = String::from_utf8(output).unwrap();

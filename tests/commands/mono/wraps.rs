@@ -1,4 +1,4 @@
-use crate::common::with_io_dir;
+use crate::common::{make_flags, with_io_dir};
 use star_setup::commands::{hoist_wraps, parse_project_name, parse_provide_pairs};
 use tempfile::TempDir;
 
@@ -70,7 +70,7 @@ fn make_repo(project_name: &str) -> TempDir {
 #[test]
 fn test_hoist_wraps_empty_repos() {
   with_io_dir(|repos_dir, io| {
-    let result = hoist_wraps(repos_dir, &[], io).unwrap();
+    let result = hoist_wraps(repos_dir, &[], io, &mut make_flags()).unwrap();
     assert!(result.is_empty());
   });
 }
@@ -79,7 +79,13 @@ fn test_hoist_wraps_empty_repos() {
 fn test_hoist_wraps_skips_repo_without_meson_build() {
   with_io_dir(|repos_dir, io| {
     let repo = TempDir::new().unwrap();
-    let result = hoist_wraps(repos_dir, &[repo.path().to_path_buf()], io).unwrap();
+    let result = hoist_wraps(
+      repos_dir,
+      &[repo.path().to_path_buf()],
+      io,
+      &mut make_flags(),
+    )
+    .unwrap();
     assert!(result.is_empty());
   });
 }
@@ -88,7 +94,13 @@ fn test_hoist_wraps_skips_repo_without_meson_build() {
 fn test_hoist_wraps_emits_wrap_without_provide() {
   with_io_dir(|repos_dir, io| {
     let repo = make_repo("my-lib");
-    let result = hoist_wraps(repos_dir, &[repo.path().to_path_buf()], io).unwrap();
+    let result = hoist_wraps(
+      repos_dir,
+      &[repo.path().to_path_buf()],
+      io,
+      &mut make_flags(),
+    )
+    .unwrap();
 
     assert!(result.contains_key("my_lib"));
     let wrap = repos_dir.join("my_lib.wrap");
@@ -113,7 +125,13 @@ fn test_hoist_wraps_emits_wrap_with_provide() {
     .unwrap();
     std::fs::write(subprojects.join("readme.txt"), "ignore me").unwrap();
 
-    let result = hoist_wraps(repos_dir, &[repo.path().to_path_buf()], io).unwrap();
+    let result = hoist_wraps(
+      repos_dir,
+      &[repo.path().to_path_buf()],
+      io,
+      &mut make_flags(),
+    )
+    .unwrap();
 
     assert!(result.contains_key("my_lib"));
     let wrap = repos_dir.join("my_lib.wrap");
