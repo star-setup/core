@@ -12,3 +12,5 @@ pub mod single;
 pub use single::single_repo_mode;
 pub mod setup;
 pub use setup::{configure_and_build, extract_repo_input, prepare_build_dir};
+pub mod handlers;
+pub use handlers::{handle_config_cmd, handle_profile_cmd, handle_workspace_cmd};

@@ -15,7 +15,7 @@ pub fn generate_mono_config(
   repos_path: &std::path::Path,
   repo_dirs: &[PathBuf],
   repos: &[String],
-  ctx: &mut RunCtx<'_>,
+  ctx: &mut RunCtx<'_, '_>,
 ) -> Result<Option<std::collections::HashMap<String, String>>, String> {
   writeln!(ctx.io.output, "Creating mono-repo configuration").ok();
   match build_system {

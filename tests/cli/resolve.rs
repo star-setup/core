@@ -4,6 +4,30 @@ use star_setup::{
   config::{ConfigEntry, SetupConfig},
 };
 
+/// Generates a base `ConfigEntry` with defaults.
+fn create_test_config_entry() -> ConfigEntry {
+  ConfigEntry {
+    ssh: false,
+    verbose: false,
+    build_type: BuildType::Debug,
+    build_dir: "build".to_string(),
+    mono_dir: "build-mono".to_string(),
+    no_build: false,
+    clean: false,
+    timing: false,
+    dry_run: false,
+    cmake_flags: vec![],
+    meson_flags: vec![],
+  }
+}
+
+/// Helper to quickly build a `SetupConfig` with a populated profile entry.
+fn config_with_entry(name: &str, entry: ConfigEntry) -> SetupConfig {
+  let mut config = SetupConfig::new();
+  config.configs.insert(name.to_string(), entry);
+  config
+}
+
 #[test]
 fn test_resolve_bool() {
   #[allow(clippy::struct_excessive_bools)]
@@ -85,23 +109,20 @@ fn test_resolve_with_config_defaults_when_no_config() {
 
 #[test]
 fn test_resolve_with_config_applies_config_defaults() {
-  let mut config = SetupConfig::new();
-  config.configs.insert(
-    "default".to_string(),
+  let config = config_with_entry(
+    "default",
     ConfigEntry {
       ssh: true,
       verbose: true,
       build_type: BuildType::Release,
       build_dir: "out".to_string(),
-      mono_dir: "mono".to_string(),
       no_build: true,
       clean: true,
-      timing: false,
-      dry_run: false,
       cmake_flags: vec!["-DTEST=ON".to_string()],
-      meson_flags: vec![],
+      ..create_test_config_entry()
     },
   );
+
   let resolved = resolve_with_config(default_args(), &config).unwrap();
   assert!(resolved.connection.ssh);
   assert!(resolved.connection.verbose);
@@ -114,26 +135,12 @@ fn test_resolve_with_config_applies_config_defaults() {
 
 #[test]
 fn test_resolve_with_config_cli_overrides_config() {
-  let mut config = SetupConfig::new();
-  config.configs.insert(
-    "default".to_string(),
-    ConfigEntry {
-      ssh: false,
-      verbose: false,
-      build_type: BuildType::Debug,
-      build_dir: "build".to_string(),
-      mono_dir: "build-mono".to_string(),
-      no_build: false,
-      clean: false,
-      timing: false,
-      dry_run: false,
-      cmake_flags: vec![],
-      meson_flags: vec![],
-    },
-  );
+  let config = config_with_entry("default", create_test_config_entry());
+
   let mut args = default_args();
   args.connection.ssh = true;
   args.build.build_type = Some("Release".to_string());
+
   let resolved = resolve_with_config(args, &config).unwrap();
   assert!(resolved.connection.ssh);
   assert_eq!(resolved.build.build_type, BuildType::Release);
@@ -144,8 +151,8 @@ fn test_resolve_with_config_errors_on_missing_config_name() {
   let config = SetupConfig::new();
   let mut args = default_args();
   args.config_name = Some("nonexistent".to_string());
-  let result = resolve_with_config(args, &config);
-  assert!(result.is_err());
+
+  assert!(resolve_with_config(args, &config).is_err());
 }
 
 #[test]
@@ -153,6 +160,7 @@ fn test_resolve_with_config_mono_repo_from_repos() {
   let config = SetupConfig::new();
   let mut args = default_args();
   args.mono.repos = Some(vec!["user/lib1".to_string()]);
+
   let resolved = resolve_with_config(args, &config).unwrap();
   assert!(resolved.mono.mono_repo);
 }
@@ -162,31 +170,27 @@ fn test_resolve_with_config_mono_repo_from_profile() {
   let config = SetupConfig::new();
   let mut args = default_args();
   args.mono.profile = Some("myprofile".to_string());
+
   let resolved = resolve_with_config(args, &config).unwrap();
   assert!(resolved.mono.mono_repo);
 }
 
 #[test]
 fn test_resolve_with_config_named_config_pulls_correct_values() {
-  let mut config = SetupConfig::new();
-  config.configs.insert(
-    "myconfig".to_string(),
+  let config = config_with_entry(
+    "myconfig",
     ConfigEntry {
       ssh: true,
-      verbose: false,
       build_type: BuildType::RelWithDebInfo,
       build_dir: "out".to_string(),
-      mono_dir: "mono".to_string(),
-      no_build: false,
       clean: true,
-      timing: false,
-      dry_run: false,
-      cmake_flags: vec![],
-      meson_flags: vec![],
+      ..create_test_config_entry()
     },
   );
+
   let mut args = default_args();
   args.config_name = Some("myconfig".to_string());
+
   let resolved = resolve_with_config(args, &config).unwrap();
   assert!(resolved.connection.ssh);
   assert_eq!(resolved.build.build_type, BuildType::RelWithDebInfo);
@@ -196,54 +200,39 @@ fn test_resolve_with_config_named_config_pulls_correct_values() {
 
 #[test]
 fn test_resolve_with_config_cli_cmake_flags_not_overwritten_by_config() {
-  let mut config = SetupConfig::new();
-  config.configs.insert(
-    "default".to_string(),
+  let config = config_with_entry(
+    "default",
     ConfigEntry {
-      ssh: false,
-      verbose: false,
-      build_type: BuildType::Debug,
-      build_dir: "build".to_string(),
-      mono_dir: "build-mono".to_string(),
-      no_build: false,
-      clean: false,
-      timing: false,
-      dry_run: false,
       cmake_flags: vec!["-DCONFIG_FLAG=ON".to_string()],
-      meson_flags: vec![],
+      ..create_test_config_entry()
     },
   );
+
   let mut args = default_args();
   args.build.cmake_flags = vec!["-DCLI_FLAG=ON".to_string()];
+
   let resolved = resolve_with_config(args, &config).unwrap();
   assert_eq!(resolved.build.cmake_flags, vec!["-DCLI_FLAG=ON"]);
 }
 
 #[test]
 fn test_resolve_with_config_negative_flags_override_config() {
-  let mut config = SetupConfig::new();
-  config.configs.insert(
-    "default".to_string(),
+  let config = config_with_entry(
+    "default",
     ConfigEntry {
       ssh: true,
       verbose: true,
-      build_type: BuildType::Debug,
-      build_dir: "build".to_string(),
-      mono_dir: "build-mono".to_string(),
       no_build: true,
       clean: true,
-      timing: false,
-      dry_run: false,
-      cmake_flags: vec![],
-      meson_flags: vec![],
+      ..create_test_config_entry()
     },
   );
 
   let mut args = default_args();
-  args.connection.https = true; // negates ssh
-  args.connection.no_verbose = true; // negates verbose
-  args.build.build = true; // negates no_build
-  args.build.no_clean = true; // negates clean
+  args.connection.https = true;
+  args.connection.no_verbose = true;
+  args.build.build = true;
+  args.build.no_clean = true;
 
   let resolved = resolve_with_config(args, &config).unwrap();
   assert!(

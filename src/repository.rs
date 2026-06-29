@@ -41,7 +41,7 @@ pub fn clone_repository(
   repo_path: &str,
   target_dir: &Path,
   use_ssh: bool,
-  ctx: &mut RunCtx<'_>,
+  ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
   let repo_name = repo_dir_name(repo_path);
   let repo_dir = target_dir.join(&repo_name);
@@ -62,4 +62,13 @@ pub fn clone_repository(
       &mut ctx.io,
     )
     .map_err(|e| format!("Failed to clone {repo_path}: {e}"))
+}
+
+/// Pulls the latest changes for an existing repository.
+/// # Errors
+/// Returns an error if the `git pull` command fails.
+pub fn pull_repository(repo_path: &Path, ctx: &mut RunCtx<'_, '_>) -> Result<(), String> {
+  ctx
+    .runner
+    .run(&["git", "pull"], Some(repo_path), &mut ctx.io)
 }

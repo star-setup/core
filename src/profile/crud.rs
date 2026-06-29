@@ -2,7 +2,7 @@ use crate::{
   config::{save_config, SetupConfig},
   ctx::IoCtx,
   profile::print_profile_details,
-  prompts::confirm,
+  prompts::confirm_abort,
 };
 
 /// Inserts or overwrites a named profile.
@@ -39,13 +39,12 @@ pub fn add_profile(
   let repos = args[1..].to_vec();
 
   if has_profile(config, &name)
-    && !confirm(
+    && !confirm_abort(
       &format!("Warning: Profile '{name}' already exists. Overwrite?"),
       yes,
       io,
     )?
   {
-    writeln!(io.output, "Aborted.").ok();
     return Ok(());
   }
 
@@ -90,12 +89,11 @@ pub fn remove_profile(
     &repos,
   );
 
-  if !confirm(
+  if !confirm_abort(
     &format!("Are you sure you want to remove profile '{name}'?"),
     yes,
     io,
   )? {
-    writeln!(io.output, "Aborted.").ok();
     return Ok(());
   }
 

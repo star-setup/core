@@ -74,7 +74,7 @@ impl From<&ResolvedArgs> for ConfigEntry {
   fn from(args: &ResolvedArgs) -> Self {
     Self {
       ssh: args.connection.ssh,
-      build_type: args.build.build_type.clone(),
+      build_type: args.build.build_type,
       build_dir: args.build.build_dir.clone(),
       mono_dir: args.mono.mono_dir.clone(),
       no_build: args.build.no_build,

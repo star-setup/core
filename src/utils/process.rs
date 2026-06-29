@@ -1,18 +1,22 @@
 use std::{
-  io::{Read, Write},
+  io::Write,
   path::Path,
   process::{Command, Stdio},
-  thread,
+};
+
+#[cfg(target_os = "windows")]
+use std::{
+  collections::HashMap,
+  path::PathBuf,
 };
 
 /// Finds vcvars64.bat using vswhere.exe.
 /// Returns None if vswhere is not found or no VS installation exists.
 #[cfg(target_os = "windows")]
-fn find_vcvars() -> Option<std::path::PathBuf> {
-  let vswhere = std::path::PathBuf::from(
-    std::env::var("ProgramFiles(x86)").unwrap_or_else(|_| r"C:\Program Files (x86)".to_string()),
-  )
-  .join(r"Microsoft Visual Studio\Installer\vswhere.exe");
+fn find_vcvars() -> Option<PathBuf> {
+  let program_files =
+    std::env::var("ProgramFiles(x86)").unwrap_or_else(|_| r"C:\Program Files (x86)".to_string());
+  let vswhere = PathBuf::from(program_files).join(r"Microsoft Visual Studio\Installer\vswhere.exe");
 
   if !vswhere.exists() {
     return None;
@@ -24,8 +28,7 @@ fn find_vcvars() -> Option<std::path::PathBuf> {
     .ok()?;
 
   let install_path = String::from_utf8(output.stdout).ok()?;
-  let vcvars =
-    std::path::PathBuf::from(install_path.trim()).join(r"VC\Auxiliary\Build\vcvars64.bat");
+  let vcvars = PathBuf::from(install_path.trim()).join(r"VC\Auxiliary\Build\vcvars64.bat");
 
   vcvars.exists().then_some(vcvars)
 }
@@ -34,15 +37,12 @@ fn find_vcvars() -> Option<std::path::PathBuf> {
 /// # Errors
 /// Returns an error if vcvars64.bat cannot be found or run.
 #[cfg(target_os = "windows")]
-fn get_msvc_env() -> Result<std::collections::HashMap<String, String>, String> {
+fn get_msvc_env() -> Result<HashMap<String, String>, String> {
   let vcvars = find_vcvars().ok_or("Could not find vcvars64.bat via vswhere")?;
+  let vcvars_str = vcvars.to_str().ok_or("Invalid vcvars path")?;
+
   let output = Command::new("cmd")
-    .args([
-      "/c",
-      vcvars.to_str().ok_or("Invalid vcvars path")?,
-      "&&",
-      "set",
-    ])
+    .args(["/c", vcvars_str, "&&", "set"])
     .output()
     .map_err(|e| format!("Failed to run vcvars64.bat: {e}"))?;
 
@@ -51,8 +51,8 @@ fn get_msvc_env() -> Result<std::collections::HashMap<String, String>, String> {
     stdout
       .lines()
       .filter_map(|line| {
-        let mut parts = line.splitn(2, '=');
-        Some((parts.next()?.to_string(), parts.next()?.to_string()))
+        let (key, val) = line.split_once('=')?;
+        Some((key.to_string(), val.to_string()))
       })
       .collect(),
   )
@@ -68,9 +68,10 @@ pub fn run_command(
   verbose: bool,
   output: &mut (impl Write + ?Sized),
 ) -> Result<(), String> {
-  if cmd.is_empty() {
-    return Err("No command provided".to_string());
-  }
+  let (exe, args) = match cmd {
+    [] => return Err("No command provided".to_string()),
+    [exe, args @ ..] => (exe, args),
+  };
 
   if verbose {
     writeln!(output, "Running: {}", cmd.join(" ")).ok();
@@ -79,9 +80,15 @@ pub fn run_command(
     }
   }
 
-  let mut command = Command::new(cmd[0]);
+  let mut command = Command::new(exe);
   command.stdin(Stdio::null());
-  if cmd[0] == "git" {
+  command.args(args);
+
+  if let Some(dir) = cwd {
+    command.current_dir(dir);
+  }
+
+  if *exe == "git" {
     command.env("GIT_TERMINAL_PROMPT", "0");
     if std::env::var("GIT_SSH_COMMAND").is_err() {
       command.env("GIT_SSH_COMMAND", "ssh -o BatchMode=yes");
@@ -89,65 +96,46 @@ pub fn run_command(
   }
 
   #[cfg(target_os = "windows")]
-  if std::path::Path::new(&cmd[0])
-    .file_stem()
-    .is_some_and(|s| s.to_string_lossy().eq_ignore_ascii_case("meson"))
-    && std::env::var("VSINSTALLDIR").is_err()
+  if std::env::var("VSINSTALLDIR").is_err()
+    && Path::new(exe)
+      .file_stem()
+      .is_some_and(|s| s.to_string_lossy().eq_ignore_ascii_case("meson"))
   {
     if let Ok(env) = get_msvc_env() {
-      for (k, v) in env {
-        command.env(k, v);
-      }
+      command.envs(env);
     }
   }
 
   if verbose {
-    command.stdout(Stdio::inherit());
-    command.stderr(Stdio::inherit());
-  } else {
-    command.stdout(Stdio::null());
-    command.stderr(Stdio::piped());
-  }
-
-  command.args(&cmd[1..]);
-  if let Some(dir) = cwd {
-    command.current_dir(dir);
-  }
-
-  if verbose {
+    command.stdout(Stdio::inherit()).stderr(Stdio::inherit());
     let status = command
       .status()
       .map_err(|e| format!("Failed to run command: {e}"))?;
-    if status.success() {
-      return Ok(());
-    }
-    return Err(format!("Command failed with exit code: {status}"));
-  }
 
-  let mut child = command
-    .spawn()
-    .map_err(|e| format!("Failed to start command: {e}"))?;
-  let stderr_handle = child.stderr.take();
-  let stderr_thread = thread::spawn(move || {
-    let mut s = String::new();
-    if let Some(mut h) = stderr_handle {
-      h.read_to_string(&mut s).ok();
+    if !status.success() {
+      return Err(format!("Command failed with exit code: {status}"));
     }
-    s
-  });
-
-  let status = child
-    .wait()
-    .map_err(|e| format!("Failed to wait for command: {e}"))?;
-  let stderr = stderr_thread.join().unwrap_or_default();
-  if status.success() {
-    Ok(())
   } else {
-    let msg: &str = stderr.trim();
-    if msg.is_empty() {
-      Err(format!("Command failed with exit code: {status}"))
-    } else {
-      Err(format!("Command failed with exit code: {status}\n{msg}"))
+    command.stdout(Stdio::null()).stderr(Stdio::piped());
+    let child = command
+      .spawn()
+      .map_err(|e| format!("Failed to start command: {e}"))?;
+
+    let execution_output = child
+      .wait_with_output()
+      .map_err(|e| format!("Failed to wait for command: {e}"))?;
+
+    if !execution_output.status.success() {
+      let msg = String::from_utf8_lossy(&execution_output.stderr);
+      let msg = msg.trim();
+
+      let mut err_msg = format!("Command failed with exit code: {}", execution_output.status);
+      if !msg.is_empty() {
+        err_msg = format!("{err_msg}\n{msg}");
+      }
+      return Err(err_msg);
     }
   }
+
+  Ok(())
 }

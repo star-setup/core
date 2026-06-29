@@ -2,7 +2,6 @@ use star_setup::ctx::{IoCtx, Runner};
 use std::collections::VecDeque;
 use std::path::Path;
 
-#[allow(dead_code)]
 pub struct MockRunner {
   pub calls: Vec<(Vec<String>, Option<std::path::PathBuf>)>,
   pub fail_on: Option<String>,

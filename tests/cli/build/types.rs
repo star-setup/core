@@ -1,4 +1,5 @@
-use star_setup::cli::BuildType;
+use star_setup::cli::{BuildSystem, BuildType};
+use std::str::FromStr;
 
 #[test]
 fn test_to_cmake_all_variants() {
@@ -18,48 +19,50 @@ fn test_to_meson_all_variants() {
 
 #[test]
 fn test_from_str_all_variants() {
-  use std::str::FromStr;
-  assert_eq!(BuildType::from_str("debug").unwrap(), BuildType::Debug);
-  assert_eq!(BuildType::from_str("release").unwrap(), BuildType::Release);
-  assert_eq!(
-    BuildType::from_str("rel-with-deb-info").unwrap(),
-    BuildType::RelWithDebInfo
-  );
-  assert_eq!(
-    BuildType::from_str("relwithdebinfo").unwrap(),
-    BuildType::RelWithDebInfo
-  );
-  assert_eq!(
-    BuildType::from_str("debugoptimized").unwrap(),
-    BuildType::RelWithDebInfo
-  );
-  assert_eq!(
-    BuildType::from_str("min-size-rel").unwrap(),
-    BuildType::MinSizeRel
-  );
-  assert_eq!(
-    BuildType::from_str("minsizerel").unwrap(),
-    BuildType::MinSizeRel
-  );
-  assert_eq!(
-    BuildType::from_str("minsize").unwrap(),
-    BuildType::MinSizeRel
-  );
+  let cases = [
+    ("debug", BuildType::Debug),
+    ("release", BuildType::Release),
+    ("rel-with-deb-info", BuildType::RelWithDebInfo),
+    ("relwithdebinfo", BuildType::RelWithDebInfo),
+    ("debugoptimized", BuildType::RelWithDebInfo),
+    ("min-size-rel", BuildType::MinSizeRel),
+    ("minsizerel", BuildType::MinSizeRel),
+    ("minsize", BuildType::MinSizeRel),
+  ];
+
+  for (input, expected) in cases {
+    assert_eq!(
+      BuildType::from_str(input).unwrap(),
+      expected,
+      "Failed on input: {input}"
+    );
+  }
 }
 
 #[test]
 fn test_from_str_error() {
-  use std::str::FromStr;
   assert!(BuildType::from_str("unknown").is_err());
 }
 
 #[test]
 fn test_build_system_from_str() {
-  use star_setup::cli::BuildSystem;
-  use std::str::FromStr;
-  assert_eq!(BuildSystem::from_str("cmake").unwrap(), BuildSystem::Cmake);
-  assert_eq!(BuildSystem::from_str("CMAKE").unwrap(), BuildSystem::Cmake);
-  assert_eq!(BuildSystem::from_str("meson").unwrap(), BuildSystem::Meson);
-  assert_eq!(BuildSystem::from_str("MESON").unwrap(), BuildSystem::Meson);
-  assert!(BuildSystem::from_str("ninja").is_err());
+  let success_cases = [
+    ("cmake", BuildSystem::Cmake),
+    ("CMAKE", BuildSystem::Cmake),
+    ("meson", BuildSystem::Meson),
+    ("MESON", BuildSystem::Meson),
+  ];
+
+  for (input, expected) in success_cases {
+    assert_eq!(
+      BuildSystem::from_str(input).unwrap(),
+      expected,
+      "Failed on valid input: {input}"
+    );
+  }
+
+  assert!(
+    BuildSystem::from_str("ninja").is_err(),
+    "Expected error for invalid input: ninja"
+  );
 }

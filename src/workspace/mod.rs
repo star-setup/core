@@ -1,8 +1,7 @@
-pub mod clean;
+pub mod types;
+pub use types::Workspace;
 pub mod resolve;
+pub use resolve::resolve_workspace;
+pub mod clean;
 pub mod status;
 pub mod update;
-pub use clean::clean_workspace;
-pub use resolve::{resolve_workspace, Workspace};
-pub use status::status_workspace;
-pub use update::update_workspace;

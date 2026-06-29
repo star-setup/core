@@ -1,26 +1,21 @@
-use super::common::make_io;
-use star_setup::{ctx::IoCtx, utils::check_prerequisites};
+use crate::common::{with_ctx, MockRunner};
+use star_setup::utils::check_prerequisites;
 
 #[test]
 fn test_check_prerequisites_succeeds_with_tools_present() {
-  let mut input = b"".as_ref();
-  let mut output = Vec::new();
-  let mut io = make_io(&mut input, &mut output);
-  assert!(check_prerequisites(&mut io).is_ok());
+  with_ctx(MockRunner::new(), |_, ctx| {
+    assert!(check_prerequisites(&mut ctx.io).is_ok());
+  });
 }
 
 #[test]
 fn test_check_prerequisites_verbose_outputs_found() {
-  let mut input = b"".as_ref();
-  let mut output = Vec::new();
-  let mut io = IoCtx {
-    input: &mut input,
-    output: &mut output,
-    verbose: true,
-    timing: false,
-    dry_run: false,
-  };
-  check_prerequisites(&mut io).unwrap();
+  let (_, output) = with_ctx(MockRunner::new(), |_, ctx| {
+    ctx.io.verbose = true;
+
+    check_prerequisites(&mut ctx.io).unwrap();
+  });
+
   let out = String::from_utf8(output).unwrap();
   assert!(out.contains("Found git"));
   assert!(out.contains("Found cmake"));

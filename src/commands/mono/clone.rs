@@ -7,7 +7,7 @@ pub fn clone_mono_repos(
   repos: &[String],
   repos_path: &std::path::Path,
   ssh: bool,
-  ctx: &mut RunCtx<'_>,
+  ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
   writeln!(ctx.io.output, "Cloning repositories").ok();
   crate::time!(ctx.io.timing, ctx.io.output, "Clone", {

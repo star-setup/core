@@ -25,7 +25,7 @@ pub fn mono_repo_mode(
   args: &ResolvedArgs,
   config: &SetupConfig,
   base_dir: &Path,
-  ctx: &mut RunCtx<'_>,
+  ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
   let total = std::time::Instant::now();
 

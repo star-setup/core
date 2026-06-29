@@ -1,10 +1,8 @@
-use crate::common::{default_resolved, empty_input, make_io, sink, MockRunner};
+use crate::common::{default_resolved, with_ctx, with_io, MockRunner};
 use star_setup::{
   commands::{mono::generate_mono_config, resolve_repos_for_mono, resolve_test_repo},
   config::SetupConfig,
-  ctx::RunCtx,
 };
-use tempfile::TempDir;
 
 // resolve_test_repo tests
 #[test]
@@ -54,13 +52,11 @@ fn test_resolve_repos_for_mono_empty_profile_errors() {
   let mut args = default_resolved();
   args.mono.profile = Some("emptyprofile".to_string());
 
-  let mut input = empty_input();
-  let mut output = sink();
-  let mut io = make_io(&mut input, &mut output);
-
-  let result = resolve_repos_for_mono(&args, &config, "user/repo", &mut io);
-  assert!(result.is_err());
-  assert!(result.unwrap_err().contains("has no repositories"));
+  with_io(|io| {
+    let result = resolve_repos_for_mono(&args, &config, "user/repo", io);
+    assert!(result.is_err());
+    assert!(result.unwrap_err().contains("has no repositories"));
+  });
 }
 
 #[test]
@@ -73,13 +69,11 @@ fn test_resolve_repos_for_mono_with_profile() {
   let mut args = default_resolved();
   args.mono.profile = Some("myprofile".to_string());
 
-  let mut input = empty_input();
-  let mut output = sink();
-  let mut io = make_io(&mut input, &mut output);
-
-  let result = resolve_repos_for_mono(&args, &config, "user/repo", &mut io);
-  assert!(result.is_ok());
-  assert_eq!(result.unwrap(), vec!["user/lib1", "user/lib2"]);
+  with_io(|io| {
+    let result = resolve_repos_for_mono(&args, &config, "user/repo", io);
+    assert!(result.is_ok());
+    assert_eq!(result.unwrap(), vec!["user/lib1", "user/lib2"]);
+  });
 }
 
 #[test]
@@ -88,13 +82,11 @@ fn test_resolve_repos_for_mono_with_explicit_repos() {
   let mut args = default_resolved();
   args.mono.repos = Some(vec!["user/lib1".to_string(), "user/lib2".to_string()]);
 
-  let mut input = empty_input();
-  let mut output = sink();
-  let mut io = make_io(&mut input, &mut output);
-
-  let result = resolve_repos_for_mono(&args, &config, "user/repo", &mut io);
-  assert!(result.is_ok());
-  assert_eq!(result.unwrap(), vec!["user/lib1", "user/lib2"]);
+  with_io(|io| {
+    let result = resolve_repos_for_mono(&args, &config, "user/repo", io);
+    assert!(result.is_ok());
+    assert_eq!(result.unwrap(), vec!["user/lib1", "user/lib2"]);
+  });
 }
 
 #[test]
@@ -102,15 +94,13 @@ fn test_resolve_repos_for_mono_no_repos_or_profile_errors() {
   let config = SetupConfig::new();
   let args = default_resolved();
 
-  let mut input = empty_input();
-  let mut output = sink();
-  let mut io = make_io(&mut input, &mut output);
-
-  let result = resolve_repos_for_mono(&args, &config, "user/repo", &mut io);
-  assert!(result.is_err());
-  assert!(result
-    .unwrap_err()
-    .contains("No repos or profile specified"));
+  with_io(|io| {
+    let result = resolve_repos_for_mono(&args, &config, "user/repo", io);
+    assert!(result.is_err());
+    assert!(result
+      .unwrap_err()
+      .contains("No repos or profile specified"));
+  });
 }
 
 #[test]
@@ -119,46 +109,39 @@ fn test_resolve_repos_for_mono_profile_not_found_errors() {
   let mut args = default_resolved();
   args.mono.profile = Some("nonexistent".to_string());
 
-  let mut input = empty_input();
-  let mut output = sink();
-  let mut io = make_io(&mut input, &mut output);
-
-  let result = resolve_repos_for_mono(&args, &config, "user/repo", &mut io);
-  assert!(result.is_err());
-  assert!(result.unwrap_err().contains("not found"));
+  with_io(|io| {
+    let result = resolve_repos_for_mono(&args, &config, "user/repo", io);
+    assert!(result.is_err());
+    assert!(result.unwrap_err().contains("not found"));
+  });
 }
 
 #[test]
 fn test_generate_mono_config_meson() {
-  let tmp = TempDir::new().unwrap();
-  let repos_path = tmp.path().join("repos");
-  std::fs::create_dir_all(&repos_path).unwrap();
+  with_ctx(MockRunner::new(), |tmp_path, ctx| {
+    let repos_path = tmp_path.join("repos");
+    std::fs::create_dir_all(&repos_path).unwrap();
 
-  let repo_dir = repos_path.join("user-lib1");
-  std::fs::create_dir_all(&repo_dir).unwrap();
-  std::fs::write(repo_dir.join("meson.build"), "project('user-lib1', 'cpp')").unwrap();
+    let repo_dir = repos_path.join("user-lib1");
+    std::fs::create_dir_all(&repo_dir).unwrap();
+    std::fs::write(repo_dir.join("meson.build"), "project('user-lib1', 'cpp')").unwrap();
 
-  let mut input = empty_input();
-  let mut output = sink();
-  let mut runner = MockRunner::new();
-  let mut ctx = RunCtx {
-    io: make_io(&mut input, &mut output),
-    runner: &mut runner,
-  };
+    let result = generate_mono_config(
+      star_setup::cli::BuildSystem::Meson,
+      tmp_path,
+      &repos_path,
+      std::slice::from_ref(&repo_dir),
+      &["user/lib1".to_string()],
+      ctx,
+    );
 
-  let result = generate_mono_config(
-    star_setup::cli::BuildSystem::Meson,
-    tmp.path(),
-    &repos_path,
-    &[repo_dir],
-    &["user/lib1".to_string()],
-    &mut ctx,
-  );
+    assert!(result.is_ok());
+    assert!(result.unwrap().is_some());
 
-  assert!(result.is_ok());
-  assert!(result.unwrap().is_some());
-  let meson_build = tmp.path().join("meson.build");
-  assert!(meson_build.exists());
-  let content = std::fs::read_to_string(&meson_build).unwrap();
-  assert!(content.contains("user_lib1") || content.contains("user-lib1"));
+    let meson_build = tmp_path.join("meson.build");
+    assert!(meson_build.exists());
+
+    let content = std::fs::read_to_string(&meson_build).unwrap();
+    assert!(content.contains("user_lib1") || content.contains("user-lib1"));
+  });
 }

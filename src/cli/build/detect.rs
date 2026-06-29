@@ -5,7 +5,7 @@ fn pick_build_system(
   has_cmake: bool,
   has_meson: bool,
   none_err: &str,
-  ctx: &mut RunCtx<'_>,
+  ctx: &mut RunCtx<'_, '_>,
 ) -> Result<BuildSystem, String> {
   match (has_cmake, has_meson) {
     (true, false) => Ok(BuildSystem::Cmake),
@@ -26,7 +26,7 @@ fn pick_build_system(
 /// Detects the build system in use by inspecting the given directory.
 /// # Errors
 /// Returns an error on EOF during prompt, or if no supported build system is found.
-pub fn detect_build_system(dir: &Path, ctx: &mut RunCtx<'_>) -> Result<BuildSystem, String> {
+pub fn detect_build_system(dir: &Path, ctx: &mut RunCtx<'_, '_>) -> Result<BuildSystem, String> {
   crate::time!(ctx.io.timing, ctx.io.output, "Detect", {
     let has_cmake = dir.join("CMakeLists.txt").exists();
     let has_meson = dir.join("meson.build").exists();
@@ -39,7 +39,7 @@ pub fn detect_build_system(dir: &Path, ctx: &mut RunCtx<'_>) -> Result<BuildSyst
 /// Returns an error if systems are inconsistent or none found, or EOF during prompt.
 pub fn detect_mono_build_system(
   dirs: &[PathBuf],
-  ctx: &mut RunCtx<'_>,
+  ctx: &mut RunCtx<'_, '_>,
 ) -> Result<BuildSystem, String> {
   writeln!(ctx.io.output, "Detecting build system\n").ok();
   crate::time!(ctx.io.timing, ctx.io.output, "Detect", {

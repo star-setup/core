@@ -16,7 +16,10 @@ pub fn resolve_bool(positive: bool, negative: bool, config: Option<bool>, defaul
   if positive {
     return true;
   }
-  config.unwrap_or(default)
+  match config {
+    Some(val) => val,
+    None => default,
+  }
 }
 
 /// Resolves raw `Args` into `ResolvedArgs` by applying config defaults and CLI overrides.
@@ -24,13 +27,11 @@ pub fn resolve_bool(positive: bool, negative: bool, config: Option<bool>, defaul
 /// Returns an error if the named config does not exist in the provided `SetupConfig`.
 pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<ResolvedArgs, String> {
   let config_name = args.config_name.as_deref().unwrap_or("default");
-  if let Some(name) = &args.config_name {
-    if !config.configs.contains_key(name.as_str()) {
-      return Err(format!("Configuration '{name}' not found"));
-    }
-  }
-
   let default = config.configs.get(config_name);
+
+  if args.config_name.is_some() && default.is_none() {
+    return Err(format!("Configuration '{config_name}' not found"));
+  }
 
   let ssh = resolve_bool(
     args.connection.ssh,
@@ -68,12 +69,14 @@ pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<Resol
     default.map(|e| e.clean),
     false,
   );
-  if args.build.cmake_flags.is_empty() {
-    args.build.cmake_flags = default.map_or_else(Vec::new, |e| e.cmake_flags.clone());
-  }
-  if args.build.meson_flags.is_empty() {
-    args.build.meson_flags = default.map_or_else(Vec::new, |e| e.meson_flags.clone());
-  }
+
+  let cmake_flags = Some(args.build.cmake_flags)
+    .filter(|f| !f.is_empty())
+    .unwrap_or_else(|| default.map_or_else(Vec::new, |e| e.cmake_flags.clone()));
+
+  let meson_flags = Some(args.build.meson_flags)
+    .filter(|f| !f.is_empty())
+    .unwrap_or_else(|| default.map_or_else(Vec::new, |e| e.meson_flags.clone()));
 
   let repos = args.mono.repos.take();
   let profile = args.mono.profile.take();
@@ -85,10 +88,9 @@ pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<Resol
     connection: ResolvedConnectionFlags { ssh, verbose },
     diagnostic: ResolvedDiagnosticFlags { timing, dry_run },
     build: ResolvedBuildFlags {
-      build_type: if let Some(s) = args.build.build_type {
-        s.parse::<BuildType>()?
-      } else {
-        default.map(|e| e.build_type.clone()).unwrap_or_default()
+      build_type: match args.build.build_type {
+        Some(s) => s.parse::<BuildType>()?,
+        None => default.map(|e| e.build_type).unwrap_or_default(),
       },
       build_dir: args
         .build
@@ -98,8 +100,8 @@ pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<Resol
       build_system: args.build.build_system,
       no_build,
       clean,
-      cmake_flags: args.build.cmake_flags,
-      meson_flags: args.build.meson_flags,
+      cmake_flags,
+      meson_flags,
     },
     mono: ResolvedMonoFlags {
       mono_repo,

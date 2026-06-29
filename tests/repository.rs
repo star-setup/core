@@ -1,7 +1,7 @@
 mod common;
-use common::{empty_input, make_io, sink, MockRunner};
+use common::{with_runner_ctx, MockRunner};
 use star_setup::{
-  ctx::{IoCtx, ProcessRunner, RunCtx},
+  ctx::ProcessRunner,
   repository::{clone_repository, repo_dir_name, resolve_repo_url},
 };
 
@@ -66,38 +66,23 @@ fn test_resolve_repo_url() {
 
 #[test]
 fn test_clone_skips_existing_directory() {
-  let tmp = tempfile::TempDir::new().unwrap();
-  let repo_dir = tmp.path().join("owner-repo");
-  std::fs::create_dir_all(&repo_dir).unwrap();
+  with_runner_ctx(ProcessRunner, |tmp_path, ctx| {
+    let repo_dir = tmp_path.join("owner-repo");
+    std::fs::create_dir_all(&repo_dir).unwrap();
 
-  let mut runner = ProcessRunner;
-  let mut ctx = RunCtx {
-    io: IoCtx {
-      input: &mut b"".as_ref(),
-      output: &mut Vec::new(),
-      verbose: false,
-      timing: false,
-      dry_run: false,
-    },
-    runner: &mut runner,
-  };
-  let result = clone_repository("owner/repo", tmp.path(), false, &mut ctx);
-  assert!(result.is_ok());
-  assert!(repo_dir.exists());
+    let result = clone_repository("owner/repo", tmp_path, false, ctx);
+    assert!(result.is_ok());
+    assert!(repo_dir.exists());
+  });
 }
 
 #[test]
 fn test_clone_repository_calls_git_clone() {
   let tmp = tempfile::TempDir::new().unwrap();
-  let mut input = empty_input();
-  let mut output = sink();
-  let mut runner = MockRunner::new();
-  let mut ctx = RunCtx {
-    io: make_io(&mut input, &mut output),
-    runner: &mut runner,
-  };
 
-  clone_repository("user/repo", tmp.path(), false, &mut ctx).unwrap();
+  let runner = with_runner_ctx(MockRunner::new(), |_, ctx| {
+    clone_repository("user/repo", tmp.path(), false, ctx).unwrap();
+  });
 
   assert_eq!(runner.calls.len(), 1);
   let (cmd, cwd) = &runner.calls[0];
