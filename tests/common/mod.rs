@@ -12,4 +12,6 @@ pub use args::{
 };
 pub mod harness;
 #[allow(unused_imports)]
-pub use harness::{with_ctx, with_io, with_io_dir, with_runner_ctx};
+pub use harness::{
+  with_ctx, with_io, with_io_dir, with_io_input, with_io_input_output, with_runner_ctx,
+};
