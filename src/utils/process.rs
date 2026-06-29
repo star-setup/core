@@ -1,8 +1,13 @@
 use std::{
-  collections::HashMap,
   io::Write,
-  path::{Path, PathBuf},
+  path::Path,
   process::{Command, Stdio},
+};
+
+#[cfg(target_os = "windows")]
+use std::{
+  collections::HashMap,
+  path::PathBuf,
 };
 
 /// Finds vcvars64.bat using vswhere.exe.
