@@ -12,7 +12,7 @@ fn test_process_runner_runs_command() {
 
 #[test]
 fn test_dry_run_runner_prints_command() {
-  let (_, output) = with_io_output(|io| {
+  let ((), output) = with_io_output(|io| {
     io.dry_run = true;
     DryRunRunner
       .run(&["git", "clone", "foo"], None, io)
@@ -23,7 +23,7 @@ fn test_dry_run_runner_prints_command() {
 
 #[test]
 fn test_dry_run_runner_prints_cwd() {
-  let (_, output) = with_io_output(|io| {
+  let ((), output) = with_io_output(|io| {
     io.dry_run = true;
     DryRunRunner
       .run(&["cmake", ".."], Some(Path::new("/tmp/build")), io)

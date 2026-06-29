@@ -1,8 +1,7 @@
-use crate::common::{default_resolved, empty_input, make_io, sink, with_io, MockRunner};
+use crate::common::{default_resolved, with_ctx, with_io, MockRunner};
 use star_setup::{
   commands::{mono::generate_mono_config, resolve_repos_for_mono, resolve_test_repo},
   config::SetupConfig,
-  ctx::RunCtx,
 };
 
 // resolve_test_repo tests
@@ -119,35 +118,30 @@ fn test_resolve_repos_for_mono_profile_not_found_errors() {
 
 #[test]
 fn test_generate_mono_config_meson() {
-  let tmp = tempfile::TempDir::new().unwrap();
-  let repos_path = tmp.path().join("repos");
-  std::fs::create_dir_all(&repos_path).unwrap();
+  with_ctx(MockRunner::new(), |tmp_path, ctx| {
+    let repos_path = tmp_path.join("repos");
+    std::fs::create_dir_all(&repos_path).unwrap();
 
-  let repo_dir = repos_path.join("user-lib1");
-  std::fs::create_dir_all(&repo_dir).unwrap();
-  std::fs::write(repo_dir.join("meson.build"), "project('user-lib1', 'cpp')").unwrap();
+    let repo_dir = repos_path.join("user-lib1");
+    std::fs::create_dir_all(&repo_dir).unwrap();
+    std::fs::write(repo_dir.join("meson.build"), "project('user-lib1', 'cpp')").unwrap();
 
-  let mut input = empty_input();
-  let mut output = sink();
-  let mut runner = MockRunner::new();
-  let mut ctx = RunCtx {
-    io: make_io(&mut input, &mut output),
-    runner: &mut runner,
-  };
+    let result = generate_mono_config(
+      star_setup::cli::BuildSystem::Meson,
+      tmp_path,
+      &repos_path,
+      std::slice::from_ref(&repo_dir),
+      &["user/lib1".to_string()],
+      ctx,
+    );
 
-  let result = generate_mono_config(
-    star_setup::cli::BuildSystem::Meson,
-    tmp.path(),
-    &repos_path,
-    &[repo_dir],
-    &["user/lib1".to_string()],
-    &mut ctx,
-  );
+    assert!(result.is_ok());
+    assert!(result.unwrap().is_some());
 
-  assert!(result.is_ok());
-  assert!(result.unwrap().is_some());
-  let meson_build = tmp.path().join("meson.build");
-  assert!(meson_build.exists());
-  let content = std::fs::read_to_string(&meson_build).unwrap();
-  assert!(content.contains("user_lib1") || content.contains("user-lib1"));
+    let meson_build = tmp_path.join("meson.build");
+    assert!(meson_build.exists());
+
+    let content = std::fs::read_to_string(&meson_build).unwrap();
+    assert!(content.contains("user_lib1") || content.contains("user-lib1"));
+  });
 }
