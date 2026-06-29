@@ -23,7 +23,7 @@ impl Workspace {
     )
     .ok();
 
-    if ctx.io.dry_run {
+    if ctx.flags.dry_run {
       writeln!(
         ctx.io.output,
         "Would remove directory: {}",

@@ -10,7 +10,7 @@ pub fn clone_mono_repos(
   ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
   writeln!(ctx.io.output, "Cloning repositories").ok();
-  crate::time!(ctx.io.timing, ctx.io.output, "Clone", {
+  crate::time!(ctx.flags.timing, ctx.io.output, "Clone", {
     for repo in repos {
       clone_repository(repo, repos_path, ssh, ctx)?;
     }

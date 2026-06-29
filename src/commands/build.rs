@@ -29,13 +29,15 @@ pub fn cmake_build(
   };
   cmake_cmd.extend(args.build.cmake_flags.iter().map(String::as_str));
 
-  crate::time!(ctx.io.timing, ctx.io.output, "CMake configure", {
-    ctx.runner.run(&cmake_cmd, Some(build_path), &mut ctx.io)?;
+  crate::time!(ctx.flags.timing, ctx.io.output, "CMake configure", {
+    ctx
+      .runner
+      .run(&cmake_cmd, Some(build_path), &ctx.flags, ctx.io.output)?;
   });
 
   if !args.build.no_build {
     writeln!(ctx.io.output, "Building project\n").ok();
-    crate::time!(ctx.io.timing, ctx.io.output, "CMake build", {
+    crate::time!(ctx.flags.timing, ctx.io.output, "CMake build", {
       ctx.runner.run(
         &[
           "cmake",
@@ -45,7 +47,8 @@ pub fn cmake_build(
           args.build.build_type.to_cmake(),
         ],
         Some(build_path),
-        &mut ctx.io,
+        &ctx.flags,
+        ctx.io.output,
       )?;
     });
   }
@@ -68,16 +71,19 @@ pub fn meson_build(
   meson_cmd.push(to_str(source_path)?);
   meson_cmd.extend(args.build.meson_flags.iter().map(String::as_str));
 
-  crate::time!(ctx.io.timing, ctx.io.output, "Meson setup", {
-    ctx.runner.run(&meson_cmd, None, &mut ctx.io)?;
+  crate::time!(ctx.flags.timing, ctx.io.output, "Meson setup", {
+    ctx
+      .runner
+      .run(&meson_cmd, None, &ctx.flags, ctx.io.output)?;
   });
   if !args.build.no_build {
     writeln!(ctx.io.output, "Building project\n").ok();
-    crate::time!(ctx.io.timing, ctx.io.output, "Meson compile", {
+    crate::time!(ctx.flags.timing, ctx.io.output, "Meson compile", {
       ctx.runner.run(
         &["meson", "compile", "-C", to_str(build_path)?],
         None,
-        &mut ctx.io,
+        &ctx.flags,
+        ctx.io.output,
       )?;
     });
   }

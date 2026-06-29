@@ -4,7 +4,7 @@ use std::{
   path::{Path, PathBuf},
 };
 
-use crate::ctx::IoCtx;
+use crate::ctx::{IoCtx, RunFlags};
 
 /// Parses the `project()` name from `meson.build` content.
 /// Returns the name with hyphens replaced by underscores, or `None` if not found.
@@ -69,8 +69,9 @@ pub fn hoist_wraps(
   repos_dir: &Path,
   repo_dirs: &[PathBuf],
   io: &mut IoCtx<'_>,
+  flags: &mut RunFlags,
 ) -> Result<HashMap<String, String>, String> {
-  crate::time!(io.timing, io.output, "Hoist wraps", {
+  crate::time!(flags.timing, io.output, "Hoist wraps", {
     // normalized project name -> owner-prefixed dir name
     let mut project_to_dir: HashMap<String, String> = HashMap::new();
     for dir in repo_dirs {

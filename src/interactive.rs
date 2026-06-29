@@ -2,14 +2,18 @@
 
 use crate::{
   cli::{BuildType, ResolvedArgs},
-  ctx::IoCtx,
+  ctx::{IoCtx, RunFlags},
   prompts::{ask, ask_bool_if, ask_default, ask_required},
 };
 
 /// Interactive CLI mode — prompts for any unset arguments.
 /// # Errors
 /// Returns an error if stdin reaches EOF unexpectedly.
-pub fn interactive_mode(args: &mut ResolvedArgs, io: &mut IoCtx<'_>) -> Result<(), String> {
+pub fn interactive_mode(
+  args: &mut ResolvedArgs,
+  io: &mut IoCtx<'_>,
+  flags: &mut RunFlags,
+) -> Result<(), String> {
   writeln!(io.output, "Star Setup Interactive Mode").ok();
 
   if args.repo.is_none() {
@@ -19,10 +23,10 @@ pub fn interactive_mode(args: &mut ResolvedArgs, io: &mut IoCtx<'_>) -> Result<(
   args.connection.ssh = ask_bool_if("Use SSH?", args.connection.ssh, io)?;
 
   args.connection.verbose = ask_bool_if("Verbose?", args.connection.verbose, io)?;
-  io.verbose = args.connection.verbose;
+  flags.verbose = args.connection.verbose;
 
   args.diagnostic.timing = ask_bool_if("Show timing?", args.diagnostic.timing, io)?;
-  io.timing = args.diagnostic.timing;
+  flags.timing = args.diagnostic.timing;
 
   args.build.clean = ask_bool_if("Clean build directory if exists?", args.build.clean, io)?;
 
