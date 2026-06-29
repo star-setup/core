@@ -1,15 +1,11 @@
 use star_setup::workspace::resolve_workspace;
-use std::{fs, path::Path};
-use tempfile::TempDir;
+use std::fs;
 
-fn with_tmp_dir(f: impl FnOnce(&Path)) {
-  let tmp = TempDir::new().unwrap();
-  f(tmp.path());
-}
+use crate::common::with_io_dir;
 
 #[test]
 fn test_resolve_workspace_errors_when_missing() {
-  with_tmp_dir(|path| {
+  with_io_dir(|path, _| {
     let result = resolve_workspace(Some(path), None, None);
     assert!(result.is_err());
     assert!(result.unwrap_err().contains("Workspace not found"));
@@ -18,7 +14,7 @@ fn test_resolve_workspace_errors_when_missing() {
 
 #[test]
 fn test_resolve_workspace_errors_when_no_repos() {
-  with_tmp_dir(|path| {
+  with_io_dir(|path, _| {
     fs::create_dir_all(path.join("build-mono")).unwrap();
     let result = resolve_workspace(Some(path), None, None);
     assert!(result.is_err());
@@ -28,7 +24,7 @@ fn test_resolve_workspace_errors_when_no_repos() {
 
 #[test]
 fn test_resolve_workspace_succeeds() {
-  with_tmp_dir(|path| {
+  with_io_dir(|path, _| {
     fs::create_dir_all(path.join("build-mono").join("repos")).unwrap();
     let result = resolve_workspace(Some(path), None, None);
     assert!(result.is_ok());
@@ -39,7 +35,7 @@ fn test_resolve_workspace_succeeds() {
 
 #[test]
 fn test_resolve_workspace_finds_repos() {
-  with_tmp_dir(|path| {
+  with_io_dir(|path, _| {
     let repos = path.join("build-mono").join("repos");
     fs::create_dir_all(repos.join("user-lib1").join(".git")).unwrap();
     fs::create_dir_all(repos.join("user-lib2").join(".git")).unwrap();
@@ -50,7 +46,7 @@ fn test_resolve_workspace_finds_repos() {
 
 #[test]
 fn test_resolve_workspace_custom_mono_dir() {
-  with_tmp_dir(|path| {
+  with_io_dir(|path, _| {
     fs::create_dir_all(path.join("my-workspace").join("repos")).unwrap();
     let result = resolve_workspace(Some(path), Some("my-workspace"), None);
     assert!(result.is_ok());
@@ -59,7 +55,7 @@ fn test_resolve_workspace_custom_mono_dir() {
 
 #[test]
 fn test_resolve_workspace_custom_build_dir() {
-  with_tmp_dir(|path| {
+  with_io_dir(|path, _| {
     fs::create_dir_all(path.join("build-mono").join("repos")).unwrap();
     let ws = resolve_workspace(Some(path), None, Some("out")).unwrap();
     assert!(ws.build_path.ends_with("out"));
@@ -68,7 +64,7 @@ fn test_resolve_workspace_custom_build_dir() {
 
 #[test]
 fn test_resolve_workspace_excludes_non_git_dirs() {
-  with_tmp_dir(|path| {
+  with_io_dir(|path, _| {
     let repos = path.join("build-mono").join("repos");
     fs::create_dir_all(repos.join("user-lib1").join(".git")).unwrap();
     fs::create_dir_all(repos.join("not-a-repo")).unwrap();
