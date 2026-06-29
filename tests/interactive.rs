@@ -1,6 +1,6 @@
 use star_setup::interactive::interactive_mode;
 mod common;
-use common::{default_resolved, default_resolved_interactive, make_io, with_io_input_output};
+use common::{default_resolved, default_resolved_interactive, with_io_input_output};
 
 fn input_with_suffix(prefix: &[u8]) -> Vec<u8> {
   let mut v = prefix.to_vec();
@@ -128,13 +128,12 @@ fn test_interactive_mode_invalid_mono_choice_then_valid() {
 
 #[test]
 fn test_interactive_mode_errors_on_eof() {
-  let mut input = b"".as_ref();
-  let mut output = Vec::new();
-  let mut io = make_io(&mut input, &mut output);
-  let mut args = default_resolved();
-  args.repo = None;
+  let (result, _) = with_io_input_output(b"", |io| {
+    let mut args = default_resolved();
+    args.repo = None;
+    interactive_mode(&mut args, io)
+  });
 
-  let result = interactive_mode(&mut args, &mut io);
   assert!(result.is_err());
   assert!(result.unwrap_err().contains("unexpected end of input"));
 }
