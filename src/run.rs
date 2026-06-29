@@ -80,7 +80,5 @@ pub fn run(config_path: PathBuf) -> Result<(), Box<dyn Error>> {
       single_repo_mode(&args, Path::new("."), ctx)?;
     }
     Ok(())
-  })?;
-
-  Ok(())
+  })
 }
