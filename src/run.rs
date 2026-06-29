@@ -4,7 +4,7 @@ use crate::{
     handle_config_cmd, handle_profile_cmd, handle_workspace_cmd, mono_repo_mode, single_repo_mode,
   },
   config::load_config,
-  ctx::{with_runner, IoCtx},
+  ctx::{with_runner, IoCtx, RunFlags},
   interactive::interactive_mode,
   utils::check_prerequisites,
 };
@@ -41,6 +41,9 @@ pub fn run(config_path: PathBuf) -> Result<(), Box<dyn Error>> {
   let mut io = IoCtx {
     input: &mut stdin,
     output: &mut stdout,
+  };
+
+  let mut flags = RunFlags {
     verbose: raw.connection.verbose,
     timing: raw.diagnostic.timing,
     dry_run: raw.diagnostic.dry_run,
@@ -49,10 +52,12 @@ pub fn run(config_path: PathBuf) -> Result<(), Box<dyn Error>> {
   if let Some(cmd) = raw.command {
     match cmd {
       Command::Config(c) => {
-        handle_config_cmd(c.action, &mut config, config_path, raw.yes, &mut io)?;
+        handle_config_cmd(c.action, &mut config, config_path, raw.yes, &mut io, &flags)?;
       }
-      Command::Profile(p) => handle_profile_cmd(p.action, &mut config, raw.yes, &mut io)?,
-      Command::Workspace(w) => handle_workspace_cmd(w.action, io)?,
+      Command::Profile(p) => {
+        handle_profile_cmd(p.action, &mut config, raw.yes, &mut io, &flags)?;
+      }
+      Command::Workspace(w) => handle_workspace_cmd(w.action, io, flags)?,
     }
     return Ok(());
   }
@@ -60,22 +65,20 @@ pub fn run(config_path: PathBuf) -> Result<(), Box<dyn Error>> {
   let mut args = resolve_with_config(raw, &config).map_err(Box::<dyn Error>::from)?;
   if args.repo.is_none() {
     if is_terminal {
-      interactive_mode(&mut args, &mut io)?;
+      interactive_mode(&mut args, &mut io, &mut flags)?;
     } else {
       return Err("no repository specified".into());
     }
   }
 
-  check_prerequisites(&mut io)?;
+  check_prerequisites(&mut io, &flags)?;
 
-  with_runner(io, |ctx| {
+  with_runner(io, flags, |ctx| {
     if args.mono.mono_repo {
       mono_repo_mode(&args, &config, Path::new("."), ctx)?;
     } else {
       single_repo_mode(&args, Path::new("."), ctx)?;
     }
     Ok(())
-  })?;
-
-  Ok(())
+  })
 }

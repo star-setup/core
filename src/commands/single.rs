@@ -40,7 +40,7 @@ pub fn single_repo_mode(
     writeln!(ctx.io.output, "Repository {dir_name} already exists").ok();
     if confirm("Update existing repository?", args.yes, &mut ctx.io)? {
       writeln!(ctx.io.output, "Updating {dir_name}\n").ok();
-      crate::time!(ctx.io.timing, ctx.io.output, "Update", {
+      crate::time!(ctx.flags.timing, ctx.io.output, "Update", {
         pull_repository(&repo_path, ctx)?;
       });
     }
@@ -53,7 +53,7 @@ pub fn single_repo_mode(
 
   let build_system = if let Some(bs) = args.build.build_system {
     Some(bs)
-  } else if !ctx.io.dry_run {
+  } else if !ctx.flags.dry_run {
     Some(detect_build_system(&repo_path, ctx)?)
   } else {
     None
@@ -70,7 +70,7 @@ pub fn single_repo_mode(
   )
   .ok();
 
-  if ctx.io.timing {
+  if ctx.flags.timing {
     writeln!(ctx.io.output, "[timing] Total: {:.2?}", total.elapsed()).ok();
   }
   Ok(())

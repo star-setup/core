@@ -3,19 +3,22 @@ use std::path::Path;
 mod common;
 use common::{with_io, with_io_output};
 
+use crate::common::make_flags;
+
 #[test]
 fn test_process_runner_runs_command() {
   with_io(|io| {
-    assert!(ProcessRunner.run(&["git", "--version"], None, io).is_ok());
+    assert!(ProcessRunner
+      .run(&["git", "--version"], None, &make_flags(), io.output)
+      .is_ok());
   });
 }
 
 #[test]
 fn test_dry_run_runner_prints_command() {
   let ((), output) = with_io_output(|io| {
-    io.dry_run = true;
     DryRunRunner
-      .run(&["git", "clone", "foo"], None, io)
+      .run(&["git", "clone", "foo"], None, &make_flags(), io.output)
       .unwrap();
   });
   assert_eq!(output, "Would run: git clone foo\n");
@@ -24,9 +27,13 @@ fn test_dry_run_runner_prints_command() {
 #[test]
 fn test_dry_run_runner_prints_cwd() {
   let ((), output) = with_io_output(|io| {
-    io.dry_run = true;
     DryRunRunner
-      .run(&["cmake", ".."], Some(Path::new("/tmp/build")), io)
+      .run(
+        &["cmake", ".."],
+        Some(Path::new("/tmp/build")),
+        &make_flags(),
+        io.output,
+      )
       .unwrap();
   });
   assert!(output.contains("Would run: cmake .."));

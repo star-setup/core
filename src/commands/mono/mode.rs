@@ -37,7 +37,7 @@ pub fn mono_repo_mode(
 
   let mono_repo_path = base_dir.join(&args.mono.mono_dir);
   let repos_path = mono_repo_path.join("repos");
-  if ctx.io.dry_run {
+  if ctx.flags.dry_run {
     writeln!(
       ctx.io.output,
       "Would create directory: {}",
@@ -45,7 +45,7 @@ pub fn mono_repo_mode(
     )
     .ok();
   } else {
-    crate::time!(ctx.io.timing, ctx.io.output, "Create directory", {
+    crate::time!(ctx.flags.timing, ctx.io.output, "Create directory", {
       fs::create_dir_all(&repos_path).map_err(|e| e.to_string())?;
     });
   }
@@ -61,7 +61,7 @@ pub fn mono_repo_mode(
 
   let build_system = if let Some(bs) = args.build.build_system {
     Some(bs)
-  } else if !ctx.io.dry_run {
+  } else if !ctx.flags.dry_run {
     Some(detect_mono_build_system(&repo_dirs, ctx)?)
   } else {
     None
@@ -77,7 +77,7 @@ pub fn mono_repo_mode(
     None
   };
 
-  let paths = if ctx.io.dry_run {
+  let paths = if ctx.flags.dry_run {
     SetupPaths {
       mono_repo_disp: mono_repo_path.clone(),
       exe_path: None,
@@ -92,6 +92,6 @@ pub fn mono_repo_mode(
     )
   };
 
-  print_setup_complete(&paths, total, &mut ctx.io);
+  print_setup_complete(&paths, total, &mut ctx.io, &ctx.flags);
   Ok(())
 }

@@ -1,4 +1,4 @@
-use crate::common::{with_io_dir, with_io_input_output, with_io_output};
+use crate::common::{make_flags, with_io_dir, with_io_input_output, with_io_output};
 use star_setup::{
   config::{load_config, save_config, SetupConfig},
   profile::{add_profile, has_profile, insert_profile, remove_profile, remove_profile_entry},
@@ -46,7 +46,7 @@ fn test_add_profile_inserts_and_saves() {
     config.path = Some(path.clone());
 
     let args = vec!["myprofile".to_string(), "user/repo1".to_string()];
-    add_profile(&mut config, &args, true, io).unwrap();
+    add_profile(&mut config, &args, true, io, &make_flags()).unwrap();
     assert!(has_profile(&config, "myprofile"));
     assert!(path.exists());
   });
@@ -57,7 +57,7 @@ fn test_add_profile_errors_on_insufficient_args() {
   let mut config = SetupConfig::new();
   let args = vec!["myprofile".to_string()];
   with_io_output(|io| {
-    let result = add_profile(&mut config, &args, true, io);
+    let result = add_profile(&mut config, &args, true, io, &make_flags());
     assert!(result.is_err());
   });
 }
@@ -66,7 +66,7 @@ fn test_add_profile_errors_on_insufficient_args() {
 fn test_add_profile_errors_on_empty_args() {
   let mut config = SetupConfig::new();
   with_io_output(|io| {
-    let result = add_profile(&mut config, &[], true, io);
+    let result = add_profile(&mut config, &[], true, io, &make_flags());
     assert!(result.is_err());
   });
 }
@@ -79,7 +79,7 @@ fn test_add_profile_overwrites_existing() {
     insert_profile(&mut config, "myprofile", vec!["old/repo".to_string()]);
 
     let args = vec!["myprofile".to_string(), "new/repo".to_string()];
-    add_profile(&mut config, &args, true, io).unwrap();
+    add_profile(&mut config, &args, true, io, &make_flags()).unwrap();
     assert_eq!(config.profiles["myprofile"], vec!["new/repo"]);
   });
 }
@@ -96,7 +96,7 @@ fn test_add_profile_multiple_repos() {
       "user/repo2".to_string(),
       "user/repo3".to_string(),
     ];
-    add_profile(&mut config, &args, true, io).unwrap();
+    add_profile(&mut config, &args, true, io, &make_flags()).unwrap();
     assert_eq!(config.profiles["myprofile"].len(), 3);
   });
 }
@@ -110,7 +110,7 @@ fn test_add_profile_aborts_when_exists_and_not_confirmed() {
     insert_profile(&mut config, "myprofile", vec!["old/repo".to_string()]);
 
     let args = vec!["myprofile".to_string(), "new/repo".to_string()];
-    add_profile(&mut config, &args, false, io).unwrap();
+    add_profile(&mut config, &args, false, io, &make_flags()).unwrap();
     assert_eq!(config.profiles["myprofile"], vec!["old/repo"]);
   });
 }
@@ -124,7 +124,7 @@ fn test_remove_profile_removes_and_saves() {
     insert_profile(&mut config, "myprofile", vec!["user/repo1".to_string()]);
     save_config(&mut config).unwrap();
 
-    remove_profile(&mut config, "myprofile", true, io).unwrap();
+    remove_profile(&mut config, "myprofile", true, io, &make_flags()).unwrap();
     assert!(!has_profile(&config, "myprofile"));
   });
 }
@@ -133,7 +133,7 @@ fn test_remove_profile_removes_and_saves() {
 fn test_remove_profile_not_found() {
   let mut config = SetupConfig::new();
   with_io_output(|io| {
-    remove_profile(&mut config, "nonexistent", true, io).unwrap();
+    remove_profile(&mut config, "nonexistent", true, io, &make_flags()).unwrap();
   });
 }
 
@@ -143,7 +143,7 @@ fn test_remove_profile_aborts_when_not_confirmed() {
     let mut config = SetupConfig::new();
     insert_profile(&mut config, "myprofile", vec!["user/repo1".to_string()]);
 
-    remove_profile(&mut config, "myprofile", false, io).unwrap();
+    remove_profile(&mut config, "myprofile", false, io, &make_flags()).unwrap();
     assert!(has_profile(&config, "myprofile"));
   });
 }

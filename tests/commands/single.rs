@@ -24,6 +24,8 @@ where
       io: IoCtx {
         input: &mut input_slice,
         output: &mut output,
+      },
+      flags: star_setup::ctx::RunFlags {
         verbose: false,
         timing: false,
         dry_run: false,
@@ -83,7 +85,7 @@ fn test_single_repo_mode_cleans_build_dir() {
 fn test_single_repo_mode_outputs_timing() {
   let ((), out, _) = with_single_mode_ctx(b"n\n", MockRunner::new(), |tmp_path, ctx| {
     make_repo_fixture(tmp_path);
-    ctx.io.timing = true;
+    ctx.flags.timing = true;
     single_repo_mode(&default_resolved(), tmp_path, ctx).unwrap();
   });
 
@@ -96,7 +98,7 @@ fn test_single_repo_mode_dry_run_makes_no_fs_changes() {
   args.diagnostic.dry_run = true;
 
   let ((), _, _) = with_single_mode_ctx(b"", DryRunRunner, |tmp_path, ctx| {
-    ctx.io.dry_run = true;
+    ctx.flags.dry_run = true;
     single_repo_mode(&args, tmp_path, ctx).unwrap();
     assert!(std::fs::read_dir(tmp_path).unwrap().next().is_none());
   });
@@ -109,7 +111,7 @@ fn test_single_repo_mode_dry_run_clean_prints_would_remove() {
   args.build.clean = true;
 
   let ((), out, _) = with_single_mode_ctx(b"", DryRunRunner, |tmp_path, ctx| {
-    ctx.io.dry_run = true;
+    ctx.flags.dry_run = true;
     single_repo_mode(&args, tmp_path, ctx).unwrap();
     assert!(std::fs::read_dir(tmp_path).unwrap().next().is_none());
   });

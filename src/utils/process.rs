@@ -5,10 +5,7 @@ use std::{
 };
 
 #[cfg(target_os = "windows")]
-use std::{
-  collections::HashMap,
-  path::PathBuf,
-};
+use std::{collections::HashMap, path::PathBuf};
 
 /// Finds vcvars64.bat using vswhere.exe.
 /// Returns None if vswhere is not found or no VS installation exists.

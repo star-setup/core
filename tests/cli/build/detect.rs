@@ -25,6 +25,8 @@ where
       io: IoCtx {
         input: &mut input_slice,
         output: &mut output,
+      },
+      flags: star_setup::ctx::RunFlags {
         verbose: false,
         timing,
         dry_run: false,

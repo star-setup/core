@@ -1,6 +1,6 @@
 use crate::{
   config::{save_config, SetupConfig},
-  ctx::IoCtx,
+  ctx::{IoCtx, RunFlags},
   profile::print_profile_details,
   prompts::confirm_abort,
 };
@@ -30,6 +30,7 @@ pub fn add_profile(
   args: &[String],
   yes: bool,
   io: &mut IoCtx<'_>,
+  flags: &RunFlags,
 ) -> Result<(), String> {
   if args.len() < 2 {
     return Err("--profile-add requires NAME REPO1 [REPO2 ...]".to_string());
@@ -48,7 +49,7 @@ pub fn add_profile(
     return Ok(());
   }
 
-  if io.dry_run {
+  if flags.dry_run {
     writeln!(io.output, "Would save profile '{name}' to config file").ok();
   } else {
     insert_profile(config, &name, repos.clone());
@@ -73,6 +74,7 @@ pub fn remove_profile(
   name: &str,
   yes: bool,
   io: &mut IoCtx<'_>,
+  flags: &RunFlags,
 ) -> Result<(), String> {
   let repos = match config.profiles.get(name) {
     None => {
@@ -97,7 +99,7 @@ pub fn remove_profile(
     return Ok(());
   }
 
-  if io.dry_run {
+  if flags.dry_run {
     writeln!(io.output, "Would remove profile '{name}' from config file").ok();
   } else {
     remove_profile_entry(config, name);

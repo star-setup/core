@@ -20,11 +20,11 @@ pub fn generate_mono_config(
   writeln!(ctx.io.output, "Creating mono-repo configuration").ok();
   match build_system {
     BuildSystem::Cmake => {
-      create_mono_repo_cmakelists(mono_repo_path, repos, &mut ctx.io)?;
+      create_mono_repo_cmakelists(mono_repo_path, repos, &mut ctx.io, &ctx.flags)?;
       Ok(None)
     }
     BuildSystem::Meson => {
-      let map = hoist_wraps(repos_path, repo_dirs, &mut ctx.io)?;
+      let map = hoist_wraps(repos_path, repo_dirs, &mut ctx.io, &ctx.flags)?;
       let subproject_names: Vec<String> = repos
         .iter()
         .map(|r| {
@@ -36,7 +36,7 @@ pub fn generate_mono_config(
             .unwrap_or(dir)
         })
         .collect();
-      create_mono_repo_mesonbuild(mono_repo_path, &subproject_names, &mut ctx.io)?;
+      create_mono_repo_mesonbuild(mono_repo_path, &subproject_names, &mut ctx.io, &ctx.flags)?;
       Ok(Some(map))
     }
   }

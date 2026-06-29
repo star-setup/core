@@ -1,6 +1,6 @@
 use star_setup::interactive::interactive_mode;
 mod common;
-use common::{default_resolved, default_resolved_interactive, with_io_input_output};
+use common::{default_resolved, default_resolved_interactive, make_flags, with_io_input_output};
 
 fn input_with_suffix(prefix: &[u8]) -> Vec<u8> {
   let mut v = prefix.to_vec();
@@ -13,7 +13,7 @@ fn test_interactive_mode_single_repo() {
   let input = input_with_suffix(b"user/repo\nn\nn\nn\nn\n1");
   let (args, _) = with_io_input_output(&input, |io| {
     let mut args = default_resolved();
-    interactive_mode(&mut args, io).unwrap();
+    interactive_mode(&mut args, io, &mut make_flags()).unwrap();
     args
   });
 
@@ -27,7 +27,7 @@ fn test_interactive_mode_ssh_enabled() {
   let input = input_with_suffix(b"user/repo\ny\nn\nn\nn\n1");
   let (args, _) = with_io_input_output(&input, |io| {
     let mut args = default_resolved_interactive();
-    interactive_mode(&mut args, io).unwrap();
+    interactive_mode(&mut args, io, &mut make_flags()).unwrap();
     args
   });
 
@@ -39,7 +39,7 @@ fn test_interactive_mode_mono_repo_with_profile() {
   let input = input_with_suffix(b"user/repo\nn\nn\nn\nn\n2\n1\nmyprofile");
   let (args, _) = with_io_input_output(&input, |io| {
     let mut args = default_resolved();
-    interactive_mode(&mut args, io).unwrap();
+    interactive_mode(&mut args, io, &mut make_flags()).unwrap();
     args
   });
 
@@ -52,7 +52,7 @@ fn test_interactive_mode_mono_repo_with_manual_repos() {
   let input = input_with_suffix(b"user/repo\nn\nn\nn\nn\n2\n2\nuser/lib1 user/lib2");
   let (args, _) = with_io_input_output(&input, |io| {
     let mut args = default_resolved();
-    interactive_mode(&mut args, io).unwrap();
+    interactive_mode(&mut args, io, &mut make_flags()).unwrap();
     args
   });
 
@@ -69,7 +69,7 @@ fn test_interactive_mode_skips_repo_prompt_when_set() {
   let (args, _) = with_io_input_output(&input, |io| {
     let mut args = default_resolved();
     args.repo = Some("already/set".to_string());
-    interactive_mode(&mut args, io).unwrap();
+    interactive_mode(&mut args, io, &mut make_flags()).unwrap();
     args
   });
 
@@ -81,7 +81,7 @@ fn test_interactive_mode_output_contains_header() {
   let input = input_with_suffix(b"user/repo\nn\nn\nn\nn\n1");
   let (_, out_str) = with_io_input_output(&input, |io| {
     let mut args = default_resolved();
-    interactive_mode(&mut args, io).unwrap();
+    interactive_mode(&mut args, io, &mut make_flags()).unwrap();
     args
   });
 
@@ -94,7 +94,7 @@ fn test_interactive_mode_yes_word_not_accepted_for_ssh() {
   let input = input_with_suffix(b"user/repo\nyes\nn\nn\nn\n1");
   let (args, _) = with_io_input_output(&input, |io| {
     let mut args = default_resolved();
-    interactive_mode(&mut args, io).unwrap();
+    interactive_mode(&mut args, io, &mut make_flags()).unwrap();
     args
   });
 
@@ -106,7 +106,7 @@ fn test_interactive_mode_invalid_mode_then_valid() {
   let input = input_with_suffix(b"user/repo\nn\nn\nn\nn\nfoo\n1");
   let (args, _) = with_io_input_output(&input, |io| {
     let mut args = default_resolved();
-    interactive_mode(&mut args, io).unwrap();
+    interactive_mode(&mut args, io, &mut make_flags()).unwrap();
     args
   });
 
@@ -118,7 +118,7 @@ fn test_interactive_mode_invalid_mono_choice_then_valid() {
   let input = input_with_suffix(b"user/repo\nn\nn\nn\nn\n2\nfoo\n1\nmyprofile");
   let (args, _) = with_io_input_output(&input, |io| {
     let mut args = default_resolved();
-    interactive_mode(&mut args, io).unwrap();
+    interactive_mode(&mut args, io, &mut make_flags()).unwrap();
     args
   });
 
@@ -131,7 +131,7 @@ fn test_interactive_mode_errors_on_eof() {
   let (result, _) = with_io_input_output(b"", |io| {
     let mut args = default_resolved();
     args.repo = None;
-    interactive_mode(&mut args, io)
+    interactive_mode(&mut args, io, &mut make_flags())
   });
 
   assert!(result.is_err());

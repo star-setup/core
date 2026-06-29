@@ -5,6 +5,19 @@ use std::{
   path::Path,
 };
 
+/// IO context passed to functions that need input/output and behavioral flags.
+pub struct IoCtx<'a> {
+  pub input: &'a mut dyn BufRead,
+  pub output: &'a mut dyn Write,
+}
+
+/// Behavioral execution flags.
+pub struct RunFlags {
+  pub verbose: bool,
+  pub timing: bool,
+  pub dry_run: bool,
+}
+
 /// Trait for executing shell commands.
 /// # Errors
 /// Returns an error if the command fails to spawn or exits with a non-zero status.
@@ -12,7 +25,13 @@ pub trait Runner {
   /// Executes a shell command with optional working directory.
   /// # Errors
   /// Returns an error if the command fails to spawn or exits with a non-zero status.
-  fn run(&mut self, cmd: &[&str], cwd: Option<&Path>, io: &mut IoCtx<'_>) -> Result<(), String>;
+  fn run(
+    &mut self,
+    cmd: &[&str],
+    cwd: Option<&Path>,
+    flags: &RunFlags,
+    output: &mut dyn Write,
+  ) -> Result<(), String>;
 
   /// Executes a shell command and captures stdout as a string.
   /// # Errors
@@ -23,8 +42,14 @@ pub trait Runner {
 /// Runner that executes commands.
 pub struct ProcessRunner;
 impl Runner for ProcessRunner {
-  fn run(&mut self, cmd: &[&str], cwd: Option<&Path>, io: &mut IoCtx<'_>) -> Result<(), String> {
-    run_command(cmd, cwd, io.verbose, io.output)
+  fn run(
+    &mut self,
+    cmd: &[&str],
+    cwd: Option<&Path>,
+    flags: &RunFlags,
+    output: &mut dyn Write,
+  ) -> Result<(), String> {
+    run_command(cmd, cwd, flags.verbose, output)
   }
 
   fn run_capture(&mut self, cmd: &[&str], cwd: Option<&Path>) -> Result<String, String> {
@@ -53,10 +78,16 @@ impl Runner for ProcessRunner {
 /// Runner that prints commands instead of executing them.
 pub struct DryRunRunner;
 impl Runner for DryRunRunner {
-  fn run(&mut self, cmd: &[&str], cwd: Option<&Path>, io: &mut IoCtx<'_>) -> Result<(), String> {
-    writeln!(io.output, "Would run: {}", cmd.join(" ")).map_err(|e| e.to_string())?;
+  fn run(
+    &mut self,
+    cmd: &[&str],
+    cwd: Option<&Path>,
+    _flags: &RunFlags,
+    output: &mut dyn Write,
+  ) -> Result<(), String> {
+    writeln!(output, "Would run: {}", cmd.join(" ")).map_err(|e| e.to_string())?;
     if let Some(dir) = cwd {
-      writeln!(io.output, "  in directory: {}", dir.display()).map_err(|e| e.to_string())?;
+      writeln!(output, "  in directory: {}", dir.display()).map_err(|e| e.to_string())?;
     }
     Ok(())
   }
@@ -66,31 +97,31 @@ impl Runner for DryRunRunner {
   }
 }
 
-/// IO context passed to functions that need input/output and behavioral flags.
-pub struct IoCtx<'a> {
-  pub input: &'a mut dyn BufRead,
-  pub output: &'a mut dyn Write,
-  pub verbose: bool,
-  pub timing: bool,
-  pub dry_run: bool,
-}
-
 /// Full execution context combining IO and a command runner.
 pub struct RunCtx<'io, 'run> {
   pub io: IoCtx<'io>,
+  pub flags: RunFlags,
   pub runner: &'run mut dyn Runner,
 }
 
 /// Helper to quickly execute a workspace/repo task with the correct runner.
 /// # Errors
 /// Returns an error if the closure function `f` execution returns an error block.
-pub fn with_runner<F>(io: IoCtx, f: F) -> Result<(), Box<dyn Error>>
+pub fn with_runner<F>(io: IoCtx, flags: RunFlags, f: F) -> Result<(), Box<dyn Error>>
 where
   F: FnOnce(&mut RunCtx) -> Result<(), Box<dyn Error>>,
 {
-  let mut dry = DryRunRunner;
-  let mut real = ProcessRunner;
-  let runner: &mut dyn Runner = if io.dry_run { &mut dry } else { &mut real };
-  let mut ctx = RunCtx { io, runner };
+  let mut dry;
+  let mut real;
+
+  let runner: &mut dyn Runner = if flags.dry_run {
+    dry = DryRunRunner;
+    &mut dry
+  } else {
+    real = ProcessRunner;
+    &mut real
+  };
+
+  let mut ctx = RunCtx { io, flags, runner };
   f(&mut ctx)
 }

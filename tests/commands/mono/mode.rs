@@ -31,7 +31,7 @@ fn test_mono_repo_mode_dry_run_makes_no_fs_changes() {
   args.diagnostic.dry_run = true;
 
   with_ctx(DryRunRunner, |tmp_path, ctx| {
-    ctx.io.dry_run = true;
+    ctx.flags.dry_run = true;
 
     mono_repo_mode(&args, &SetupConfig::new(), tmp_path, ctx).unwrap();
 

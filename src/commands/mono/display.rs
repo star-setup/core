@@ -1,4 +1,7 @@
-use crate::{ctx::IoCtx, repository::repo_dir_name};
+use crate::{
+  ctx::{IoCtx, RunFlags},
+  repository::repo_dir_name,
+};
 use std::{
   collections::HashMap,
   path::{Path, PathBuf},
@@ -56,7 +59,12 @@ pub fn resolve_setup_paths<S: std::hash::BuildHasher>(
 }
 
 /// Prints the setup completion summary.
-pub fn print_setup_complete(paths: &SetupPaths, total: std::time::Instant, io: &mut IoCtx<'_>) {
+pub fn print_setup_complete(
+  paths: &SetupPaths,
+  total: std::time::Instant,
+  io: &mut IoCtx<'_>,
+  flags: &RunFlags,
+) {
   writeln!(io.output, "Setup complete").ok();
   writeln!(
     io.output,
@@ -70,7 +78,7 @@ pub fn print_setup_complete(paths: &SetupPaths, total: std::time::Instant, io: &
   if let Some(build) = &paths.build_disp {
     writeln!(io.output, "Build output in: {}", build.display()).ok();
   }
-  if io.timing {
+  if flags.timing {
     writeln!(io.output, "[timing] Total: {:.2?}", total.elapsed()).ok();
   }
 }

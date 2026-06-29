@@ -1,5 +1,5 @@
 use super::fixtures::sample_entry;
-use crate::common::{with_io_dir, with_io_input_output, with_io_output};
+use crate::common::{make_flags, with_io_dir, with_io_input_output, with_io_output};
 use star_setup::{
   cli::BuildType,
   config::{
@@ -28,7 +28,15 @@ fn test_add_config_inserts_and_saves() {
     let mut config = SetupConfig::new();
     config.path = Some(path.clone());
 
-    add_config(&mut config, "myconfig", sample_entry(), true, io).unwrap();
+    add_config(
+      &mut config,
+      "myconfig",
+      sample_entry(),
+      true,
+      io,
+      &make_flags(),
+    )
+    .unwrap();
     assert!(has_config(&config, "myconfig"));
     assert!(path.exists());
   });
@@ -60,6 +68,7 @@ fn test_add_config_aborts_when_exists_and_not_confirmed() {
       },
       false,
       io,
+      &make_flags(),
     )
     .unwrap();
     assert!(config.configs["myconfig"].ssh);
@@ -86,7 +95,7 @@ fn test_remove_config_entry_exists() {
 fn test_create_default_config_creates_file() {
   with_io_dir(|tmp, io| {
     let path = tmp.join(".star-setup.json");
-    create_default_config(path.clone(), true, io).unwrap();
+    create_default_config(path.clone(), true, io, &make_flags()).unwrap();
     assert!(path.exists());
   });
 }
@@ -98,7 +107,7 @@ fn test_create_default_config_aborts_when_exists_and_not_confirmed() {
     let path = tmp.path().join(".star-setup.json");
     std::fs::write(&path, "original").unwrap();
 
-    create_default_config(path.clone(), false, io).unwrap();
+    create_default_config(path.clone(), false, io, &make_flags()).unwrap();
     assert_eq!(std::fs::read_to_string(&path).unwrap(), "original");
   });
 }
@@ -138,7 +147,7 @@ fn test_remove_config_removes_and_saves() {
     insert_config(&mut config, "myconfig", sample_entry());
     save_config(&mut config).unwrap();
 
-    remove_config(&mut config, "myconfig", true, io).unwrap();
+    remove_config(&mut config, "myconfig", true, io, &make_flags()).unwrap();
     assert!(!has_config(&config, "myconfig"));
   });
 }
@@ -147,7 +156,7 @@ fn test_remove_config_removes_and_saves() {
 fn test_remove_config_not_found() {
   let mut config = SetupConfig::new();
   with_io_output(|io| {
-    remove_config(&mut config, "nonexistent", true, io).unwrap();
+    remove_config(&mut config, "nonexistent", true, io, &make_flags()).unwrap();
   });
 }
 
@@ -159,7 +168,7 @@ fn test_remove_config_aborts_when_not_confirmed() {
     config.path = Some(tmp.path().join(".star-setup.json"));
     insert_config(&mut config, "myconfig", sample_entry());
 
-    remove_config(&mut config, "myconfig", false, io).unwrap();
+    remove_config(&mut config, "myconfig", false, io, &make_flags()).unwrap();
     assert!(has_config(&config, "myconfig"));
   });
 }

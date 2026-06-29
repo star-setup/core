@@ -1,7 +1,7 @@
 use crate::{
   cli::BuildType,
   config::{format_entry, save_config, ConfigEntry, SetupConfig},
-  ctx::IoCtx,
+  ctx::{IoCtx, RunFlags},
   prompts::confirm_abort,
 };
 use std::path::PathBuf;
@@ -25,7 +25,12 @@ pub fn has_config(config: &SetupConfig, name: &str) -> bool {
 /// Creates a default configuration file in the current directory.
 /// # Errors
 /// Returns an error if the config file cannot be written.
-pub fn create_default_config(path: PathBuf, yes: bool, io: &mut IoCtx<'_>) -> Result<(), String> {
+pub fn create_default_config(
+  path: PathBuf,
+  yes: bool,
+  io: &mut IoCtx<'_>,
+  flags: &RunFlags,
+) -> Result<(), String> {
   if path.exists()
     && !confirm_abort(
       &format!("{} already exists. Overwrite?", path.display()),
@@ -36,7 +41,7 @@ pub fn create_default_config(path: PathBuf, yes: bool, io: &mut IoCtx<'_>) -> Re
     return Ok(());
   }
 
-  if !io.dry_run {
+  if !flags.dry_run {
     let mut config = SetupConfig::new();
     config.path = Some(path.clone());
     config.configs.insert(
@@ -82,6 +87,7 @@ pub fn add_config(
   entry: ConfigEntry,
   yes: bool,
   io: &mut IoCtx<'_>,
+  flags: &RunFlags,
 ) -> Result<(), String> {
   if has_config(config, name)
     && !confirm_abort(
@@ -93,7 +99,7 @@ pub fn add_config(
     return Ok(());
   }
 
-  if io.dry_run {
+  if flags.dry_run {
     writeln!(
       io.output,
       "Would save configuration '{name}' to config file"
@@ -123,6 +129,7 @@ pub fn remove_config(
   name: &str,
   yes: bool,
   io: &mut IoCtx<'_>,
+  flags: &RunFlags,
 ) -> Result<(), String> {
   let Some(e) = config.configs.get(name) else {
     writeln!(io.output, "\nWarning: Config '{name}' not found.\n").ok();
@@ -137,7 +144,7 @@ pub fn remove_config(
     return Ok(());
   }
 
-  if io.dry_run {
+  if flags.dry_run {
     writeln!(
       io.output,
       "Would remove configuration '{name}' from config file"
