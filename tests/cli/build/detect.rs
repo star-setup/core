@@ -39,7 +39,7 @@ where
 
 #[test]
 fn test_detect_build_system_none() {
-  let (result, _) = with_detect_ctx(b"", false, |path, ctx| detect_build_system(path, ctx));
+  let (result, _) = with_detect_ctx(b"", false, detect_build_system);
   assert!(result.is_err());
 }
 
