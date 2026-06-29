@@ -43,7 +43,7 @@ pub fn generate_mono_config(
       Ok(Some(map))
     }
     BuildSystem::Npm => {
-      create_mono_repo_package_json(mono_repo_path, repos_path, repos, &mut ctx.io)?;
+      create_mono_repo_package_json(mono_repo_path, repos_path, repos, &mut ctx.io, &ctx.flags)?;
       Ok(None)
     }
   }

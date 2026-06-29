@@ -1,12 +1,20 @@
-use crate::{ctx::IoCtx, repository::repo_dir_name};
+use crate::{
+  ctx::{IoCtx, RunFlags},
+  repository::repo_dir_name,
+};
 use std::{fs, path::Path};
 
 /// Reads a lib's package.json and returns the appropriate watch command.
-fn get_watch_command(repos_path: &Path, dir: &str, io: &mut IoCtx<'_>) -> Option<String> {
+fn get_watch_command(
+  repos_path: &Path,
+  dir: &str,
+  io: &mut IoCtx<'_>,
+  flags: &RunFlags,
+) -> Option<String> {
   let pkg_path = repos_path.join(dir).join("package.json");
   match fs::read_to_string(&pkg_path) {
     Err(_) => {
-      if io.verbose {
+      if flags.verbose {
         writeln!(
           io.output,
           "  Warning: could not read {dir}/package.json, skipping"
@@ -17,7 +25,7 @@ fn get_watch_command(repos_path: &Path, dir: &str, io: &mut IoCtx<'_>) -> Option
     }
     Ok(content) => match serde_json::from_str::<serde_json::Value>(&content) {
       Err(_) => {
-        if io.verbose {
+        if flags.verbose {
           writeln!(
             io.output,
             "  Warning: malformed {dir}/package.json, skipping"
@@ -33,7 +41,7 @@ fn get_watch_command(repos_path: &Path, dir: &str, io: &mut IoCtx<'_>) -> Option
         } else if scripts.get("build").is_some() {
           Some(format!("npm --workspace=repos/{dir} run build -- --watch"))
         } else {
-          if io.verbose {
+          if flags.verbose {
             writeln!(
               io.output,
               "  Warning: {dir} has no watch or build script, skipping"
@@ -55,6 +63,7 @@ pub fn generate_watch_scripts(
   repos_path: &Path,
   repos: &[String],
   io: &mut IoCtx<'_>,
+  flags: &RunFlags,
 ) -> Result<(), String> {
   let lib_dirs: Vec<String> = repos.iter().skip(1).map(|r| repo_dir_name(r)).collect();
 
@@ -65,7 +74,7 @@ pub fn generate_watch_scripts(
   let ps1_lines: Vec<String> = lib_dirs
     .iter()
     .filter_map(|d| {
-      get_watch_command(repos_path, d, io).map(|cmd| {
+      get_watch_command(repos_path, d, io, flags).map(|cmd| {
         format!(
           "Start-Process powershell -ArgumentList '-NoExit', '-Command', 'cd \"{}\"; {cmd}'",
           mono_dir.display()
@@ -77,7 +86,7 @@ pub fn generate_watch_scripts(
   let sh_lines: Vec<String> = lib_dirs
     .iter()
     .filter_map(|d| {
-      get_watch_command(repos_path, d, io)
+      get_watch_command(repos_path, d, io, flags)
         .map(|cmd| format!("cd \"{}\" && {cmd} &", mono_dir.display()))
     })
     .collect();
@@ -100,7 +109,7 @@ pub fn generate_watch_scripts(
   )
   .ok();
 
-  if io.verbose {
+  if flags.verbose {
     writeln!(io.output, "Watching {} libraries:", lib_dirs.len()).ok();
     for d in &lib_dirs {
       let full_path =

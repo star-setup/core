@@ -80,7 +80,13 @@ pub fn mono_repo_mode(
   };
 
   if build_system == Some(BuildSystem::Npm) && !args.build.no_watch && !ctx.flags.dry_run {
-    generate_watch_scripts(&mono_repo_path, &repos_path, &repos, &mut ctx.io)?;
+    generate_watch_scripts(
+      &mono_repo_path,
+      &repos_path,
+      &repos,
+      &mut ctx.io,
+      &ctx.flags,
+    )?;
     if args.build.watch {
       open_watch_scripts(&mono_repo_path, &mut ctx.io)?;
     }

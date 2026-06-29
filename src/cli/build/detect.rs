@@ -24,6 +24,9 @@ fn pick_build_system(
   }
 }
 
+/// Detects the build system in use by inspecting the given directory.
+/// # Errors
+/// Returns an error on EOF during prompt, or if no supported build system is found.
 pub fn detect_build_system(dir: &Path, ctx: &mut RunCtx<'_, '_>) -> Result<BuildSystem, String> {
   crate::time!(ctx.flags.timing, ctx.io.output, "Detect", {
     let mut detected = Vec::new();
@@ -40,6 +43,9 @@ pub fn detect_build_system(dir: &Path, ctx: &mut RunCtx<'_, '_>) -> Result<Build
   })
 }
 
+/// Detects the build system consistently across all repo directories.
+/// # Errors
+/// Returns an error if systems are inconsistent or none found, or EOF during prompt.
 pub fn detect_mono_build_system(
   dirs: &[PathBuf],
   ctx: &mut RunCtx<'_, '_>,

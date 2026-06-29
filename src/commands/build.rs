@@ -97,19 +97,25 @@ pub fn npm_build(
   args: &ResolvedArgs,
   source_path: &Path,
   is_mono: bool,
-  ctx: &mut RunCtx<'_>,
+  ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
-  crate::time!(ctx.io.timing, ctx.io.output, "npm install", {
-    ctx
-      .runner
-      .run(&["npm", "install"], Some(source_path), &mut ctx.io)?;
+  crate::time!(ctx.flags.timing, ctx.io.output, "npm install", {
+    ctx.runner.run(
+      &["npm", "install"],
+      Some(source_path),
+      &ctx.flags,
+      ctx.io.output,
+    )?;
   });
   if !args.build.no_build && !is_mono {
     writeln!(ctx.io.output, "Building project\n").ok();
-    crate::time!(ctx.io.timing, ctx.io.output, "npm build", {
-      ctx
-        .runner
-        .run(&["npm", "run", "build"], Some(source_path), &mut ctx.io)?;
+    crate::time!(ctx.flags.timing, ctx.io.output, "npm build", {
+      ctx.runner.run(
+        &["npm", "run", "build"],
+        Some(source_path),
+        &ctx.flags,
+        ctx.io.output,
+      )?;
     });
   }
   Ok(())

@@ -131,6 +131,7 @@ pub fn create_mono_repo_package_json(
   repos_path: &Path,
   repos: &[String],
   io: &mut IoCtx<'_>,
+  flags: &RunFlags,
 ) -> Result<(), String> {
   writeln!(io.output, "  Creating npm workspace configuration").ok();
 
@@ -157,7 +158,7 @@ pub fn create_mono_repo_package_json(
           }
         }
         Err(_) => {
-          if io.verbose {
+          if flags.verbose {
             writeln!(
               io.output,
               "  Warning: malformed {dir}/package.json, skipping override"
@@ -166,7 +167,7 @@ pub fn create_mono_repo_package_json(
           }
         }
       }
-    } else if io.verbose {
+    } else if flags.verbose {
       writeln!(
         io.output,
         "  Warning: could not read {dir}/package.json, skipping override"
@@ -186,7 +187,7 @@ pub fn create_mono_repo_package_json(
   );
 
   let file_path = mono_dir.join("package.json");
-  crate::time!(io.timing, io.output, "Generate package.json", {
+  crate::time!(flags.timing, io.output, "Generate package.json", {
     fs::write(&file_path, content).map_err(|e| e.to_string())?;
   });
 
