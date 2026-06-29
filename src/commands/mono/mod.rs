@@ -1,7 +1,9 @@
 pub mod clone;
 pub use clone::clone_mono_repos;
 pub mod config;
-pub use config::{create_mono_repo_cmakelists, create_mono_repo_mesonbuild};
+pub use config::{
+  create_mono_repo_cmakelists, create_mono_repo_mesonbuild, create_mono_repo_package_json,
+};
 pub mod display;
 pub use display::print_setup_complete;
 pub mod mode;
@@ -12,3 +14,5 @@ pub mod wraps;
 pub use wraps::hoist_wraps;
 pub mod setup;
 pub use setup::{build_repo_list, generate_mono_config};
+pub mod watch;
+pub use watch::{generate_watch_scripts, open_watch_scripts};

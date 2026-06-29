@@ -1,5 +1,5 @@
 use crate::{
-  cli::{detect_build_system, ResolvedArgs},
+  cli::{detect_build_system, BuildSystem, ResolvedArgs},
   commands::{
     configure_and_build, extract_repo_input, prepare_build_dir, print_mode_header, ModeHeader,
   },
@@ -49,8 +49,6 @@ pub fn single_repo_mode(
   }
 
   let build_path = repo_path.join(&args.build.build_dir);
-  prepare_build_dir(&build_path, args.build.clean, ctx)?;
-
   let build_system = if let Some(bs) = args.build.build_system {
     Some(bs)
   } else if !ctx.flags.dry_run {
@@ -60,7 +58,12 @@ pub fn single_repo_mode(
   };
 
   if let Some(build_system) = build_system {
-    configure_and_build(args, &repo_path, &build_path, build_system, false, ctx)?;
+    if build_system == BuildSystem::Npm {
+      configure_and_build(args, &repo_path, &repo_path, build_system, false, ctx)?;
+    } else {
+      prepare_build_dir(&build_path, args.build.clean, ctx)?;
+      configure_and_build(args, &repo_path, &build_path, build_system, false, ctx)?;
+    }
   }
 
   writeln!(

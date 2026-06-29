@@ -145,3 +145,28 @@ fn test_generate_mono_config_meson() {
     assert!(content.contains("user_lib1") || content.contains("user-lib1"));
   });
 }
+
+#[test]
+fn test_generate_mono_config_npm() {
+  with_ctx(MockRunner::new(), |tmp_path, ctx| {
+    let repos_path = tmp_path.join("repos");
+    std::fs::create_dir_all(&repos_path).unwrap();
+
+    let result = generate_mono_config(
+      star_setup::cli::BuildSystem::Npm,
+      tmp_path,
+      &repos_path,
+      &[],
+      &["user/lib1".to_string(), "user/lib2".to_string()],
+      ctx,
+    );
+
+    assert!(result.is_ok());
+    assert!(result.unwrap().is_none());
+    let pkg = tmp_path.join("package.json");
+    assert!(pkg.exists());
+    let content = std::fs::read_to_string(&pkg).unwrap();
+    assert!(content.contains("workspaces"));
+    assert!(content.contains("repos/user-lib1"));
+  });
+}

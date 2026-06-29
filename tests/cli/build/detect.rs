@@ -11,6 +11,10 @@ fn create_meson_fixture(path: &std::path::Path) {
   std::fs::write(path.join("meson.build"), "").unwrap();
 }
 
+fn create_npm_fixture(path: &std::path::Path) {
+  std::fs::write(path.join("package.json"), "{}").unwrap();
+}
+
 fn with_detect_ctx<T, F>(input: &[u8], timing: bool, test_logic: F) -> (T, String)
 where
   F: FnOnce(&std::path::Path, &mut RunCtx) -> T,
@@ -145,4 +149,42 @@ fn test_detect_mono_build_system_timing_output() {
     detect_mono_build_system(&[path.to_path_buf()], ctx).unwrap();
   });
   assert!(out.contains("[timing] Detect:"));
+}
+
+#[test]
+fn test_detect_build_system_npm() {
+  let (result, _) = with_detect_ctx(b"", false, |path, ctx| {
+    create_npm_fixture(path);
+    detect_build_system(path, ctx)
+  });
+  assert!(matches!(result.unwrap(), BuildSystem::Npm));
+}
+
+#[test]
+fn test_detect_build_system_cmake_and_npm_picks_npm() {
+  let (result, _) = with_detect_ctx(b"2\n", false, |path, ctx| {
+    create_cmake_fixture(path);
+    create_npm_fixture(path);
+    detect_build_system(path, ctx)
+  });
+  assert!(matches!(result.unwrap(), BuildSystem::Npm));
+}
+
+#[test]
+fn test_detect_mono_build_system_npm() {
+  let (result, _) = with_detect_ctx(b"", false, |path, ctx| {
+    create_npm_fixture(path);
+    detect_mono_build_system(&[path.to_path_buf()], ctx)
+  });
+  assert!(matches!(result.unwrap(), BuildSystem::Npm));
+}
+
+#[test]
+fn test_detect_mono_build_system_cmake_and_npm_picks_npm() {
+  let (result, _) = with_detect_ctx(b"2\n", false, |path, ctx| {
+    create_cmake_fixture(path);
+    create_npm_fixture(path);
+    detect_mono_build_system(&[path.to_path_buf()], ctx)
+  });
+  assert!(matches!(result.unwrap(), BuildSystem::Npm));
 }

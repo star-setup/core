@@ -79,13 +79,7 @@ fn test_hoist_wraps_empty_repos() {
 fn test_hoist_wraps_skips_repo_without_meson_build() {
   with_io_dir(|repos_dir, io| {
     let repo = TempDir::new().unwrap();
-    let result = hoist_wraps(
-      repos_dir,
-      &[repo.path().to_path_buf()],
-      io,
-      &make_flags(),
-    )
-    .unwrap();
+    let result = hoist_wraps(repos_dir, &[repo.path().to_path_buf()], io, &make_flags()).unwrap();
     assert!(result.is_empty());
   });
 }
@@ -94,13 +88,7 @@ fn test_hoist_wraps_skips_repo_without_meson_build() {
 fn test_hoist_wraps_emits_wrap_without_provide() {
   with_io_dir(|repos_dir, io| {
     let repo = make_repo("my-lib");
-    let result = hoist_wraps(
-      repos_dir,
-      &[repo.path().to_path_buf()],
-      io,
-      &make_flags(),
-    )
-    .unwrap();
+    let result = hoist_wraps(repos_dir, &[repo.path().to_path_buf()], io, &make_flags()).unwrap();
 
     assert!(result.contains_key("my_lib"));
     let wrap = repos_dir.join("my_lib.wrap");
@@ -125,13 +113,7 @@ fn test_hoist_wraps_emits_wrap_with_provide() {
     .unwrap();
     std::fs::write(subprojects.join("readme.txt"), "ignore me").unwrap();
 
-    let result = hoist_wraps(
-      repos_dir,
-      &[repo.path().to_path_buf()],
-      io,
-      &make_flags(),
-    )
-    .unwrap();
+    let result = hoist_wraps(repos_dir, &[repo.path().to_path_buf()], io, &make_flags()).unwrap();
 
     assert!(result.contains_key("my_lib"));
     let wrap = repos_dir.join("my_lib.wrap");

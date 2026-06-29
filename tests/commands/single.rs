@@ -1,7 +1,8 @@
 use super::common::{default_resolved, MockRunner};
 use star_setup::{
+  cli::BuildSystem,
   commands::single_repo_mode,
-  ctx::{DryRunRunner, IoCtx, RunCtx},
+  ctx::{DryRunRunner, IoCtx, RunCtx, RunFlags, Runner},
 };
 
 fn make_repo_fixture(base: &std::path::Path) {
@@ -12,7 +13,7 @@ fn make_repo_fixture(base: &std::path::Path) {
 
 fn with_single_mode_ctx<T, R, F>(input: &[u8], mut runner: R, test_logic: F) -> (T, String, R)
 where
-  R: star_setup::ctx::Runner,
+  R: Runner,
   F: FnOnce(&std::path::Path, &mut RunCtx) -> T,
 {
   let tmp = tempfile::TempDir::new().unwrap();
@@ -25,7 +26,7 @@ where
         input: &mut input_slice,
         output: &mut output,
       },
-      flags: star_setup::ctx::RunFlags {
+      flags: RunFlags {
         verbose: false,
         timing: false,
         dry_run: false,
@@ -109,6 +110,7 @@ fn test_single_repo_mode_dry_run_clean_prints_would_remove() {
   let mut args = default_resolved();
   args.diagnostic.dry_run = true;
   args.build.clean = true;
+  args.build.build_system = Some(BuildSystem::Cmake);
 
   let ((), out, _) = with_single_mode_ctx(b"", DryRunRunner, |tmp_path, ctx| {
     ctx.flags.dry_run = true;

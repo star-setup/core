@@ -55,6 +55,13 @@ pub struct BuildFlags {
   /// Additional Meson arguments
   #[arg(long = "meson-arg", action = clap::ArgAction::Append)]
   pub meson_flags: Vec<String>,
+
+  /// Automatically open watch scripts for npm mono-repo mode.
+  #[arg(long)]
+  pub watch: bool,
+  /// Skip generating watch scripts for npm mono-repo mode.
+  #[arg(long)]
+  pub no_watch: bool,
 }
 
 #[derive(ClapArgs)]

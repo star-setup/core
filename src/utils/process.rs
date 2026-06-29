@@ -77,6 +77,19 @@ pub fn run_command(
     }
   }
 
+  #[cfg(target_os = "windows")]
+  let npm_cmd;
+  #[cfg(target_os = "windows")]
+  let (exe, args) = if cmd[0] == "npm" {
+    npm_cmd = std::iter::once("cmd")
+      .chain(std::iter::once("/c"))
+      .chain(cmd.iter().copied())
+      .collect::<Vec<_>>();
+    (&npm_cmd[0], &npm_cmd[1..])
+  } else {
+    (exe, args)
+  };
+
   let mut command = Command::new(exe);
   command.stdin(Stdio::null());
   command.args(args);

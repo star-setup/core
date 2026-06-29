@@ -8,6 +8,8 @@ pub enum BuildSystem {
   Cmake,
   /// Meson build system (`meson.build`).
   Meson,
+  /// npm build system (`package.json`).
+  Npm,
 }
 
 impl FromStr for BuildSystem {
@@ -15,9 +17,13 @@ impl FromStr for BuildSystem {
 
   /// Parses a build system string.
   /// # Errors
-  /// Returns an error if the string does not match `cmake` or `meson`.
+  /// Returns an error if the string does not match `cmake`, `meson`, or `npm`.
   fn from_str(s: &str) -> Result<Self, Self::Err> {
-    let systems = [("cmake", Self::Cmake), ("meson", Self::Meson)];
+    let systems = [
+      ("cmake", Self::Cmake),
+      ("meson", Self::Meson),
+      ("npm", Self::Npm),
+    ];
 
     for (name, variant) in systems {
       if s.eq_ignore_ascii_case(name) {
@@ -25,7 +31,9 @@ impl FromStr for BuildSystem {
       }
     }
 
-    Err(format!("Unknown build system '{s}'. Valid: cmake, meson"))
+    Err(format!(
+      "Unknown build system '{s}'. Valid: cmake, meson, npm"
+    ))
   }
 }
 
