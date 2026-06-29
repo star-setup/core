@@ -9,7 +9,7 @@ fn write_mono_repo_config(
   mono_dir: &Path,
   repos: &[String],
   io: &mut IoCtx<'_>,
-  flags: &mut RunFlags,
+  flags: &RunFlags,
   filename: &str,
   format_modules: impl Fn(&[String]) -> String,
   render_template: impl Fn(&str) -> String,
@@ -43,7 +43,7 @@ pub fn create_mono_repo_cmakelists(
   mono_dir: &Path,
   repos: &[String],
   io: &mut IoCtx<'_>,
-  flags: &mut RunFlags,
+  flags: &RunFlags,
 ) -> Result<(), String> {
   writeln!(io.output, "  Creating CMake configuration").ok();
   write_mono_repo_config(
@@ -87,7 +87,7 @@ pub fn create_mono_repo_mesonbuild(
   mono_dir: &Path,
   repos: &[String],
   io: &mut IoCtx<'_>,
-  flags: &mut RunFlags,
+  flags: &RunFlags,
 ) -> Result<(), String> {
   writeln!(io.output, "  Creating Meson configuration").ok();
   write_mono_repo_config(

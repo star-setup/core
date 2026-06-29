@@ -63,7 +63,7 @@ pub fn print_setup_complete(
   paths: &SetupPaths,
   total: std::time::Instant,
   io: &mut IoCtx<'_>,
-  flags: &mut RunFlags,
+  flags: &RunFlags,
 ) {
   writeln!(io.output, "Setup complete").ok();
   writeln!(

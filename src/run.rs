@@ -52,14 +52,7 @@ pub fn run(config_path: PathBuf) -> Result<(), Box<dyn Error>> {
   if let Some(cmd) = raw.command {
     match cmd {
       Command::Config(c) => {
-        handle_config_cmd(
-          c.action,
-          &mut config,
-          config_path,
-          raw.yes,
-          &mut io,
-          &flags,
-        )?;
+        handle_config_cmd(c.action, &mut config, config_path, raw.yes, &mut io, &flags)?;
       }
       Command::Profile(p) => {
         handle_profile_cmd(p.action, &mut config, raw.yes, &mut io, &flags)?;

@@ -92,6 +92,6 @@ pub fn mono_repo_mode(
     )
   };
 
-  print_setup_complete(&paths, total, &mut ctx.io, &mut ctx.flags);
+  print_setup_complete(&paths, total, &mut ctx.io, &ctx.flags);
   Ok(())
 }
