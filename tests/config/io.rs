@@ -1,4 +1,6 @@
-use super::{common::sink, fixtures::sample_entry};
+use crate::common::with_io_output;
+
+use super::fixtures::sample_entry;
 use star_setup::{
   cli::BuildType,
   config::{insert_config, load_config, save_config, ConfigEntry, SetupConfig},
@@ -30,18 +32,22 @@ fn test_save_and_load_roundtrip() {
   );
   save_config(&mut config).unwrap();
 
-  let loaded = load_config(&[path], &mut sink());
-  assert!(loaded.configs.contains_key("default"));
-  assert!(loaded.configs["default"].ssh);
-  assert_eq!(loaded.configs["default"].build_type, BuildType::Release);
-  assert_eq!(loaded.configs["default"].mono_dir, "mono");
-  assert_eq!(loaded.configs["default"].cmake_flags, Vec::<String>::new());
+  with_io_output(|io| {
+    let loaded = load_config(&[path], &mut io.output);
+    assert!(loaded.configs.contains_key("default"));
+    assert!(loaded.configs["default"].ssh);
+    assert_eq!(loaded.configs["default"].build_type, BuildType::Release);
+    assert_eq!(loaded.configs["default"].mono_dir, "mono");
+    assert_eq!(loaded.configs["default"].cmake_flags, Vec::<String>::new());
+  });
 }
 
 #[test]
 fn test_load_config_skips_missing_local_file() {
-  let config = load_config(&[], &mut sink());
-  assert!(config.configs.is_empty());
+  with_io_output(|io| {
+    let config = load_config(&[], &mut io.output);
+    assert!(config.configs.is_empty());
+  });
 }
 
 #[test]
@@ -50,17 +56,21 @@ fn test_load_config_handles_invalid_json() {
   let path = tmp.path().join(".star-setup.json");
   std::fs::write(&path, "{invalid json").unwrap();
 
-  let config = load_config(&[path], &mut sink());
-  assert!(config.configs.is_empty());
+  with_io_output(|io| {
+    let config = load_config(&[path], &mut io.output);
+    assert!(config.configs.is_empty());
+  });
 }
 
 #[test]
 fn test_load_config_skips_nonexistent_path() {
-  let config = load_config(
-    &[PathBuf::from("/nonexistent/path/.star-setup.json")],
-    &mut sink(),
-  );
-  assert!(config.configs.is_empty());
+  with_io_output(|io| {
+    let config = load_config(
+      &[PathBuf::from("/nonexistent/path/.star-setup.json")],
+      &mut io.output,
+    );
+    assert!(config.configs.is_empty());
+  });
 }
 
 #[test]
@@ -80,9 +90,11 @@ fn test_load_config_first_valid_wins() {
   insert_config(&mut config2, "second", sample_entry());
   save_config(&mut config2).unwrap();
 
-  let loaded = load_config(&[path1, path2], &mut sink());
-  assert!(loaded.configs.contains_key("first"));
-  assert!(!loaded.configs.contains_key("second"));
+  with_io_output(|io| {
+    let loaded = load_config(&[path1, path2], &mut io.output);
+    assert!(loaded.configs.contains_key("first"));
+    assert!(!loaded.configs.contains_key("second"));
+  });
 }
 
 #[test]
@@ -99,6 +111,8 @@ fn test_load_config_falls_through_invalid_to_valid() {
   insert_config(&mut config2, "second", sample_entry());
   save_config(&mut config2).unwrap();
 
-  let loaded = load_config(&[path1, path2], &mut sink());
-  assert!(loaded.configs.contains_key("second"));
+  with_io_output(|io| {
+    let loaded = load_config(&[path1, path2], &mut io.output);
+    assert!(loaded.configs.contains_key("second"));
+  });
 }
