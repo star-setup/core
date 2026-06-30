@@ -1,6 +1,18 @@
 use crate::config::SetupConfig;
 use std::{fs, io, io::Write, path::PathBuf};
 
+/// Returns the list of paths to search for a config file.
+#[must_use]
+pub fn config_locations(path: &std::path::Path) -> Vec<PathBuf> {
+  [
+    Some(path.to_path_buf()),
+    dirs::home_dir().map(|h| h.join(path)),
+  ]
+  .into_iter()
+  .flatten()
+  .collect()
+}
+
 /// Loads configuration from the first valid JSON file in `locations`.
 pub fn load_config(locations: &[PathBuf], output: &mut impl Write) -> SetupConfig {
   let mut invalid_count = 0;

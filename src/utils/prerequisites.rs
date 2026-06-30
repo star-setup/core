@@ -5,7 +5,7 @@ use std::process::Command;
 /// Returns Result.
 /// # Errors
 /// Returns an error if any required tool is missing from PATH.
-pub fn check_prerequisites(io: &mut IoCtx<'_>, flags: &RunFlags) -> Result<(), String> {
+pub fn check_prerequisites(io: &mut IoCtx<'_>, flags: RunFlags) -> Result<(), String> {
   crate::time!(flags.timing, io.output, "Check prerequisites", {
     let missing: Vec<&str> = ["git", "cmake", "meson"]
       .into_iter()

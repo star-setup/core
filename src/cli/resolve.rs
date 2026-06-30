@@ -1,9 +1,9 @@
 use crate::{
   cli::{
-    Args, BuildType, ResolvedArgs, ResolvedBuildFlags, ResolvedConnectionFlags,
-    ResolvedDiagnosticFlags, ResolvedMonoFlags,
+    Args, BuildType, ResolvedArgs, ResolvedBuildFlags, ResolvedConnectionFlags, ResolvedMonoFlags,
   },
   config::SetupConfig,
+  ctx::RunFlags,
 };
 
 /// Resolves a boolean flag from CLI positive/negative flags, config value, and a default.
@@ -40,20 +40,20 @@ pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<Resol
     false,
   );
   let verbose = resolve_bool(
-    args.connection.verbose,
-    args.connection.no_verbose,
+    args.diagnostic.verbose,
+    args.diagnostic.no_verbose,
     default.map(|e| e.verbose),
     false,
   );
   let timing = resolve_bool(
     args.diagnostic.timing,
-    false,
+    args.diagnostic.no_timing,
     default.map(|e| e.timing),
     false,
   );
   let dry_run = resolve_bool(
     args.diagnostic.dry_run,
-    false,
+    args.diagnostic.no_dry_run,
     default.map(|e| e.dry_run),
     false,
   );
@@ -85,8 +85,12 @@ pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<Resol
   Ok(ResolvedArgs {
     repo: args.repo,
     yes: args.yes,
-    connection: ResolvedConnectionFlags { ssh, verbose },
-    diagnostic: ResolvedDiagnosticFlags { timing, dry_run },
+    connection: ResolvedConnectionFlags { ssh },
+    diagnostic: RunFlags {
+      verbose,
+      timing,
+      dry_run,
+    },
     build: ResolvedBuildFlags {
       build_type: match args.build.build_type {
         Some(s) => s.parse::<BuildType>()?,

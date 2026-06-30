@@ -30,7 +30,7 @@ pub fn add_profile(
   args: &[String],
   yes: bool,
   io: &mut IoCtx<'_>,
-  flags: &RunFlags,
+  flags: RunFlags,
 ) -> Result<(), String> {
   if args.len() < 2 {
     return Err("--profile-add requires NAME REPO1 [REPO2 ...]".to_string());
@@ -74,7 +74,7 @@ pub fn remove_profile(
   name: &str,
   yes: bool,
   io: &mut IoCtx<'_>,
-  flags: &RunFlags,
+  flags: RunFlags,
 ) -> Result<(), String> {
   let repos = match config.profiles.get(name) {
     None => {

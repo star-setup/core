@@ -6,12 +6,6 @@ use crate::{
 };
 use std::path::Path;
 
-fn to_str(path: &Path) -> Result<&str, String> {
-  path
-    .to_str()
-    .ok_or_else(|| format!("Invalid path: {}", path.display()))
-}
-
 /// Runs `CMake` configuration and optionally builds the project in `build_path`.
 /// # Errors
 /// Returns an error if any `CMake` command fails.
@@ -32,7 +26,7 @@ pub fn cmake_build(
   crate::time!(ctx.flags.timing, ctx.io.output, "CMake configure", {
     ctx
       .runner
-      .run(&cmake_cmd, Some(build_path), &ctx.flags, ctx.io.output)?;
+      .run(&cmake_cmd, Some(build_path), ctx.flags, ctx.io.output)?;
   });
 
   if !args.build.no_build {
@@ -47,12 +41,18 @@ pub fn cmake_build(
           args.build.build_type.to_cmake(),
         ],
         Some(build_path),
-        &ctx.flags,
+        ctx.flags,
         ctx.io.output,
       )?;
     });
   }
   Ok(())
+}
+
+fn to_str(path: &Path) -> Result<&str, String> {
+  path
+    .to_str()
+    .ok_or_else(|| format!("Invalid path: {}", path.display()))
 }
 
 /// Runs Meson configuration and optionally builds the project in `build_path`.
@@ -72,9 +72,7 @@ pub fn meson_build(
   meson_cmd.extend(args.build.meson_flags.iter().map(String::as_str));
 
   crate::time!(ctx.flags.timing, ctx.io.output, "Meson setup", {
-    ctx
-      .runner
-      .run(&meson_cmd, None, &ctx.flags, ctx.io.output)?;
+    ctx.runner.run(&meson_cmd, None, ctx.flags, ctx.io.output)?;
   });
   if !args.build.no_build {
     writeln!(ctx.io.output, "Building project\n").ok();
@@ -82,7 +80,7 @@ pub fn meson_build(
       ctx.runner.run(
         &["meson", "compile", "-C", to_str(build_path)?],
         None,
-        &ctx.flags,
+        ctx.flags,
         ctx.io.output,
       )?;
     });
@@ -103,7 +101,7 @@ pub fn npm_build(
     ctx.runner.run(
       &["npm", "install"],
       Some(source_path),
-      &ctx.flags,
+      ctx.flags,
       ctx.io.output,
     )?;
   });
@@ -113,7 +111,7 @@ pub fn npm_build(
       ctx.runner.run(
         &["npm", "run", "build"],
         Some(source_path),
-        &ctx.flags,
+        ctx.flags,
         ctx.io.output,
       )?;
     });

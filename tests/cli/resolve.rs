@@ -99,7 +99,6 @@ fn test_resolve_with_config_defaults_when_no_config() {
   let config = SetupConfig::new();
   let resolved = resolve_with_config(default_args(), &config).unwrap();
   assert!(!resolved.connection.ssh);
-  assert!(!resolved.connection.verbose);
   assert_eq!(resolved.build.build_type, BuildType::Debug);
   assert_eq!(resolved.build.build_dir, "build");
   assert_eq!(resolved.mono.mono_dir, "build-mono");
@@ -125,7 +124,6 @@ fn test_resolve_with_config_applies_config_defaults() {
 
   let resolved = resolve_with_config(default_args(), &config).unwrap();
   assert!(resolved.connection.ssh);
-  assert!(resolved.connection.verbose);
   assert_eq!(resolved.build.build_type, BuildType::Release);
   assert_eq!(resolved.build.build_dir, "out");
   assert!(resolved.build.no_build);
@@ -230,7 +228,7 @@ fn test_resolve_with_config_negative_flags_override_config() {
 
   let mut args = default_args();
   args.connection.https = true;
-  args.connection.no_verbose = true;
+  args.diagnostic.no_verbose = true;
   args.build.build = true;
   args.build.no_clean = true;
 
@@ -240,7 +238,7 @@ fn test_resolve_with_config_negative_flags_override_config() {
     "https should override config ssh:true"
   );
   assert!(
-    !resolved.connection.verbose,
+    !resolved.diagnostic.verbose,
     "no_verbose should override config verbose:true"
   );
   assert!(

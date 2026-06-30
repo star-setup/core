@@ -12,6 +12,7 @@ pub struct IoCtx<'a> {
 }
 
 /// Behavioral execution flags.
+#[derive(Copy, Clone)]
 pub struct RunFlags {
   pub verbose: bool,
   pub timing: bool,
@@ -29,7 +30,7 @@ pub trait Runner {
     &mut self,
     cmd: &[&str],
     cwd: Option<&Path>,
-    flags: &RunFlags,
+    flags: RunFlags,
     output: &mut dyn Write,
   ) -> Result<(), String>;
 
@@ -46,7 +47,7 @@ impl Runner for ProcessRunner {
     &mut self,
     cmd: &[&str],
     cwd: Option<&Path>,
-    flags: &RunFlags,
+    flags: RunFlags,
     output: &mut dyn Write,
   ) -> Result<(), String> {
     run_command(cmd, cwd, flags.verbose, output)
@@ -82,7 +83,7 @@ impl Runner for DryRunRunner {
     &mut self,
     cmd: &[&str],
     cwd: Option<&Path>,
-    _flags: &RunFlags,
+    _flags: RunFlags,
     output: &mut dyn Write,
   ) -> Result<(), String> {
     writeln!(output, "Would run: {}", cmd.join(" ")).map_err(|e| e.to_string())?;

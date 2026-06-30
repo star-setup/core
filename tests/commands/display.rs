@@ -16,7 +16,7 @@ fn test_print_setup_complete_no_map() {
         "user/repo",
         None,
       );
-      print_setup_complete(&paths, Instant::now(), io, &make_flags());
+      print_setup_complete(&paths, Instant::now(), io, make_flags());
     });
   });
 
@@ -38,7 +38,7 @@ fn test_print_setup_complete_with_map() {
         "user/repo",
         None,
       );
-      print_setup_complete(&paths, Instant::now(), io, &make_flags());
+      print_setup_complete(&paths, Instant::now(), io, make_flags());
     });
   });
 
@@ -61,7 +61,7 @@ fn test_print_setup_complete_timing() {
         &paths,
         Instant::now(),
         io,
-        &RunFlags {
+        RunFlags {
           timing: true,
           verbose: false,
           dry_run: false,

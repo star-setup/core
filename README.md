@@ -69,38 +69,41 @@ cargo install --git https://github.com/star-setup/core
 
 ### Flags
 #### Connection
-| Flag | Description |
-|------|-------------|
-| `--ssh` | Clone via SSH instead of HTTPS |
-| `--https` | Force HTTPS (default) |
-| `--verbose` | Print commands as they run |
+| Flag      | Description                    |
+|------     |-------------                   |
+| `--ssh`   | Clone via SSH instead of HTTPS |
+| `--https` | Force HTTPS (default)          |
 
 #### Build
-| Flag | Description |
-|------|-------------|
-| `--build-type <TYPE>` | Build type: `Debug` (default) or `Release` |
-| `--build-dir <DIR>` | Build output directory (default: `build`) |
+| Flag                      | Description                                            |
+|------                     |-------------                                           |
+| `--build-type <TYPE>`     | Build type: `Debug` (default) or `Release`             |
+| `--build-dir <DIR>`       | Build output directory (default: `build`)              |
 | `--build-system <SYSTEM>` | Skip auto-detection and use `cmake`, `meson`, or `npm` |
-| `--no-build` | Configure only, skip build step |
-| `--clean` | Remove build directory before configuring |
-| `--cmake-arg <ARG>` | Pass additional argument to CMake |
-| `--meson-arg <ARG>` | Pass additional argument to Meson |
-| `--watch` | Generate and open watch scripts (npm mono-repo mode) |
-| `--no-watch` | Skip generating watch scripts (npm mono-repo mode) |
+| `--no-build`              | Configure only, skip build step                        |
+| `--clean`                 | Remove build directory before configuring              |
+| `--cmake-arg <ARG>`       | Pass additional argument to CMake                      |
+| `--meson-arg <ARG>`       | Pass additional argument to Meson                      |
+| `--watch`                 | Generate and open watch scripts (npm mono-repo mode)   |
+| `--no-watch`              | Skip generating watch scripts (npm mono-repo mode)     |
 
 
 #### Mono-Repo
-| Flag | Description |
-|------|-------------|
-| `--repos <REPOS>...` | List of dependency repositories |
-| `--mono-dir <DIR>` | Workspace directory (default: `build-mono`) |
-| `--profile <NAME>` | Use a saved profile |
+| Flag                 | Description                                 |
+|------                |-------------                                |
+| `--repos <REPOS>...` | List of dependency repositories             |
+| `--mono-dir <DIR>`   | Workspace directory (default: `build-mono`) |
+| `--profile <NAME>`   | Use a saved profile                         |
 
 #### Diagnostic
-| Flag | Description |
-|------|-------------|
-| `--dry-run` | Print what would happen without making any changes |
-| `--timing` | Show timing for each phase |
+| Flag           | Description                                        |
+|------          |-------------                                       |
+| `--verbose`    | Print commands as they run                         |
+| `--no-verbose` | Suppress verbose output (overrides config)         |
+| `--dry-run`    | Print what would happen without making any changes |
+| `--no-dry-run` | Disable dry-run mode (overrides config)            |
+| `--timing`     | Show timing for each phase                         |
+| `--no-timing`  | Suppress timing output (overrides config)          |
 
 ### Interactive Mode
 Running `star-setup` without arguments launches interactive mode, guiding you through all options.
@@ -230,11 +233,11 @@ star-setup workspace clean
 ```
 
 Workspace flags:
-| Flag | Description |
-|------|-------------|
-| `--path <DIR>` | Workspace root directory (default: current directory) |
-| `--mono-dir <DIR>` | Workspace directory name (default: `build-mono`) |
-| `--build-dir <DIR>` | Build directory name (default: `build`) |
+| Flag                | Description                                           |
+|------               |-------------                                          |
+| `--path <DIR>`      | Workspace root directory (default: current directory) |
+| `--mono-dir <DIR>`  | Workspace directory name (default: `build-mono`)      |
+| `--build-dir <DIR>` | Build directory name (default: `build`)               |
 
 ### Profile Mode
 Profiles represent a saved ecosystem of libraries commonly used together.

@@ -9,7 +9,7 @@ fn get_watch_command(
   repos_path: &Path,
   dir: &str,
   io: &mut IoCtx<'_>,
-  flags: &RunFlags,
+  flags: RunFlags,
 ) -> Option<String> {
   let pkg_path = repos_path.join(dir).join("package.json");
   match fs::read_to_string(&pkg_path) {
@@ -63,7 +63,7 @@ pub fn generate_watch_scripts(
   repos_path: &Path,
   repos: &[String],
   io: &mut IoCtx<'_>,
-  flags: &RunFlags,
+  flags: RunFlags,
 ) -> Result<(), String> {
   let lib_dirs: Vec<String> = repos.iter().skip(1).map(|r| repo_dir_name(r)).collect();
 

@@ -66,6 +66,26 @@ pub fn with_ctx<R: Runner>(
 }
 
 #[allow(dead_code)]
-pub fn with_runner_ctx<R: Runner>(runner: R, f: impl FnOnce(&Path, &mut RunCtx<'_, '_>)) -> R {
+pub fn with_ctx_runner<R: Runner>(runner: R, f: impl FnOnce(&Path, &mut RunCtx<'_, '_>)) -> R {
   with_ctx(runner, f).0
+}
+
+#[allow(dead_code)]
+pub fn with_ctx_input<R: Runner>(
+  input: &[u8],
+  mut runner: R,
+  f: impl FnOnce(&Path, &mut RunCtx<'_, '_>),
+) -> (R, Vec<u8>) {
+  let tmp = TempDir::new().unwrap();
+  let mut input_slice = input;
+  let mut output = Vec::new();
+  {
+    let mut ctx = RunCtx {
+      io: make_io(&mut input_slice, &mut output),
+      flags: make_flags(),
+      runner: &mut runner,
+    };
+    f(tmp.path(), &mut ctx);
+  }
+  (runner, output)
 }

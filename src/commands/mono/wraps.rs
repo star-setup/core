@@ -69,7 +69,7 @@ pub fn hoist_wraps(
   repos_dir: &Path,
   repo_dirs: &[PathBuf],
   io: &mut IoCtx<'_>,
-  flags: &RunFlags,
+  flags: RunFlags,
 ) -> Result<HashMap<String, String>, String> {
   crate::time!(flags.timing, io.output, "Hoist wraps", {
     // normalized project name -> owner-prefixed dir name

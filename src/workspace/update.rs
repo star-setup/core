@@ -20,6 +20,11 @@ impl Workspace {
         .map(|n| n.to_string_lossy())
         .unwrap_or_default();
 
+      if ctx.flags.dry_run {
+        writeln!(ctx.io.output, "Would update {name}").ok();
+        continue;
+      }
+
       writeln!(ctx.io.output, "  Updating {name}").ok();
       if let Err(e) = pull_repository(repo_dir, ctx) {
         writeln!(ctx.io.output, "  Failed to update {name}: {e}").ok();
