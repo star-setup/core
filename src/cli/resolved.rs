@@ -1,15 +1,11 @@
-use crate::cli::{BuildSystem, BuildType};
+use crate::{
+  cli::{BuildSystem, BuildType},
+  ctx::RunFlags,
+};
 
 /// Resolved connection flags after applying config and CLI overrides.
 pub struct ResolvedConnectionFlags {
   pub ssh: bool,
-}
-
-/// Resolved diagnostic flags after applying config and CLI overrides.
-pub struct ResolvedDiagnosticFlags {
-  pub verbose: bool,
-  pub timing: bool,
-  pub dry_run: bool,
 }
 
 /// Resolved build flags after applying config and CLI overrides.
@@ -39,7 +35,7 @@ pub struct ResolvedArgs {
   pub repo: Option<String>,
   pub yes: bool,
   pub connection: ResolvedConnectionFlags,
-  pub diagnostic: ResolvedDiagnosticFlags,
+  pub diagnostic: RunFlags,
   pub build: ResolvedBuildFlags,
   pub mono: ResolvedMonoFlags,
 }

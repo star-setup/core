@@ -4,7 +4,7 @@ use crate::{
     handle_config_cmd, handle_profile_cmd, handle_workspace_cmd, mono_repo_mode, single_repo_mode,
   },
   config::load_config,
-  ctx::{with_runner, IoCtx, RunFlags},
+  ctx::{with_runner, IoCtx},
   interactive::interactive_mode,
   utils::check_prerequisites,
 };
@@ -41,11 +41,7 @@ pub fn run(config_path: PathBuf) -> Result<(), Box<dyn Error>> {
   let yes = raw.yes;
 
   let mut args = resolve_with_config(raw, &config).map_err(Box::<dyn Error>::from)?;
-  let mut flags = RunFlags {
-    verbose: args.diagnostic.verbose,
-    timing: args.diagnostic.timing,
-    dry_run: args.diagnostic.dry_run,
-  };
+  let mut flags = args.diagnostic;
 
   let mut io = IoCtx {
     input: &mut stdin,

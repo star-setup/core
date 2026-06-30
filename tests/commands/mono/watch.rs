@@ -16,7 +16,7 @@ fn test_generate_watch_scripts_creates_files() {
     let repos_path = tmp_path.join("repos");
     make_repo_with_scripts(&repos_path, "user-lib1", r#""build": "tsdown""#);
     let repos = vec!["user/game".to_string(), "user/lib1".to_string()];
-    generate_watch_scripts(tmp_path, &repos_path, &repos, io, &make_flags()).unwrap();
+    generate_watch_scripts(tmp_path, &repos_path, &repos, io, make_flags()).unwrap();
     assert!(tmp_path.join("watch.ps1").exists());
     assert!(tmp_path.join("watch.sh").exists());
   });
@@ -32,7 +32,7 @@ fn test_generate_watch_scripts_prefers_watch_script() {
       r#""build": "tsdown", "watch": "tsdown --watch""#,
     );
     let repos = vec!["user/game".to_string(), "user/lib1".to_string()];
-    generate_watch_scripts(tmp_path, &repos_path, &repos, io, &make_flags()).unwrap();
+    generate_watch_scripts(tmp_path, &repos_path, &repos, io, make_flags()).unwrap();
     let ps1 = std::fs::read_to_string(tmp_path.join("watch.ps1")).unwrap();
     assert!(ps1.contains("run watch"));
     assert!(!ps1.contains("run build"));
@@ -45,7 +45,7 @@ fn test_generate_watch_scripts_falls_back_to_build() {
     let repos_path = tmp_path.join("repos");
     make_repo_with_scripts(&repos_path, "user-lib1", r#""build": "tsdown""#);
     let repos = vec!["user/game".to_string(), "user/lib1".to_string()];
-    generate_watch_scripts(tmp_path, &repos_path, &repos, io, &make_flags()).unwrap();
+    generate_watch_scripts(tmp_path, &repos_path, &repos, io, make_flags()).unwrap();
     let ps1 = std::fs::read_to_string(tmp_path.join("watch.ps1")).unwrap();
     assert!(ps1.contains("run build -- --watch"));
   });
@@ -56,7 +56,7 @@ fn test_generate_watch_scripts_empty_libs() {
   with_io_dir(|tmp_path, io| {
     let repos_path = tmp_path.join("repos");
     let repos = vec!["user/game".to_string()];
-    generate_watch_scripts(tmp_path, &repos_path, &repos, io, &make_flags()).unwrap();
+    generate_watch_scripts(tmp_path, &repos_path, &repos, io, make_flags()).unwrap();
     assert!(!tmp_path.join("watch.ps1").exists());
     assert!(!tmp_path.join("watch.sh").exists());
   });
@@ -73,7 +73,7 @@ fn test_generate_watch_scripts_no_scripts_field() {
     )
     .unwrap();
     let repos = vec!["user/game".to_string(), "user/lib1".to_string()];
-    generate_watch_scripts(tmp_path, &repos_path, &repos, io, &make_flags()).unwrap();
+    generate_watch_scripts(tmp_path, &repos_path, &repos, io, make_flags()).unwrap();
     let ps1 = std::fs::read_to_string(tmp_path.join("watch.ps1")).unwrap();
     assert!(!ps1.contains("user-lib1"));
   });
@@ -91,7 +91,7 @@ fn test_generate_watch_scripts_verbose_output() {
       timing: false,
       dry_run: false,
     };
-    generate_watch_scripts(tmp.path(), &repos_path, &repos, io, &flags).unwrap();
+    generate_watch_scripts(tmp.path(), &repos_path, &repos, io, flags).unwrap();
   });
   assert!(out.contains("Watching 1 libraries:"));
   assert!(out.contains("user-lib1"));

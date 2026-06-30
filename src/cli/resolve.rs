@@ -1,9 +1,9 @@
 use crate::{
   cli::{
-    Args, BuildType, ResolvedArgs, ResolvedBuildFlags, ResolvedConnectionFlags,
-    ResolvedDiagnosticFlags, ResolvedMonoFlags,
+    Args, BuildType, ResolvedArgs, ResolvedBuildFlags, ResolvedConnectionFlags, ResolvedMonoFlags,
   },
   config::SetupConfig,
+  ctx::RunFlags,
 };
 
 /// Resolves a boolean flag from CLI positive/negative flags, config value, and a default.
@@ -86,7 +86,7 @@ pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<Resol
     repo: args.repo,
     yes: args.yes,
     connection: ResolvedConnectionFlags { ssh },
-    diagnostic: ResolvedDiagnosticFlags {
+    diagnostic: RunFlags {
       verbose,
       timing,
       dry_run,

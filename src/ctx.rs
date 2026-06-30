@@ -12,6 +12,7 @@ pub struct IoCtx<'a> {
 }
 
 /// Behavioral execution flags.
+#[derive(Copy, Clone)]
 pub struct RunFlags {
   pub verbose: bool,
   pub timing: bool,

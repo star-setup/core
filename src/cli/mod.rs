@@ -7,10 +7,7 @@ pub use flags::{BuildFlags, ConnectionFlags, DiagnosticFlags, MonoRepoFlags};
 pub mod resolve;
 pub use resolve::{resolve_bool, resolve_with_config};
 pub mod resolved;
-pub use resolved::{
-  ResolvedArgs, ResolvedBuildFlags, ResolvedConnectionFlags, ResolvedDiagnosticFlags,
-  ResolvedMonoFlags,
-};
+pub use resolved::{ResolvedArgs, ResolvedBuildFlags, ResolvedConnectionFlags, ResolvedMonoFlags};
 pub mod commands;
 pub use commands::{
   ConfigAction, ConfigCommand, ProfileAction, ProfileCommand, WorkspaceAction, WorkspaceCommand,
