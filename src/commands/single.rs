@@ -66,7 +66,7 @@ pub fn single_repo_mode(
     }
   }
 
- if build_system == Some(BuildSystem::Npm) {
+  if build_system == Some(BuildSystem::Npm) {
     writeln!(ctx.io.output, "Project finished in {dir_name}").ok();
   } else {
     writeln!(

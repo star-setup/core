@@ -1,5 +1,5 @@
 mod common;
-use common::{with_runner_ctx, MockRunner};
+use common::{with_ctx_runner, MockRunner};
 use star_setup::{
   ctx::ProcessRunner,
   repository::{clone_repository, repo_dir_name, resolve_repo_url},
@@ -66,7 +66,7 @@ fn test_resolve_repo_url() {
 
 #[test]
 fn test_clone_skips_existing_directory() {
-  with_runner_ctx(ProcessRunner, |tmp_path, ctx| {
+  with_ctx_runner(ProcessRunner, |tmp_path, ctx| {
     let repo_dir = tmp_path.join("owner-repo");
     std::fs::create_dir_all(&repo_dir).unwrap();
 
@@ -80,7 +80,7 @@ fn test_clone_skips_existing_directory() {
 fn test_clone_repository_calls_git_clone() {
   let tmp = tempfile::TempDir::new().unwrap();
 
-  let runner = with_runner_ctx(MockRunner::new(), |_, ctx| {
+  let runner = with_ctx_runner(MockRunner::new(), |_, ctx| {
     clone_repository("user/repo", tmp.path(), false, ctx).unwrap();
   });
 

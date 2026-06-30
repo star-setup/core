@@ -72,9 +72,7 @@ pub fn meson_build(
   meson_cmd.extend(args.build.meson_flags.iter().map(String::as_str));
 
   crate::time!(ctx.flags.timing, ctx.io.output, "Meson setup", {
-    ctx
-      .runner
-      .run(&meson_cmd, None, ctx.flags, ctx.io.output)?;
+    ctx.runner.run(&meson_cmd, None, ctx.flags, ctx.io.output)?;
   });
   if !args.build.no_build {
     writeln!(ctx.io.output, "Building project\n").ok();

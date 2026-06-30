@@ -1,4 +1,4 @@
-use crate::common::{default_resolved_mono, with_ctx, with_runner_ctx, MockRunner};
+use crate::common::{default_resolved_mono, with_ctx, with_ctx_runner, MockRunner};
 use star_setup::{commands::mono_repo_mode, config::SetupConfig, ctx::DryRunRunner};
 
 fn make_cmake_repo(repos_path: &std::path::Path, name: &str) {
@@ -44,7 +44,7 @@ fn test_mono_repo_mode_with_build_system_flag() {
   let mut args = default_resolved_mono(vec!["user/lib1".to_string()]);
   args.build.build_system = Some(star_setup::cli::BuildSystem::Cmake);
 
-  let runner = with_runner_ctx(MockRunner::new(), |tmp_path, ctx| {
+  let runner = with_ctx_runner(MockRunner::new(), |tmp_path, ctx| {
     let repos_path = tmp_path.join(&args.mono.mono_dir).join("repos");
     std::fs::create_dir_all(&repos_path).unwrap();
     make_cmake_repo(&repos_path, "user-lib1");
