@@ -36,33 +36,35 @@ pub fn run(config_path: PathBuf) -> Result<(), Box<dyn Error>> {
   .collect::<Vec<_>>();
 
   let mut config = load_config(&locations, &mut stdout);
-  let raw = Args::parse();
+  let mut raw = Args::parse();
+  let command = raw.command.take();
+  let yes = raw.yes;
+
+  let mut args = resolve_with_config(raw, &config).map_err(Box::<dyn Error>::from)?;
+  let mut flags = RunFlags {
+    verbose: args.diagnostic.verbose,
+    timing: args.diagnostic.timing,
+    dry_run: args.diagnostic.dry_run,
+  };
 
   let mut io = IoCtx {
     input: &mut stdin,
     output: &mut stdout,
   };
 
-  let mut flags = RunFlags {
-    verbose: raw.diagnostic.verbose,
-    timing: raw.diagnostic.timing,
-    dry_run: raw.diagnostic.dry_run,
-  };
-
-  if let Some(cmd) = raw.command {
+  if let Some(cmd) = command {
     match cmd {
       Command::Config(c) => {
-        handle_config_cmd(c.action, &mut config, config_path, raw.yes, &mut io, &flags)?;
+        handle_config_cmd(c.action, &mut config, config_path, yes, &mut io, &flags)?;
       }
       Command::Profile(p) => {
-        handle_profile_cmd(p.action, &mut config, raw.yes, &mut io, &flags)?;
+        handle_profile_cmd(p.action, &mut config, yes, &mut io, &flags)?;
       }
       Command::Workspace(w) => handle_workspace_cmd(w.action, io, flags)?,
     }
     return Ok(());
   }
 
-  let mut args = resolve_with_config(raw, &config).map_err(Box::<dyn Error>::from)?;
   if args.repo.is_none() {
     if is_terminal {
       interactive_mode(&mut args, &mut io, &mut flags)?;
