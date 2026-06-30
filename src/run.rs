@@ -3,7 +3,7 @@ use crate::{
   commands::{
     handle_config_cmd, handle_profile_cmd, handle_workspace_cmd, mono_repo_mode, single_repo_mode,
   },
-  config::load_config,
+  config::{config_locations, load_config},
   ctx::{with_runner, IoCtx},
   interactive::interactive_mode,
   utils::check_prerequisites,
@@ -23,19 +23,7 @@ pub fn run(config_path: PathBuf) -> Result<(), Box<dyn Error>> {
   let mut stdout = io::stdout();
   let is_terminal = stdin.is_terminal() && stdout.is_terminal();
 
-  let locations = [
-    Some(config_path.as_path()),
-    dirs::home_dir()
-      .as_deref()
-      .map(|h| h.join(&config_path))
-      .as_deref(),
-  ]
-  .into_iter()
-  .flatten()
-  .map(Path::to_path_buf)
-  .collect::<Vec<_>>();
-
-  let mut config = load_config(&locations, &mut stdout);
+  let mut config = load_config(&config_locations(config_path.as_path()), &mut stdout);
   let mut raw = Args::parse();
   let command = raw.command.take();
   let yes = raw.yes;

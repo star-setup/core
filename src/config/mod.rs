@@ -5,6 +5,6 @@ pub use crud::{
 pub mod display;
 pub use display::{format_entry, list_configs};
 pub mod io;
-pub use io::{load_config, save_config};
+pub use io::{config_locations, load_config, save_config};
 pub mod types;
 pub use types::{ConfigEntry, SetupConfig};
