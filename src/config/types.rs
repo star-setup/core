@@ -34,8 +34,6 @@ pub struct ConfigEntry {
 
 impl ConfigEntry {
   /// Creates a `ConfigEntry` from raw flag structs.
-  /// # Errors
-  /// Returns an error if the build type string cannot be parsed.
   #[must_use]
   pub fn from_flags(
     connection: &ConnectionFlags,

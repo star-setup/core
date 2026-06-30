@@ -18,7 +18,7 @@ pub fn handle_config_cmd(
   config_path: PathBuf,
   yes: bool,
   io: &mut IoCtx,
-  flags: &RunFlags,
+  flags: RunFlags,
 ) -> Result<(), Box<dyn Error>> {
   match action {
     ConfigAction::Init => create_default_config(config_path, yes, io, flags)?,
@@ -46,7 +46,7 @@ pub fn handle_profile_cmd(
   config: &mut SetupConfig,
   yes: bool,
   io: &mut IoCtx,
-  flags: &RunFlags,
+  flags: RunFlags,
 ) -> Result<(), Box<dyn Error>> {
   match action {
     ProfileAction::List => list_profiles(config, io),

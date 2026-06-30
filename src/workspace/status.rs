@@ -21,7 +21,7 @@ impl Workspace {
       if fetch {
         ctx
           .runner
-          .run(&["git", "fetch"], Some(repo_dir), &ctx.flags, ctx.io.output)?;
+          .run(&["git", "fetch"], Some(repo_dir), ctx.flags, ctx.io.output)?;
       }
 
       let branch = ctx

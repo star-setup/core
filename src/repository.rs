@@ -59,7 +59,7 @@ pub fn clone_repository(
     .run(
       &["git", "clone", &repo_url, &repo_name],
       Some(target_dir),
-      &ctx.flags,
+      ctx.flags,
       ctx.io.output,
     )
     .map_err(|e| format!("Failed to clone {repo_path}: {e}"))
@@ -71,5 +71,5 @@ pub fn clone_repository(
 pub fn pull_repository(repo_path: &Path, ctx: &mut RunCtx<'_, '_>) -> Result<(), String> {
   ctx
     .runner
-    .run(&["git", "pull"], Some(repo_path), &ctx.flags, ctx.io.output)
+    .run(&["git", "pull"], Some(repo_path), ctx.flags, ctx.io.output)
 }

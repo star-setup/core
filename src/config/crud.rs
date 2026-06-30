@@ -29,7 +29,7 @@ pub fn create_default_config(
   path: PathBuf,
   yes: bool,
   io: &mut IoCtx<'_>,
-  flags: &RunFlags,
+  flags: RunFlags,
 ) -> Result<(), String> {
   if path.exists()
     && !confirm_abort(
@@ -87,7 +87,7 @@ pub fn add_config(
   entry: ConfigEntry,
   yes: bool,
   io: &mut IoCtx<'_>,
-  flags: &RunFlags,
+  flags: RunFlags,
 ) -> Result<(), String> {
   if has_config(config, name)
     && !confirm_abort(
@@ -129,7 +129,7 @@ pub fn remove_config(
   name: &str,
   yes: bool,
   io: &mut IoCtx<'_>,
-  flags: &RunFlags,
+  flags: RunFlags,
 ) -> Result<(), String> {
   let Some(e) = config.configs.get(name) else {
     writeln!(io.output, "\nWarning: Config '{name}' not found.\n").ok();

@@ -26,7 +26,7 @@ impl Runner for MockRunner {
     &mut self,
     cmd: &[&str],
     cwd: Option<&Path>,
-    _flags: &RunFlags,
+    _flags: RunFlags,
     _output: &mut dyn Write,
   ) -> Result<(), String> {
     let cmd_vec: Vec<String> = cmd.iter().map(ToString::to_string).collect();

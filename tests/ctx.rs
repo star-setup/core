@@ -9,7 +9,7 @@ use crate::common::make_flags;
 fn test_process_runner_runs_command() {
   with_io(|io| {
     assert!(ProcessRunner
-      .run(&["git", "--version"], None, &make_flags(), io.output)
+      .run(&["git", "--version"], None, make_flags(), io.output)
       .is_ok());
   });
 }
@@ -18,7 +18,7 @@ fn test_process_runner_runs_command() {
 fn test_dry_run_runner_prints_command() {
   let ((), output) = with_io_output(|io| {
     DryRunRunner
-      .run(&["git", "clone", "foo"], None, &make_flags(), io.output)
+      .run(&["git", "clone", "foo"], None, make_flags(), io.output)
       .unwrap();
   });
   assert_eq!(output, "Would run: git clone foo\n");
@@ -31,7 +31,7 @@ fn test_dry_run_runner_prints_cwd() {
       .run(
         &["cmake", ".."],
         Some(Path::new("/tmp/build")),
-        &make_flags(),
+        make_flags(),
         io.output,
       )
       .unwrap();

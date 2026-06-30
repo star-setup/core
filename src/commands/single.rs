@@ -66,12 +66,16 @@ pub fn single_repo_mode(
     }
   }
 
-  writeln!(
-    ctx.io.output,
-    "Project finished in {dir_name}/{}",
-    args.build.build_dir
-  )
-  .ok();
+ if build_system == Some(BuildSystem::Npm) {
+    writeln!(ctx.io.output, "Project finished in {dir_name}").ok();
+  } else {
+    writeln!(
+      ctx.io.output,
+      "Project finished in {dir_name}/{}",
+      args.build.build_dir
+    )
+    .ok();
+  }
 
   if ctx.flags.timing {
     writeln!(ctx.io.output, "[timing] Total: {:.2?}", total.elapsed()).ok();
