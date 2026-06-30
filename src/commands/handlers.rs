@@ -65,7 +65,7 @@ pub fn handle_profile_cmd(
 pub fn handle_workspace_cmd(
   action: WorkspaceAction,
   io: IoCtx,
-  mut flags: RunFlags,
+  flags: RunFlags,
 ) -> Result<(), Box<dyn Error>> {
   match action {
     WorkspaceAction::Update {
@@ -83,7 +83,6 @@ pub fn handle_workspace_cmd(
       fetch,
     } => {
       let ws = resolve_workspace(path.as_deref(), mono_dir.as_deref(), build_dir.as_deref())?;
-      flags.dry_run = false;
       with_runner(io, flags, |ctx| ws.status(fetch, ctx).map_err(Into::into))?;
     }
     WorkspaceAction::Clean {

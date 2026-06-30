@@ -13,6 +13,11 @@ impl Workspace {
         .map(|n| n.to_string_lossy().into_owned())
         .unwrap_or_default();
 
+      if ctx.flags.dry_run {
+        writeln!(ctx.io.output, "Would show status for {name}").ok();
+        continue;
+      }
+
       if fetch {
         ctx
           .runner
