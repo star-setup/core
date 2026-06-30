@@ -51,7 +51,8 @@ pub fn run(config_path: PathBuf) -> Result<(), Box<dyn Error>> {
 
   if args.repo.is_none() {
     if is_terminal {
-      interactive_mode(&mut args, &mut io, &mut flags)?;
+      interactive_mode(&mut args, &mut io)?;
+      flags = args.diagnostic;
     } else {
       return Err("no repository specified".into());
     }

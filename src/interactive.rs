@@ -2,18 +2,14 @@
 
 use crate::{
   cli::{BuildType, ResolvedArgs},
-  ctx::{IoCtx, RunFlags},
+  ctx::IoCtx,
   prompts::{ask, ask_bool_if, ask_default, ask_required},
 };
 
 /// Interactive CLI mode — prompts for any unset arguments.
 /// # Errors
 /// Returns an error if stdin reaches EOF unexpectedly.
-pub fn interactive_mode(
-  args: &mut ResolvedArgs,
-  io: &mut IoCtx<'_>,
-  flags: &mut RunFlags,
-) -> Result<(), String> {
+pub fn interactive_mode(args: &mut ResolvedArgs, io: &mut IoCtx<'_>) -> Result<(), String> {
   writeln!(io.output, "Star Setup Interactive Mode").ok();
 
   if args.repo.is_none() {
@@ -21,13 +17,8 @@ pub fn interactive_mode(
   }
 
   args.connection.ssh = ask_bool_if("Use SSH?", args.connection.ssh, io)?;
-
   args.diagnostic.verbose = ask_bool_if("Verbose?", args.diagnostic.verbose, io)?;
-  flags.verbose = args.diagnostic.verbose;
-
   args.diagnostic.timing = ask_bool_if("Show timing?", args.diagnostic.timing, io)?;
-  flags.timing = args.diagnostic.timing;
-
   args.build.clean = ask_bool_if("Clean build directory if exists?", args.build.clean, io)?;
 
   if !args.mono.mono_repo {
@@ -66,7 +57,6 @@ pub fn interactive_mode(
   let build_type_str = ask_default("Build type", args.build.build_type.to_cmake(), io)?;
   args.build.build_type = build_type_str.parse::<BuildType>()?;
   args.build.build_dir = ask_default("Build directory", &args.build.build_dir, io)?;
-
   args.build.no_build = ask_bool_if("Configure only (skip build)?", args.build.no_build, io)?;
 
   writeln!(io.output, "\nInteractive mode complete").ok();
