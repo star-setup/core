@@ -32,7 +32,10 @@ pub fn create_default_config(
   flags: RunFlags,
 ) -> Result<(), String> {
   let prompt = if flags.dry_run {
-    format!("{} already exists. Overwrite? [DRY-RUN]: No changes will be made", path.display())
+    format!(
+      "{} already exists. Overwrite? [DRY-RUN]: No changes will be made",
+      path.display()
+    )
   } else {
     format!("{} already exists. Overwrite?", path.display())
   };
