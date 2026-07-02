@@ -80,7 +80,7 @@ pub struct MonoRepoFlags {
 #[derive(ClapArgs)]
 pub struct DiagnosticFlags {
   /// Show detailed command output
-  #[arg(short = 'v', long, conflicts_with = "no_verbose")]
+  #[arg(long, conflicts_with = "no_verbose")]
   pub verbose: bool,
   /// Suppress detailed command output (overrides config)
   #[arg(long, conflicts_with = "verbose")]

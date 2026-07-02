@@ -21,6 +21,7 @@ pub enum Command {
 #[derive(Parser)]
 #[command(
   name = "star-setup",
+  version,
   about = "Lightweight CLI to clone, configure, and wire single or multi-repo ecosystems",
   long_about = None,
 )]
