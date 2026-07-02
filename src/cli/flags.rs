@@ -27,7 +27,7 @@ pub struct BuildFlags {
   #[arg(long, value_name = "BUILD_SYSTEM")]
   pub build_system: Option<BuildSystem>,
 
-  // Build after configuring (overrides config)
+  /// Build after configuring (overrides config)
   #[arg(long, conflicts_with = "no_build")]
   pub build: bool,
   /// Skip building, only configure
