@@ -31,13 +31,12 @@ pub fn create_default_config(
   io: &mut IoCtx<'_>,
   flags: RunFlags,
 ) -> Result<(), String> {
-  if path.exists()
-    && !confirm_abort(
-      &format!("{} already exists. Overwrite?", path.display()),
-      yes,
-      io,
-    )?
-  {
+  let prompt = if flags.dry_run {
+    format!("{} already exists. Overwrite? [DRY-RUN]: No changes will be made", path.display())
+  } else {
+    format!("{} already exists. Overwrite?", path.display())
+  };
+  if path.exists() && !confirm_abort(&prompt, yes, io)? {
     return Ok(());
   }
 
