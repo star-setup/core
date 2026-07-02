@@ -41,7 +41,14 @@ pub fn create_default_config(
     return Ok(());
   }
 
-  if !flags.dry_run {
+  if flags.dry_run {
+    writeln!(
+      io.output,
+      "Would create config file: {}",
+      dunce::canonicalize(&path).unwrap_or(path).display()
+    )
+    .ok();
+  } else {
     let mut config = SetupConfig::new();
     config.path = Some(path.clone());
     config.configs.insert(
@@ -62,14 +69,15 @@ pub fn create_default_config(
     );
 
     save_config(&mut config)?;
+
+    writeln!(
+      io.output,
+      "Created config file: {}",
+      dunce::canonicalize(&path).unwrap_or(path).display()
+    )
+    .ok();
   }
 
-  writeln!(
-    io.output,
-    "Created config file: {}",
-    dunce::canonicalize(&path).unwrap_or(path).display()
-  )
-  .ok();
   writeln!(io.output, "Edit this file to customize your defaults.").ok();
   writeln!(io.output, "\nConfig files are checked in this order:").ok();
   writeln!(io.output, "  1. ./.star-setup.json (current directory)").ok();

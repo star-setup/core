@@ -107,7 +107,12 @@ pub fn mono_repo_mode(
   };
 
   if build_system.is_none() && ctx.flags.dry_run {
-    writeln!(ctx.io.output, "Would finish setup in {}", paths.mono_repo_disp.display()).ok();
+    writeln!(
+      ctx.io.output,
+      "Would finish setup in {}",
+      paths.mono_repo_disp.display()
+    )
+    .ok();
   } else {
     print_setup_complete(&paths, total, &mut ctx.io, ctx.flags);
   }

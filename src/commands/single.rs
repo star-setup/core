@@ -68,7 +68,12 @@ pub fn single_repo_mode(
   }
 
   if build_system.is_none() && ctx.flags.dry_run {
-    writeln!(ctx.io.output, "Would finish in {dir_name}/{}", args.build.build_dir).ok();
+    writeln!(
+      ctx.io.output,
+      "Would finish in {dir_name}/{}",
+      args.build.build_dir
+    )
+    .ok();
   } else if build_system == Some(BuildSystem::Npm) {
     writeln!(ctx.io.output, "Project finished in {dir_name}").ok();
   } else {
