@@ -97,6 +97,6 @@ pub struct DiagnosticFlags {
   #[arg(long)]
   pub dry_run: bool,
   /// Do not use dry-run mode (overrides config)
-  #[arg(long, conflicts_with = "no_dry_run")]
+  #[arg(long, conflicts_with = "dry_run")]
   pub no_dry_run: bool,
 }
