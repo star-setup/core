@@ -61,12 +61,12 @@ pub fn mono_repo_mode(
 
   let build_system = if let Some(bs) = args.build.build_system {
     Some(bs)
-  } else if !ctx.flags.dry_run {
-    Some(detect_mono_build_system(&repo_dirs, ctx)?)
-  } else {
+  } else if ctx.flags.dry_run {
+    writeln!(ctx.io.output, "Would detect build system after cloning").ok();
     None
+  } else {
+    Some(detect_mono_build_system(&repo_dirs, ctx)?)
   };
-
   let canonical_map = if let Some(bs) = build_system {
     let map = generate_mono_config(bs, &mono_repo_path, &repos_path, &repo_dirs, &repos, ctx)?;
     if bs != BuildSystem::Npm {

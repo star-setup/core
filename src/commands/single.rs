@@ -51,10 +51,11 @@ pub fn single_repo_mode(
   let build_path = repo_path.join(&args.build.build_dir);
   let build_system = if let Some(bs) = args.build.build_system {
     Some(bs)
-  } else if !ctx.flags.dry_run {
-    Some(detect_build_system(&repo_path, ctx)?)
-  } else {
+  } else if ctx.flags.dry_run {
+    writeln!(ctx.io.output, "Would detect build system after cloning").ok();
     None
+  } else {
+    Some(detect_build_system(&repo_path, ctx)?)
   };
 
   if let Some(build_system) = build_system {
