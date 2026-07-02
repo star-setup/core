@@ -29,13 +29,13 @@ pub struct Args {
   /// Repository name (username/repo) or full GitHub URL
   pub repo: Option<String>,
 
-  /// Skip confirmation prompts (non-interactive mode)
-  #[arg(short = 'y', long)]
-  pub yes: bool,
-
   /// Select a named configuration to use
   #[arg(long = "config")]
   pub config_name: Option<String>,
+
+  /// Skip confirmation prompts (non-interactive mode)
+  #[arg(short = 'y', long)]
+  pub yes: bool,
 
   #[command(subcommand)]
   pub command: Option<Command>,
