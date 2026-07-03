@@ -1,46 +1,20 @@
-//! Repository functions including cloning and URL resolution.
-
-use crate::{ctx::RunCtx, prompts::confirm};
-use std::{fs, path::Path};
-
-/// Returns `true` if the directory contains a `.git` entry.
-#[must_use]
-pub fn is_git_repo(dir: &Path) -> bool {
-  dir.join(".git").exists()
-}
-
-/// Converts a repository path or URL to a local directory name (`owner-repo`).
-#[must_use]
-pub fn repo_dir_name(path: &str) -> String {
-  let clean = path.trim_end_matches('/').trim_end_matches(".git");
-  let mut parts = clean.rsplit('/');
-  let repo = parts.next().unwrap_or(clean);
-  match parts.next() {
-    Some(owner) => {
-      let owner = owner.rsplit_once(':').map_or(owner, |(_, o)| o);
-      format!("{owner}-{repo}")
-    }
-    None => clean.to_string(),
-  }
-}
-
-/// Converts repository input to a full GitHub URL.
-/// Accepts either 'username/repo' shorthand or a full URL.
-#[must_use]
-pub fn resolve_repo_url(repo_input: &str, use_ssh: bool) -> String {
-  if repo_input.starts_with("http") || repo_input.starts_with("git@") {
-    return repo_input.to_string();
-  }
-  let clean = repo_input.trim_end_matches('/').trim_end_matches(".git");
-  if use_ssh {
-    format!("git@github.com:{clean}.git")
-  } else {
-    format!("https://github.com/{clean}.git")
-  }
-}
+use crate::{
+  ctx::RunCtx,
+  prompts::confirm,
+  repository::{pull_repo, repo_dir_name, resolve_repo_url},
+};
+use std::{
+  fs::{read_dir, remove_dir_all},
+  path::Path,
+};
 
 fn is_dir_empty(dir: &Path) -> bool {
-  fs::read_dir(dir).is_ok_and(|mut entries| entries.next().is_none())
+  read_dir(dir).is_ok_and(|mut entries| entries.next().is_none())
+}
+
+/// Returns `true` if the directory contains a `.git` entry.
+fn is_git_repo(dir: &Path) -> bool {
+  dir.join(".git").exists()
 }
 
 /// Clones a single repository into the target directory.
@@ -62,7 +36,7 @@ pub fn clone_repo(
     writeln!(ctx.io.output, "  Repository already exists").ok();
     if !on_exists_skip && confirm("  Update existing repository?", yes, &mut ctx.io)? {
       crate::time!(ctx.flags.timing, ctx.io.output, "Update", {
-        pull_repository(&repo_dir, ctx)?;
+        pull_repo(&repo_dir, ctx)?;
       });
     }
     return Ok(());
@@ -94,7 +68,7 @@ pub fn clone_repo(
       )
       .ok();
     } else {
-      fs::remove_dir_all(&repo_dir)
+      remove_dir_all(&repo_dir)
         .map_err(|e| format!("Failed to remove {}: {e}", repo_dir.display()))?;
     }
   }
@@ -146,13 +120,4 @@ pub fn clone_repos(
   })?;
   writeln!(ctx.io.output).ok();
   Ok(())
-}
-
-/// Pulls the latest changes for an existing repository.
-/// # Errors
-/// Returns an error if the `git pull` command fails.
-pub fn pull_repository(repo_path: &Path, ctx: &mut RunCtx<'_, '_>) -> Result<(), String> {
-  ctx
-    .runner
-    .run(&["git", "pull"], Some(repo_path), ctx.flags, ctx.io.output)
 }

@@ -1,4 +1,4 @@
-use crate::{ctx::RunCtx, repository::pull_repository, workspace::Workspace};
+use crate::{ctx::RunCtx, repository::pull_repo, workspace::Workspace};
 
 impl Workspace {
   /// Pulls latest changes for all repositories.
@@ -28,7 +28,7 @@ impl Workspace {
 
         writeln!(ctx.io.output, "  Updating {name}").ok();
         crate::time!(ctx.flags.timing, ctx.io.output, &name, {
-          if let Err(e) = pull_repository(repo_dir, ctx) {
+          if let Err(e) = pull_repo(repo_dir, ctx) {
             writeln!(ctx.io.output, "  Failed to update {name}: {e}").ok();
             errors.push(format!("{name}: {e}"));
           }
