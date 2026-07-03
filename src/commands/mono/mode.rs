@@ -61,7 +61,8 @@ pub fn mono_repo_mode(
     "create directory",
     "Creating",
     &repos_path,
-    ctx,
+    &mut ctx.io,
+    ctx.flags,
     "Create directory",
     || fs::create_dir_all(&repos_path).map_err(|e| e.to_string()),
   )?;
@@ -122,7 +123,7 @@ pub fn mono_repo_mode(
     )
   };
 
-  if build_system.is_none() {
+  if ctx.flags.dry_run || build_system.is_none() {
     writeln!(
       ctx.io.output,
       "Would finish setup in {}",

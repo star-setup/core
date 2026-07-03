@@ -1,6 +1,7 @@
 use crate::{
   ctx::{IoCtx, RunFlags},
   repository::repo_dir_name,
+  utils::dry_run_or_do,
 };
 use std::{fs, path::Path};
 
@@ -19,19 +20,36 @@ fn write_mono_repo_config(
   let content = render_template(&modules_str);
   let file_path = mono_dir.join(filename);
 
-  crate::time!(flags.timing, io.output, &format!("Generate {filename}"), {
-    fs::write(&file_path, content).map_err(|e| e.to_string())?;
-  });
+  dry_run_or_do(
+    "create file",
+    "Creating",
+    &file_path,
+    io,
+    flags,
+    &format!("Generate {filename}"),
+    || fs::write(&file_path, content).map_err(|e| e.to_string()),
+  )?;
 
   // .to_string() is required to force an allocation and satisfy line coverage tracking
-  #[allow(clippy::to_string_in_format_args)]
-  writeln!(
-    io.output,
-    "  Created root {} at {}\n",
-    filename.to_string(),
-    mono_dir.display()
-  )
-  .ok();
+  if flags.dry_run {
+    #[allow(clippy::to_string_in_format_args)]
+    writeln!(
+      io.output,
+      "  Would create root {} at {}\n",
+      filename.to_string(),
+      mono_dir.display()
+    )
+    .ok();
+  } else {
+    #[allow(clippy::to_string_in_format_args)]
+    writeln!(
+      io.output,
+      "  Created root {} at {}\n",
+      filename.to_string(),
+      mono_dir.display()
+    )
+    .ok();
+  }
 
   Ok(())
 }
@@ -187,18 +205,31 @@ pub fn create_mono_repo_package_json(
   );
 
   let file_path = mono_dir.join("package.json");
-  crate::time!(flags.timing, io.output, "Generate package.json", {
-    fs::write(&file_path, content).map_err(|e| e.to_string())?;
-  });
+  dry_run_or_do(
+    "create file",
+    "Creating",
+    &file_path,
+    io,
+    flags,
+    "Generate package.json",
+    || fs::write(&file_path, content).map_err(|e| e.to_string()),
+  )?;
 
-  #[allow(clippy::to_string_in_format_args)]
-  writeln!(
-    io.output,
-    "  Created root {} at {}\n",
-    "package.json".to_string(),
-    mono_dir.display()
-  )
-  .ok();
+  if flags.dry_run {
+    writeln!(
+      io.output,
+      "  Would create root package.json at {}\n",
+      mono_dir.display()
+    )
+    .ok();
+  } else {
+    writeln!(
+      io.output,
+      "  Created root package.json at {}\n",
+      mono_dir.display()
+    )
+    .ok();
+  }
 
   Ok(())
 }

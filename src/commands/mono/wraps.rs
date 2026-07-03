@@ -4,7 +4,10 @@ use std::{
   path::{Path, PathBuf},
 };
 
-use crate::ctx::{IoCtx, RunFlags};
+use crate::{
+  ctx::{IoCtx, RunFlags},
+  utils::dry_run_or_do,
+};
 
 /// Parses the `project()` name from `meson.build` content.
 /// Returns the name with hyphens replaced by underscores, or `None` if not found.
@@ -116,12 +119,28 @@ pub fn hoist_wraps(
         format!("[wrap-file]\ndirectory = {dir_name}\n")
       };
       let wrap_path = repos_dir.join(format!("{canonical_name}.wrap"));
-      fs::write(&wrap_path, &wrap_content).map_err(|e| e.to_string())?;
-      writeln!(
-        io.output,
-        "  Generated wrap: {canonical_name}.wrap -> {dir_name}"
-      )
-      .ok();
+      dry_run_or_do(
+        "create file",
+        "Creating",
+        &wrap_path,
+        io,
+        flags,
+        "Write wrap",
+        || fs::write(&wrap_path, &wrap_content).map_err(|e| e.to_string()),
+      )?;
+      if flags.dry_run {
+        writeln!(
+          io.output,
+          "  Would generate wrap: {canonical_name}.wrap -> {dir_name}"
+        )
+        .ok();
+      } else {
+        writeln!(
+          io.output,
+          "  Generated wrap: {canonical_name}.wrap -> {dir_name}"
+        )
+        .ok();
+      }
     }
 
     Ok(project_to_dir)
