@@ -5,6 +5,7 @@ use crate::{
   },
   ctx::RunCtx,
   repository::{clone_repository, repo_dir_name},
+  utils::dry_run::detect_or_dry_run,
 };
 use std::path::Path;
 
@@ -38,24 +39,10 @@ pub fn single_repo_mode(
   writeln!(ctx.io.output, "Cloning repository").ok();
   clone_repository(repo, base_dir, args.connection.ssh, false, args.yes, ctx)?;
 
-  writeln!(ctx.io.output, "Detecting build system").ok();
   let build_path = repo_path.join(&args.build.build_dir);
-  let build_system = crate::time!(ctx.flags.timing, ctx.io.output, "Detect", {
-    let result = if let Some(bs) = args.build.build_system {
-      if ctx.flags.verbose {
-        writeln!(ctx.io.output, "  Build system flag set: {bs:?}").ok();
-      }
-      Some(bs)
-    } else if ctx.flags.dry_run {
-      writeln!(ctx.io.output, "  Would detect build system after cloning").ok();
-      None
-    } else {
-      Some(detect_build_system(&repo_path, ctx)?)
-    };
-    writeln!(ctx.io.output, "  Finished detecting").ok();
-    result
-  });
-  writeln!(ctx.io.output).ok();
+  let build_system = detect_or_dry_run(args.build.build_system, ctx, |ctx| {
+    detect_build_system(&repo_path, ctx)
+  })?;
 
   if let Some(build_system) = build_system {
     if build_system == BuildSystem::Npm {

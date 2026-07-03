@@ -12,7 +12,7 @@ use crate::{
   config::SetupConfig,
   ctx::RunCtx,
   repository::repo_dir_name,
-  utils::dry_run_or_do,
+  utils::{dry_run::detect_or_dry_run, dry_run_or_do},
 };
 use std::{
   fs,
@@ -70,24 +70,10 @@ pub fn mono_repo_mode(
     .map(|r| repos_path.join(repo_dir_name(r)))
     .collect();
 
-  writeln!(ctx.io.output, "Detecting build system").ok();
   let build_path = mono_repo_path.join(&args.build.build_dir);
-  let build_system = crate::time!(ctx.flags.timing, ctx.io.output, "Detect", {
-    let result = if let Some(bs) = args.build.build_system {
-      if ctx.flags.verbose {
-        writeln!(ctx.io.output, "  Build system flag set: {bs:?}").ok();
-      }
-      Some(bs)
-    } else if ctx.flags.dry_run {
-      writeln!(ctx.io.output, "  Would detect build system after cloning").ok();
-      None
-    } else {
-      Some(detect_mono_build_system(&repo_dirs, ctx)?)
-    };
-    writeln!(ctx.io.output, "  Finished detecting").ok();
-    result
-  });
-  writeln!(ctx.io.output).ok();
+  let build_system = detect_or_dry_run(args.build.build_system, ctx, |ctx| {
+    detect_mono_build_system(&repo_dirs, ctx)
+  })?;
 
   let canonical_map = if let Some(bs) = build_system {
     let map = generate_mono_config(bs, &mono_repo_path, &repos_path, &repo_dirs, &repos, ctx)?;
