@@ -2,7 +2,7 @@ use std::fs::create_dir_all;
 
 use star_setup::{
   ctx::ProcessRunner,
-  repository::{clone_repo, clone_repos},
+  repository::{ExistsAction, clone_repo, clone_repos},
 };
 use tempfile::TempDir;
 
@@ -14,7 +14,13 @@ fn test_clone_skips_existing_directory() {
     let repo_dir = tmp_path.join("owner-repo");
     create_dir_all(repo_dir.join(".git")).unwrap();
 
-    let result = clone_repo("owner/repo", tmp_path, false, true, false, ctx);
+    let result = clone_repo(
+      "owner/repo",
+      tmp_path,
+      false,
+      |_| Ok(ExistsAction::Skip),
+      ctx,
+    );
     assert!(result.is_ok());
     assert!(repo_dir.exists());
   });
@@ -25,7 +31,14 @@ fn test_clone_repo_calls_git_clone() {
   let tmp = TempDir::new().unwrap();
 
   let runner = with_ctx_runner(MockRunner::new(), |_, ctx| {
-    clone_repo("user/repo", tmp.path(), false, true, false, ctx).unwrap();
+    clone_repo(
+      "user/repo",
+      tmp.path(),
+      false,
+      |_| Ok(ExistsAction::Skip),
+      ctx,
+    )
+    .unwrap();
   });
 
   assert_eq!(runner.calls.len(), 1);

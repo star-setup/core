@@ -2,7 +2,8 @@ use crate::{
   cli::{detect_build_system, BuildSystem, ResolvedArgs},
   commands::{build_project, extract_repo_input, prepare_build_dir, print_mode_header, ModeHeader},
   ctx::RunCtx,
-  repository::{clone_repo, repo_dir_name},
+  prompts::confirm,
+  repository::{ExistsAction, clone_repo, repo_dir_name},
   utils::dry_run::detect_or_dry_run,
 };
 use std::path::Path;
@@ -35,7 +36,19 @@ pub fn single_repo_mode(
   );
 
   writeln!(ctx.io.output, "Cloning repository").ok();
-  clone_repo(repo, base_dir, args.connection.ssh, false, args.yes, ctx)?;
+  clone_repo(
+    repo,
+    base_dir,
+    args.connection.ssh,
+    |io| {
+      Ok(if confirm("  Update existing repository?", args.yes, io)? {
+        ExistsAction::Update
+      } else {
+        ExistsAction::Skip
+      })
+    },
+    ctx,
+  )?;
   writeln!(ctx.io.output).ok();
 
   let build_path = repo_path.join(&args.build.build_dir);

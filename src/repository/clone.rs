@@ -1,5 +1,5 @@
 use crate::{
-  ctx::RunCtx,
+  ctx::{IoCtx, RunCtx},
   prompts::confirm,
   repository::{pull_repo, repo_dir_name, resolve_repo_url},
 };
@@ -17,16 +17,21 @@ fn is_git_repo(dir: &Path) -> bool {
   dir.join(".git").exists()
 }
 
+pub enum ExistsAction {
+  Skip,
+  Update,
+}
+
 /// Clones a single repository into the target directory.
 /// Skips if the repository already exists.
 /// # Errors
-/// Returns an error if the git clone command fails or an existing invalid directory cannot be removed.
+/// Returns an error if the git clone command fails, an existing invalid directory
+/// cannot be removed, or the `on_exists` callback returns an error.
 pub fn clone_repo(
   repo_path: &str,
   target_dir: &Path,
   use_ssh: bool,
-  on_exists_skip: bool,
-  yes: bool,
+  on_exists: impl FnOnce(&mut IoCtx<'_>) -> Result<ExistsAction, String>,
   ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
   let repo_name = repo_dir_name(repo_path);
@@ -34,7 +39,7 @@ pub fn clone_repo(
 
   if repo_dir.exists() && is_git_repo(&repo_dir) {
     writeln!(ctx.io.output, "  Repository already exists").ok();
-    if !on_exists_skip && confirm("  Update existing repository?", yes, &mut ctx.io)? {
+    if matches!(on_exists(&mut ctx.io)?, ExistsAction::Update) {
       crate::time!(ctx.flags.timing, ctx.io.output, "Update", {
         pull_repo(&repo_dir, ctx)?;
       });
@@ -93,7 +98,8 @@ pub fn clone_repo(
 
 /// Clones all repositories into the given directory.
 /// # Errors
-/// Returns an error if any repository fails to clone.
+/// Returns an error if any repository fails to clone or an existing invalid
+/// directory cannot be removed.
 pub fn clone_repos(
   repos: &[String],
   target_dir: &Path,
@@ -106,7 +112,7 @@ pub fn clone_repos(
       if ctx.flags.verbose {
         writeln!(ctx.io.output, "  Cloning {}", repo_dir_name(repo)).ok();
       }
-      clone_repo(repo, target_dir, ssh, true, false, ctx)?;
+      clone_repo(repo, target_dir, ssh, |_| Ok(ExistsAction::Skip), ctx)?;
     }
     if ctx.flags.verbose {
       writeln!(

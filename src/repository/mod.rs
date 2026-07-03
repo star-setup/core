@@ -1,5 +1,5 @@
 pub mod clone;
-pub use clone::{clone_repo, clone_repos};
+pub use clone::{clone_repo, clone_repos, ExistsAction};
 pub mod pull;
 pub use pull::pull_repo;
 pub mod resolve;
