@@ -1,5 +1,3 @@
-pub mod clone;
-pub use clone::clone_mono_repos;
 pub mod config;
 pub use config::{
   create_mono_repo_cmakelists, create_mono_repo_mesonbuild, create_mono_repo_package_json,

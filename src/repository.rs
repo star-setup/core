@@ -37,7 +37,7 @@ pub fn resolve_repo_url(repo_input: &str, use_ssh: bool) -> String {
 /// Skips if the repository already exists.
 /// # Errors
 /// Returns an error if the git clone command fails
-pub fn clone_repository(
+pub fn clone_repo(
   repo_path: &str,
   target_dir: &Path,
   use_ssh: bool,
@@ -72,6 +72,37 @@ pub fn clone_repository(
     .map_err(|e| format!("Failed to clone {repo_path}: {e}"))?;
   }
 
+  Ok(())
+}
+
+/// Clones all repositories into the given directory.
+/// # Errors
+/// Returns an error if any repository fails to clone.
+pub fn clone_repos(
+  repos: &[String],
+  target_dir: &Path,
+  ssh: bool,
+  ctx: &mut RunCtx<'_, '_>,
+) -> Result<(), String> {
+  writeln!(ctx.io.output, "Cloning repositories").ok();
+  crate::time!(ctx.flags.timing, ctx.io.output, "Clone", {
+    for repo in repos {
+      if ctx.flags.verbose {
+        writeln!(ctx.io.output, "  Cloning {}", repo_dir_name(repo)).ok();
+      }
+      clone_repo(repo, target_dir, ssh, true, false, ctx)?;
+    }
+    if ctx.flags.verbose {
+      writeln!(
+        ctx.io.output,
+        "  Finished cloning ({} repositories)",
+        repos.len()
+      )
+      .ok();
+    }
+    Ok::<(), String>(())
+  })?;
+  writeln!(ctx.io.output).ok();
   Ok(())
 }
 

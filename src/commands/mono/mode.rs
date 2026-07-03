@@ -3,7 +3,6 @@ use crate::{
   commands::{
     build_project, build_repo_list, extract_repo_input,
     mono::{
-      clone_mono_repos,
       display::{resolve_setup_paths, SetupPaths},
       generate_mono_config, generate_watch_scripts, open_watch_scripts, print_setup_complete,
     },
@@ -11,7 +10,7 @@ use crate::{
   },
   config::SetupConfig,
   ctx::RunCtx,
-  repository::repo_dir_name,
+  repository::{clone_repos, repo_dir_name},
   utils::{dry_run::detect_or_dry_run, dry_run_or_do},
 };
 use std::{
@@ -70,7 +69,7 @@ pub fn mono_repo_mode(
     writeln!(ctx.io.output).ok();
   }
 
-  clone_mono_repos(&repos, &repos_path, args.connection.ssh, ctx)?;
+  clone_repos(&repos, &repos_path, args.connection.ssh, ctx)?;
 
   let repo_dirs: Vec<PathBuf> = repos
     .iter()

@@ -1,5 +1,3 @@
-#[path = "mono/clone.rs"]
-mod clone;
 #[path = "mono/config.rs"]
 mod config;
 #[path = "mono/mode.rs"]
