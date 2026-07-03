@@ -97,6 +97,7 @@ pub fn npm_build(
   is_mono: bool,
   ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
+  writeln!(ctx.io.output, "Installing dependencies").ok();
   crate::time!(ctx.flags.timing, ctx.io.output, "npm install", {
     ctx.runner.run(
       &["npm", "install"],
