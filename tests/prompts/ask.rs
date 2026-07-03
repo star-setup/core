@@ -1,5 +1,5 @@
-use star_setup::prompts::{ask, ask_default, ask_yesno};
 use crate::common::with_io_input;
+use star_setup::prompts::{ask, ask_default, ask_yesno};
 
 #[test]
 fn test_ask_errors_on_eof() {

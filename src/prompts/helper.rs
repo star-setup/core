@@ -2,7 +2,7 @@ use crate::ctx::IoCtx;
 
 /// Internal helper to print a prompt, flush, and read a trimmed line of input.
 /// # Errors
-/// Returns an error if an unexpected EOF is encountered.
+/// Returns an error if stdin reaches EOF unexpectedly.
 pub fn read_input_line(prompt: &str, io: &mut IoCtx<'_>) -> Result<String, String> {
   write!(io.output, "{prompt}").ok();
   io.output.flush().ok();

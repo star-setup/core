@@ -1,5 +1,5 @@
-use star_setup::prompts::confirm;
 use crate::common::with_io_input;
+use star_setup::prompts::confirm;
 
 #[test]
 fn test_confirm_input_cases() {

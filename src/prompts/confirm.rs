@@ -21,3 +21,31 @@ pub fn confirm_abort(warning_msg: &str, yes: bool, io: &mut IoCtx<'_>) -> Result
   }
   Ok(true)
 }
+
+pub enum BatchConfirm {
+  Yes,
+  No,
+  YesAll,
+  NoAll,
+}
+
+/// Prompts y/n, plus (when `allow_all`) shortcuts to apply the answer to all remaining items.
+/// # Errors
+/// Returns an error if stdin reaches EOF unexpectedly.
+pub fn confirm_batch(
+  prompt: &str,
+  allow_all: bool,
+  io: &mut IoCtx<'_>,
+) -> Result<BatchConfirm, String> {
+  let suffix = if allow_all { " (y/n/a/s)" } else { " (y/n)" };
+  loop {
+    let input = read_input_line(&format!("{prompt}{suffix}: "), io)?;
+    match input.to_lowercase().as_str() {
+      "y" => return Ok(BatchConfirm::Yes),
+      "n" | "" => return Ok(BatchConfirm::No),
+      "a" if allow_all => return Ok(BatchConfirm::YesAll),
+      "s" if allow_all => return Ok(BatchConfirm::NoAll),
+      _ => {}
+    }
+  }
+}
