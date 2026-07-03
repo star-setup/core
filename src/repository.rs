@@ -1,7 +1,13 @@
 //! Repository functions including cloning and URL resolution.
 
 use crate::{ctx::RunCtx, prompts::confirm};
-use std::path::Path;
+use std::{fs, path::Path};
+
+/// Returns `true` if the directory contains a `.git` entry.
+#[must_use]
+pub fn is_git_repo(dir: &Path) -> bool {
+  dir.join(".git").exists()
+}
 
 /// Converts a repository path or URL to a local directory name (`owner-repo`).
 #[must_use]
@@ -33,10 +39,14 @@ pub fn resolve_repo_url(repo_input: &str, use_ssh: bool) -> String {
   }
 }
 
+fn is_dir_empty(dir: &Path) -> bool {
+  fs::read_dir(dir).is_ok_and(|mut entries| entries.next().is_none())
+}
+
 /// Clones a single repository into the target directory.
 /// Skips if the repository already exists.
 /// # Errors
-/// Returns an error if the git clone command fails
+/// Returns an error if the git clone command fails or an existing invalid directory cannot be removed.
 pub fn clone_repo(
   repo_path: &str,
   target_dir: &Path,
@@ -48,29 +58,61 @@ pub fn clone_repo(
   let repo_name = repo_dir_name(repo_path);
   let repo_dir = target_dir.join(&repo_name);
 
-  if repo_dir.exists() {
+  if repo_dir.exists() && is_git_repo(&repo_dir) {
     writeln!(ctx.io.output, "  Repository already exists").ok();
     if !on_exists_skip && confirm("  Update existing repository?", yes, &mut ctx.io)? {
       crate::time!(ctx.flags.timing, ctx.io.output, "Update", {
         pull_repository(&repo_dir, ctx)?;
       });
     }
-  } else {
-    let repo_url = resolve_repo_url(repo_path, use_ssh);
-    crate::time!(ctx.flags.timing, ctx.io.output, "Clone", {
-      ctx.runner.run(
-        &["git", "clone", &repo_url, &repo_name],
-        Some(target_dir),
-        ctx.flags,
-        ctx.io.output,
-      )?;
-      if ctx.flags.verbose {
-        writeln!(ctx.io.output, "  Finished cloning {repo_name}").ok();
-      }
-      Ok::<(), String>(())
-    })
-    .map_err(|e| format!("Failed to clone {repo_path}: {e}"))?;
+    return Ok(());
   }
+
+  if repo_dir.exists() && !is_dir_empty(&repo_dir) {
+    writeln!(
+      ctx.io.output,
+      "  Directory exists but is not a git repository"
+    )
+    .ok();
+    if !confirm(
+      &format!(
+        "  Remove it and re-clone? WARNING: This will delete all files in {}",
+        repo_dir.display()
+      ),
+      false,
+      &mut ctx.io,
+    )? {
+      writeln!(ctx.io.output, "  Skipping {repo_name}").ok();
+      return Ok(());
+    }
+
+    if ctx.flags.dry_run {
+      writeln!(
+        ctx.io.output,
+        "  Would remove directory: {}",
+        repo_dir.display()
+      )
+      .ok();
+    } else {
+      fs::remove_dir_all(&repo_dir)
+        .map_err(|e| format!("Failed to remove {}: {e}", repo_dir.display()))?;
+    }
+  }
+
+  let repo_url = resolve_repo_url(repo_path, use_ssh);
+  crate::time!(ctx.flags.timing, ctx.io.output, "Clone", {
+    ctx.runner.run(
+      &["git", "clone", &repo_url, &repo_name],
+      Some(target_dir),
+      ctx.flags,
+      ctx.io.output,
+    )?;
+    if ctx.flags.verbose {
+      writeln!(ctx.io.output, "  Finished cloning {repo_name}").ok();
+    }
+    Ok::<(), String>(())
+  })
+  .map_err(|e| format!("Failed to clone {repo_path}: {e}"))?;
 
   Ok(())
 }

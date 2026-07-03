@@ -4,7 +4,7 @@ use star_setup::{
   ctx::ProcessRunner,
   repository::{clone_repo, clone_repos, repo_dir_name, resolve_repo_url},
 };
-use std::fs;
+use std::fs::create_dir_all;
 use tempfile::TempDir;
 
 use crate::common::with_ctx;
@@ -75,7 +75,7 @@ fn test_resolve_repo_url() {
 fn test_clone_skips_existing_directory() {
   with_ctx_runner(ProcessRunner, |tmp_path, ctx| {
     let repo_dir = tmp_path.join("owner-repo");
-    fs::create_dir_all(&repo_dir).unwrap();
+    create_dir_all(repo_dir.join(".git")).unwrap();
 
     let result = clone_repo("owner/repo", tmp_path, false, true, false, ctx);
     assert!(result.is_ok());

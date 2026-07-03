@@ -1,10 +1,14 @@
 use crate::common::{default_resolved_mono, with_ctx, with_ctx_runner, MockRunner};
 use star_setup::{commands::mono_repo_mode, config::SetupConfig, ctx::DryRunRunner};
+use std::{
+  fs::{create_dir_all, read_dir, write},
+  path::Path,
+};
 
-fn make_cmake_repo(repos_path: &std::path::Path, name: &str) {
+fn make_cmake_repo(repos_path: &Path, name: &str) {
   let dir = repos_path.join(name);
-  std::fs::create_dir_all(&dir).unwrap();
-  std::fs::write(dir.join("CMakeLists.txt"), "").unwrap();
+  create_dir_all(dir.join(".git")).unwrap();
+  write(dir.join("CMakeLists.txt"), "").unwrap();
 }
 
 #[test]
@@ -13,7 +17,7 @@ fn test_mono_repo_mode_clones_and_configures() {
 
   let (_, output) = with_ctx(MockRunner::new(), |tmp_path, ctx| {
     let repos_path = tmp_path.join(&args.mono.mono_dir).join("repos");
-    std::fs::create_dir_all(&repos_path).unwrap();
+    create_dir_all(&repos_path).unwrap();
     make_cmake_repo(&repos_path, "user-lib1");
     make_cmake_repo(&repos_path, "user-test-repo");
 
@@ -35,7 +39,7 @@ fn test_mono_repo_mode_dry_run_makes_no_fs_changes() {
 
     mono_repo_mode(&args, &SetupConfig::new(), tmp_path, ctx).unwrap();
 
-    assert!(std::fs::read_dir(tmp_path).unwrap().next().is_none());
+    assert!(read_dir(tmp_path).unwrap().next().is_none());
   });
 }
 
@@ -57,7 +61,7 @@ fn test_mono_repo_mode_dry_run_with_build_system_makes_no_fs_changes() {
       mono_repo_mode(&args, &SetupConfig::new(), tmp_path, ctx).unwrap();
 
       assert!(
-        std::fs::read_dir(tmp_path).unwrap().next().is_none(),
+        read_dir(tmp_path).unwrap().next().is_none(),
         "{bs:?} dry-run wrote to disk"
       );
     });
@@ -71,7 +75,7 @@ fn test_mono_repo_mode_with_build_system_flag() {
 
   let runner = with_ctx_runner(MockRunner::new(), |tmp_path, ctx| {
     let repos_path = tmp_path.join(&args.mono.mono_dir).join("repos");
-    std::fs::create_dir_all(&repos_path).unwrap();
+    create_dir_all(&repos_path).unwrap();
     make_cmake_repo(&repos_path, "user-lib1");
     make_cmake_repo(&repos_path, "user-test-repo");
 
