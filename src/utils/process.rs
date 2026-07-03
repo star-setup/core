@@ -1,4 +1,5 @@
 use std::{
+  env::var,
   io::Write,
   path::Path,
   process::{Command, Stdio},
@@ -12,7 +13,7 @@ use std::{collections::HashMap, path::PathBuf};
 #[cfg(target_os = "windows")]
 fn find_vcvars() -> Option<PathBuf> {
   let program_files =
-    std::env::var("ProgramFiles(x86)").unwrap_or_else(|_| r"C:\Program Files (x86)".to_string());
+    var("ProgramFiles(x86)").unwrap_or_else(|_| r"C:\Program Files (x86)".to_string());
   let vswhere = PathBuf::from(program_files).join(r"Microsoft Visual Studio\Installer\vswhere.exe");
 
   if !vswhere.exists() {
@@ -81,8 +82,10 @@ pub fn run_command(
   let npm_cmd;
   #[cfg(target_os = "windows")]
   let (exe, args) = if cmd[0] == "npm" {
-    npm_cmd = std::iter::once("cmd")
-      .chain(std::iter::once("/c"))
+    use std::iter::once;
+
+    npm_cmd = once("cmd")
+      .chain(once("/c"))
       .chain(cmd.iter().copied())
       .collect::<Vec<_>>();
     (&npm_cmd[0], &npm_cmd[1..])
@@ -100,13 +103,13 @@ pub fn run_command(
 
   if *exe == "git" {
     command.env("GIT_TERMINAL_PROMPT", "0");
-    if std::env::var("GIT_SSH_COMMAND").is_err() {
+    if var("GIT_SSH_COMMAND").is_err() {
       command.env("GIT_SSH_COMMAND", "ssh -o BatchMode=yes");
     }
   }
 
   #[cfg(target_os = "windows")]
-  if std::env::var("VSINSTALLDIR").is_err()
+  if var("VSINSTALLDIR").is_err()
     && Path::new(exe)
       .file_stem()
       .is_some_and(|s| s.to_string_lossy().eq_ignore_ascii_case("meson"))

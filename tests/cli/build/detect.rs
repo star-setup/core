@@ -3,19 +3,22 @@ use star_setup::{
   cli::{detect_build_system, detect_mono_build_system, BuildSystem},
   ctx::ProcessRunner,
 };
+use std::{fs::write, path::Path};
 
-fn create_cmake_fixture(path: &std::path::Path) {
-  std::fs::write(path.join("CMakeLists.txt"), "").unwrap();
+/* =====     HELPERS     ===== */
+fn create_cmake_fixture(path: &Path) {
+  write(path.join("CMakeLists.txt"), "").unwrap();
 }
 
-fn create_meson_fixture(path: &std::path::Path) {
-  std::fs::write(path.join("meson.build"), "").unwrap();
+fn create_meson_fixture(path: &Path) {
+  write(path.join("meson.build"), "").unwrap();
 }
 
-fn create_npm_fixture(path: &std::path::Path) {
-  std::fs::write(path.join("package.json"), "{}").unwrap();
+fn create_npm_fixture(path: &Path) {
+  write(path.join("package.json"), "{}").unwrap();
 }
 
+/* =====     DETECT_BUILD_SYSTEM     ===== */
 #[test]
 fn test_detect_build_system_none() {
   with_ctx_input(b"", ProcessRunner, |path, ctx| {
@@ -82,6 +85,30 @@ fn test_detect_build_system_timing_output() {
 }
 
 #[test]
+fn test_detect_build_system_npm() {
+  with_ctx_input(b"", ProcessRunner, |path, ctx| {
+    create_npm_fixture(path);
+    assert!(matches!(
+      detect_build_system(path, ctx).unwrap(),
+      BuildSystem::Npm
+    ));
+  });
+}
+
+#[test]
+fn test_detect_build_system_cmake_and_npm_picks_npm() {
+  with_ctx_input(b"2\n", ProcessRunner, |path, ctx| {
+    create_cmake_fixture(path);
+    create_npm_fixture(path);
+    assert!(matches!(
+      detect_build_system(path, ctx).unwrap(),
+      BuildSystem::Npm
+    ));
+  });
+}
+
+/* =====     DETECT_MONO_BUILD_SYSTEM     ===== */
+#[test]
 fn test_detect_mono_build_system_none() {
   with_ctx_input(b"", ProcessRunner, |path, ctx| {
     assert!(detect_mono_build_system(&[path.to_path_buf()], ctx).is_err());
@@ -144,29 +171,6 @@ fn test_detect_mono_build_system_timing_output() {
   assert!(String::from_utf8(output)
     .unwrap()
     .contains("[timing] Scanned directories:"));
-}
-
-#[test]
-fn test_detect_build_system_npm() {
-  with_ctx_input(b"", ProcessRunner, |path, ctx| {
-    create_npm_fixture(path);
-    assert!(matches!(
-      detect_build_system(path, ctx).unwrap(),
-      BuildSystem::Npm
-    ));
-  });
-}
-
-#[test]
-fn test_detect_build_system_cmake_and_npm_picks_npm() {
-  with_ctx_input(b"2\n", ProcessRunner, |path, ctx| {
-    create_cmake_fixture(path);
-    create_npm_fixture(path);
-    assert!(matches!(
-      detect_build_system(path, ctx).unwrap(),
-      BuildSystem::Npm
-    ));
-  });
 }
 
 #[test]

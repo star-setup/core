@@ -4,6 +4,7 @@ use star_setup::{
   config::{ConfigEntry, SetupConfig},
 };
 
+/* =====     HELPERS     ===== */
 /// Generates a base `ConfigEntry` with defaults.
 fn create_test_config_entry() -> ConfigEntry {
   ConfigEntry {
@@ -28,6 +29,7 @@ fn config_with_entry(name: &str, entry: ConfigEntry) -> SetupConfig {
   config
 }
 
+/* =====     RESOLVE_BOOL     ===== */
 #[test]
 fn test_resolve_bool() {
   #[allow(clippy::struct_excessive_bools)]
@@ -93,7 +95,7 @@ fn test_resolve_bool() {
   }
 }
 
-// resolve_with_config tests
+/* =====     RESOLVE_WITH_CONFIG     ===== */
 #[test]
 fn test_resolve_with_config_defaults_when_no_config() {
   let config = SetupConfig::new();

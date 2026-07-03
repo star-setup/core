@@ -1,10 +1,15 @@
 use crate::common::{default_resolved, with_ctx, with_io, MockRunner};
 use star_setup::{
-  commands::{mono::generate_mono_config, resolve_repos_for_mono, resolve_test_repo},
+  cli::BuildSystem,
+  commands::{generate_mono_config, resolve_repos_for_mono, resolve_test_repo},
   config::SetupConfig,
 };
+use std::{
+  fs::{create_dir_all, read_to_string, write},
+  slice::from_ref,
+};
 
-// resolve_test_repo tests
+/* =====     RESOLVE_TEST_REPO     ===== */
 #[test]
 fn test_resolve_test_repo() {
   let cases = [
@@ -45,6 +50,7 @@ fn test_resolve_test_repo_errors() {
   }
 }
 
+/* =====     RESOLVE_REPOS_FOR_MONO     ===== */
 #[test]
 fn test_resolve_repos_for_mono_empty_profile_errors() {
   let mut config = SetupConfig::new();
@@ -116,21 +122,22 @@ fn test_resolve_repos_for_mono_profile_not_found_errors() {
   });
 }
 
+/* =====     GENERATE_MONO_CONFIG     ===== */
 #[test]
 fn test_generate_mono_config_meson() {
   with_ctx(MockRunner::new(), |tmp_path, ctx| {
     let repos_path = tmp_path.join("repos");
-    std::fs::create_dir_all(&repos_path).unwrap();
+    create_dir_all(&repos_path).unwrap();
 
     let repo_dir = repos_path.join("user-lib1");
-    std::fs::create_dir_all(&repo_dir).unwrap();
-    std::fs::write(repo_dir.join("meson.build"), "project('user-lib1', 'cpp')").unwrap();
+    create_dir_all(&repo_dir).unwrap();
+    write(repo_dir.join("meson.build"), "project('user-lib1', 'cpp')").unwrap();
 
     let result = generate_mono_config(
-      star_setup::cli::BuildSystem::Meson,
+      BuildSystem::Meson,
       tmp_path,
       &repos_path,
-      std::slice::from_ref(&repo_dir),
+      from_ref(&repo_dir),
       &["user/lib1".to_string()],
       ctx,
     );
@@ -141,7 +148,7 @@ fn test_generate_mono_config_meson() {
     let meson_build = tmp_path.join("meson.build");
     assert!(meson_build.exists());
 
-    let content = std::fs::read_to_string(&meson_build).unwrap();
+    let content = read_to_string(&meson_build).unwrap();
     assert!(content.contains("user_lib1") || content.contains("user-lib1"));
   });
 }
@@ -150,10 +157,10 @@ fn test_generate_mono_config_meson() {
 fn test_generate_mono_config_npm() {
   with_ctx(MockRunner::new(), |tmp_path, ctx| {
     let repos_path = tmp_path.join("repos");
-    std::fs::create_dir_all(&repos_path).unwrap();
+    create_dir_all(&repos_path).unwrap();
 
     let result = generate_mono_config(
-      star_setup::cli::BuildSystem::Npm,
+      BuildSystem::Npm,
       tmp_path,
       &repos_path,
       &[],
@@ -165,7 +172,7 @@ fn test_generate_mono_config_npm() {
     assert!(result.unwrap().is_none());
     let pkg = tmp_path.join("package.json");
     assert!(pkg.exists());
-    let content = std::fs::read_to_string(&pkg).unwrap();
+    let content = read_to_string(&pkg).unwrap();
     assert!(content.contains("workspaces"));
     assert!(content.contains("repos/user-lib1"));
   });

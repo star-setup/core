@@ -1,5 +1,8 @@
 use crate::{
-  cli::{args::Command, resolve_with_config, Args},
+  cli::{
+    args::Command::{Config, Profile, Workspace},
+    resolve_with_config, Args,
+  },
   commands::{
     handle_config_cmd, handle_profile_cmd, handle_workspace_cmd, mono_repo_mode, single_repo_mode,
   },
@@ -11,7 +14,7 @@ use crate::{
 use clap::Parser;
 use std::{
   error::Error,
-  io::{self, IsTerminal},
+  io::{stdin, stdout, IsTerminal},
   path::{Path, PathBuf},
 };
 
@@ -21,8 +24,8 @@ use std::{
 ///                  a required tool is missing,
 ///                  or the selected mode fails.
 pub fn run(config_path: PathBuf) -> Result<(), Box<dyn Error>> {
-  let mut stdin = io::stdin().lock();
-  let mut stdout = io::stdout();
+  let mut stdin = stdin().lock();
+  let mut stdout = stdout();
   let is_terminal = stdin.is_terminal() && stdout.is_terminal();
 
   let mut raw = Args::parse();
@@ -45,13 +48,13 @@ pub fn run(config_path: PathBuf) -> Result<(), Box<dyn Error>> {
 
   if let Some(cmd) = command {
     match cmd {
-      Command::Config(c) => {
+      Config(c) => {
         handle_config_cmd(c.action, &mut config, config_path, yes, &mut io, flags)?;
       }
-      Command::Profile(p) => {
+      Profile(p) => {
         handle_profile_cmd(p.action, &mut config, yes, &mut io, flags)?;
       }
-      Command::Workspace(w) => handle_workspace_cmd(&w.action, io, flags)?,
+      Workspace(w) => handle_workspace_cmd(&w.action, io, flags)?,
     }
     return Ok(());
   }

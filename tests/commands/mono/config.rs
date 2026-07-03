@@ -1,7 +1,10 @@
 use crate::common::{make_flags, with_io_dir};
-use star_setup::commands::{create_mono_repo_cmakelists, create_mono_repo_mesonbuild};
+use star_setup::commands::{
+  create_mono_repo_cmakelists, create_mono_repo_mesonbuild, create_mono_repo_package_json,
+};
+use std::fs::{create_dir_all, read_to_string, write};
 
-// create_mono_repo_cmakelists tests
+/* =====     CREATE_MONO_REPO_CMAKELISTS     ===== */
 #[test]
 fn test_create_mono_repo_cmakelists_creates_file() {
   with_io_dir(|tmp_path, io| {
@@ -15,7 +18,7 @@ fn test_create_mono_repo_cmakelists_creates_file() {
     let cmake_file = tmp_path.join("CMakeLists.txt");
     assert!(cmake_file.exists());
 
-    let content = std::fs::read_to_string(&cmake_file).unwrap();
+    let content = read_to_string(&cmake_file).unwrap();
     assert!(content.contains("user-testrepo"));
     assert!(content.contains("user-lib1"));
     assert!(content.contains("user-lib2"));
@@ -31,7 +34,7 @@ fn test_create_mono_repo_cmakelists_empty_repos() {
   });
 }
 
-// create_mono_repo_mesonbuild tests
+/* =====     CREATE_MONO_REPO_MESONBUILD     ===== */
 #[test]
 fn test_create_mono_repo_mesonbuild_creates_file() {
   with_io_dir(|tmp_path, io| {
@@ -45,7 +48,7 @@ fn test_create_mono_repo_mesonbuild_creates_file() {
     let meson_file = tmp_path.join("meson.build");
     assert!(meson_file.exists());
 
-    let content = std::fs::read_to_string(&meson_file).unwrap();
+    let content = read_to_string(&meson_file).unwrap();
     assert!(content.contains("user-testrepo"));
     assert!(content.contains("user-lib1"));
     assert!(content.contains("user-lib2"));
@@ -61,18 +64,19 @@ fn test_create_mono_repo_mesonbuild_empty_repos() {
   });
 }
 
+/* =====     CREATE_MONO_REPO_PACKAGE_JSON     ===== */
 #[test]
 fn test_create_mono_repo_package_json_creates_file() {
   with_io_dir(|tmp_path, io| {
     let repos_path = tmp_path.join("repos");
-    std::fs::create_dir_all(repos_path.join("user-lib1")).unwrap();
-    std::fs::create_dir_all(repos_path.join("user-lib2")).unwrap();
-    std::fs::write(
+    create_dir_all(repos_path.join("user-lib1")).unwrap();
+    create_dir_all(repos_path.join("user-lib2")).unwrap();
+    write(
       repos_path.join("user-lib1").join("package.json"),
       r#"{"name": "@user/lib1"}"#,
     )
     .unwrap();
-    std::fs::write(
+    write(
       repos_path.join("user-lib2").join("package.json"),
       r#"{"name": "@user/lib2"}"#,
     )
@@ -83,16 +87,9 @@ fn test_create_mono_repo_package_json_creates_file() {
       "user/lib1".to_string(),
       "user/lib2".to_string(),
     ];
-    star_setup::commands::create_mono_repo_package_json(
-      tmp_path,
-      &repos_path,
-      &repos,
-      io,
-      make_flags(),
-    )
-    .unwrap();
+    create_mono_repo_package_json(tmp_path, &repos_path, &repos, io, make_flags()).unwrap();
 
-    let content = std::fs::read_to_string(tmp_path.join("package.json")).unwrap();
+    let content = read_to_string(tmp_path.join("package.json")).unwrap();
     assert!(content.contains("workspaces"));
     assert!(content.contains("repos/user-lib1"));
     assert!(content.contains("repos/user-lib2"));

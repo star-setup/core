@@ -1,12 +1,11 @@
-use std::{
-  collections::HashMap,
-  fs,
-  path::{Path, PathBuf},
-};
-
 use crate::{
   ctx::{IoCtx, RunFlags},
   utils::dry_run_or_do,
+};
+use std::{
+  collections::HashMap,
+  fs::{self, read_dir, read_to_string},
+  path::{Path, PathBuf},
 };
 
 /// Parses the `project()` name from `meson.build` content.
@@ -97,12 +96,12 @@ pub fn hoist_wraps(
       if !subprojects_dir.exists() {
         continue;
       }
-      for entry in fs::read_dir(&subprojects_dir).map_err(|e| e.to_string())? {
+      for entry in read_dir(&subprojects_dir).map_err(|e| e.to_string())? {
         let path = entry.map_err(|e| e.to_string())?.path();
         if path.extension().and_then(|e| e.to_str()) != Some("wrap") {
           continue;
         }
-        let content = fs::read_to_string(&path).map_err(|e| e.to_string())?;
+        let content = read_to_string(&path).map_err(|e| e.to_string())?;
         for (key, val) in parse_provide_pairs(&content) {
           if project_to_dir.contains_key(&key) {
             provides.entry(key).or_insert(val);

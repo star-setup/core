@@ -1,15 +1,15 @@
-use crate::common::with_io_output;
-
-use super::fixtures::sample_entry;
+use crate::{common::with_io_output, fixtures::sample_entry};
 use star_setup::{
   cli::BuildType,
   config::{insert_config, load_config, save_config, ConfigEntry, SetupConfig},
 };
-use std::path::PathBuf;
+use std::{fs::write, path::PathBuf};
+use tempfile::TempDir;
 
+/* =====     SAVE_CONFIG     ===== */
 #[test]
 fn test_save_and_load_roundtrip() {
-  let tmp = tempfile::TempDir::new().unwrap();
+  let tmp = TempDir::new().unwrap();
   let path = tmp.path().join(".star-setup.json");
 
   let mut config = SetupConfig::new();
@@ -42,6 +42,7 @@ fn test_save_and_load_roundtrip() {
   });
 }
 
+/* =====     LOAD_CONFIG     ===== */
 #[test]
 fn test_load_config_skips_missing_local_file() {
   with_io_output(|io| {
@@ -52,9 +53,9 @@ fn test_load_config_skips_missing_local_file() {
 
 #[test]
 fn test_load_config_handles_invalid_json() {
-  let tmp = tempfile::TempDir::new().unwrap();
+  let tmp = TempDir::new().unwrap();
   let path = tmp.path().join(".star-setup.json");
-  std::fs::write(&path, "{invalid json").unwrap();
+  write(&path, "{invalid json").unwrap();
 
   with_io_output(|io| {
     let config = load_config(&[path], false, false, &mut io.output);
@@ -77,8 +78,8 @@ fn test_load_config_skips_nonexistent_path() {
 
 #[test]
 fn test_load_config_first_valid_wins() {
-  let tmp1 = tempfile::TempDir::new().unwrap();
-  let tmp2 = tempfile::TempDir::new().unwrap();
+  let tmp1 = TempDir::new().unwrap();
+  let tmp2 = TempDir::new().unwrap();
   let path1 = tmp1.path().join(".star-setup.json");
   let path2 = tmp2.path().join(".star-setup.json");
 
@@ -102,12 +103,12 @@ fn test_load_config_first_valid_wins() {
 
 #[test]
 fn test_load_config_falls_through_invalid_to_valid() {
-  let tmp1 = tempfile::TempDir::new().unwrap();
-  let tmp2 = tempfile::TempDir::new().unwrap();
+  let tmp1 = TempDir::new().unwrap();
+  let tmp2 = TempDir::new().unwrap();
   let path1 = tmp1.path().join(".star-setup.json");
   let path2 = tmp2.path().join(".star-setup.json");
 
-  std::fs::write(&path1, "{invalid json").unwrap();
+  write(&path1, "{invalid json").unwrap();
 
   let mut config2 = SetupConfig::new();
   config2.path = Some(path2.clone());

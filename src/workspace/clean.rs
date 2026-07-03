@@ -1,5 +1,5 @@
 use crate::{ctx::RunCtx, utils::dry_run_or_do, workspace::Workspace};
-use std::fs;
+use std::fs::remove_dir_all;
 
 impl Workspace {
   /// Removes the build directory.
@@ -33,7 +33,7 @@ impl Workspace {
       ctx.flags,
       "Clean",
       || {
-        fs::remove_dir_all(&self.build_path)
+        remove_dir_all(&self.build_path)
           .map_err(|e| format!("Failed to remove build directory: {e}"))
       },
     )?;

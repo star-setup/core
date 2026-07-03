@@ -1,6 +1,6 @@
 use crate::common::{make_flags, with_io_dir, with_io_input_output};
 use star_setup::{
-  commands::mono::display::{print_setup_complete, resolve_setup_paths},
+  commands::mono::{print_setup_complete, resolve_setup_paths},
   ctx::RunFlags,
 };
 use std::{collections::HashMap, time::Instant};

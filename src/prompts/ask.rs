@@ -1,18 +1,4 @@
-//! Interactive prompt helpers.
-
-use crate::ctx::IoCtx;
-
-/// Internal helper to print a prompt, flush, and read a trimmed line of input.
-fn read_input_line(prompt: &str, io: &mut IoCtx<'_>) -> Result<String, String> {
-  write!(io.output, "{prompt}").ok();
-  io.output.flush().ok();
-
-  let mut line = String::new();
-  if io.input.read_line(&mut line).unwrap_or(0) == 0 {
-    return Err("unexpected end of input".to_string());
-  }
-  Ok(line.trim().to_string())
-}
+use crate::{ctx::IoCtx, prompts::read_input_line};
 
 /// Prompts the user for a required string value.
 /// # Errors
@@ -86,26 +72,4 @@ pub fn ask_required(prompt: &str, io: &mut IoCtx<'_>) -> Result<String, String> 
       return Ok(response);
     }
   }
-}
-
-/// Returns `true` if `yes` is set or the user enters `y`/`Y`.
-/// # Errors
-/// Returns an error if stdin reaches EOF unexpectedly.
-pub fn confirm(prompt: &str, yes: bool, io: &mut IoCtx<'_>) -> Result<bool, String> {
-  if yes {
-    return Ok(true);
-  }
-  let input = read_input_line(&format!("{prompt} (y/n): "), io)?;
-  Ok(input.eq_ignore_ascii_case("y"))
-}
-
-/// Prompts the user to confirm or abort an option.
-/// # Errors
-/// Returns an error if stdin reaches EOF unexpecedly.
-pub fn confirm_abort(warning_msg: &str, yes: bool, io: &mut IoCtx<'_>) -> Result<bool, String> {
-  if !confirm(warning_msg, yes, io)? {
-    writeln!(io.output, "  Aborted.").ok();
-    return Ok(false);
-  }
-  Ok(true)
 }

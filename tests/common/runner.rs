@@ -1,9 +1,12 @@
 use star_setup::ctx::{RunFlags, Runner};
-use std::collections::VecDeque;
-use std::{io::Write, path::Path};
+use std::{
+  collections::VecDeque,
+  io::Write,
+  path::{Path, PathBuf},
+};
 
 pub struct MockRunner {
-  pub calls: Vec<(Vec<String>, Option<std::path::PathBuf>)>,
+  pub calls: Vec<(Vec<String>, Option<PathBuf>)>,
   pub fail_on: Option<String>,
   pub capture_output: String,
   pub capture_responses: VecDeque<String>,

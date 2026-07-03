@@ -1,4 +1,4 @@
-use super::common::with_io_input_output;
+use crate::common::with_io_input_output;
 use star_setup::commands::{print_mode_header, ModeHeader};
 
 #[test]

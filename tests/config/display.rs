@@ -1,4 +1,4 @@
-use super::fixtures::sample_entry;
+use crate::fixtures::sample_entry;
 use star_setup::config::format_entry;
 
 #[test]

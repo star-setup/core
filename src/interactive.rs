@@ -1,5 +1,3 @@
-//! Interactive CLI mode.
-
 use crate::{
   cli::{BuildType, ResolvedArgs},
   ctx::IoCtx,

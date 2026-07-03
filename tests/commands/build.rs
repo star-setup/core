@@ -1,13 +1,33 @@
-use super::common::{default_resolved_with_no_build, with_ctx, with_ctx_runner, MockRunner};
+use crate::common::{default_resolved_with_no_build, with_ctx, with_ctx_runner, MockRunner};
 use star_setup::{
   cli::BuildSystem,
-  commands::{build_project, cmake_build, meson_build},
+  commands::{build_project, cmake_build, meson_build, npm_build},
 };
 
+/* =====     BUILD_PROJECT     ===== */
+#[test]
+fn test_build_project_dispatches_meson() {
+  let args = default_resolved_with_no_build(true);
+  let runner = with_ctx_runner(MockRunner::new(), |tmp_path, ctx| {
+    build_project(&args, tmp_path, tmp_path, BuildSystem::Meson, false, ctx).unwrap();
+  });
+  assert!(runner.calls[0].0.contains(&"meson".to_string()));
+}
+
+#[test]
+fn test_build_project_dispatches_npm() {
+  let args = default_resolved_with_no_build(true);
+  let runner = with_ctx_runner(MockRunner::new(), |tmp_path, ctx| {
+    build_project(&args, tmp_path, tmp_path, BuildSystem::Npm, false, ctx).unwrap();
+  });
+  assert!(runner.calls[0].0.contains(&"install".to_string()));
+}
+
+/* =====     CMAKE_BUILD     ===== */
 #[test]
 fn test_cmake_build_configure_only() {
   let args = default_resolved_with_no_build(true);
-  let runner = with_ctx_runner(MockRunner::new(), |tmp_path, ctx| {
+  let runner: MockRunner = with_ctx_runner(MockRunner::new(), |tmp_path, ctx| {
     cmake_build(&args, tmp_path, false, ctx).unwrap();
   });
   assert_eq!(runner.calls.len(), 1);
@@ -33,6 +53,7 @@ fn test_cmake_build_mono_flag() {
   assert!(runner.calls[0].0.contains(&"-DBUILD_LOCAL=ON".to_string()));
 }
 
+/* =====     MESON_BUILD     ===== */
 #[test]
 fn test_meson_build_configure_only() {
   let args = default_resolved_with_no_build(true);
@@ -63,20 +84,12 @@ fn test_build_project_dispatches_cmake() {
   assert!(runner.calls[0].0.contains(&"cmake".to_string()));
 }
 
-#[test]
-fn test_build_project_dispatches_meson() {
-  let args = default_resolved_with_no_build(true);
-  let runner = with_ctx_runner(MockRunner::new(), |tmp_path, ctx| {
-    build_project(&args, tmp_path, tmp_path, BuildSystem::Meson, false, ctx).unwrap();
-  });
-  assert!(runner.calls[0].0.contains(&"meson".to_string()));
-}
-
+/* =====     NPM_BUILD     ===== */
 #[test]
 fn test_npm_build_install_only() {
   let args = default_resolved_with_no_build(true);
   let runner = with_ctx_runner(MockRunner::new(), |tmp_path, ctx| {
-    star_setup::commands::npm_build(&args, tmp_path, false, ctx).unwrap();
+    npm_build(&args, tmp_path, false, ctx).unwrap();
   });
   assert_eq!(runner.calls.len(), 1);
   assert!(runner.calls[0].0.contains(&"install".to_string()));
@@ -86,7 +99,7 @@ fn test_npm_build_install_only() {
 fn test_npm_build_with_build_step() {
   let args = default_resolved_with_no_build(false);
   let runner = with_ctx_runner(MockRunner::new(), |tmp_path, ctx| {
-    star_setup::commands::npm_build(&args, tmp_path, false, ctx).unwrap();
+    npm_build(&args, tmp_path, false, ctx).unwrap();
   });
   assert_eq!(runner.calls.len(), 2);
   assert!(runner.calls[1].0.contains(&"build".to_string()));
@@ -96,17 +109,8 @@ fn test_npm_build_with_build_step() {
 fn test_npm_build_install_only_prints_header() {
   let args = default_resolved_with_no_build(true);
   let (_, output) = with_ctx(MockRunner::new(), |tmp_path, ctx| {
-    star_setup::commands::npm_build(&args, tmp_path, false, ctx).unwrap();
+    npm_build(&args, tmp_path, false, ctx).unwrap();
   });
   let out = String::from_utf8(output).unwrap();
   assert!(out.contains("Installing dependencies"));
-}
-
-#[test]
-fn test_build_project_dispatches_npm() {
-  let args = default_resolved_with_no_build(true);
-  let runner = with_ctx_runner(MockRunner::new(), |tmp_path, ctx| {
-    build_project(&args, tmp_path, tmp_path, BuildSystem::Npm, false, ctx).unwrap();
-  });
-  assert!(runner.calls[0].0.contains(&"install".to_string()));
 }

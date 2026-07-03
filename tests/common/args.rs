@@ -1,7 +1,10 @@
 #![allow(dead_code)]
 
 use star_setup::{
-  cli::{resolve_with_config, Args, BuildFlags, ConnectionFlags, DiagnosticFlags, MonoRepoFlags},
+  cli::{
+    resolve_with_config, Args, BuildFlags, ConnectionFlags, DiagnosticFlags, MonoRepoFlags,
+    ResolvedArgs,
+  },
   config::SetupConfig,
 };
 
@@ -45,25 +48,25 @@ pub fn default_args() -> Args {
   }
 }
 
-pub fn default_resolved() -> star_setup::cli::ResolvedArgs {
+pub fn default_resolved() -> ResolvedArgs {
   let mut args = default_args();
   args.repo = Some("user/repo".to_string());
   args.build.no_build = true;
   resolve_with_config(args, &SetupConfig::new()).unwrap()
 }
 
-pub fn default_resolved_with_no_build(no_build: bool) -> star_setup::cli::ResolvedArgs {
+pub fn default_resolved_with_no_build(no_build: bool) -> ResolvedArgs {
   let mut args = default_args();
   args.repo = Some("user/repo".to_string());
   args.build.no_build = no_build;
   resolve_with_config(args, &SetupConfig::new()).unwrap()
 }
 
-pub fn default_resolved_interactive() -> star_setup::cli::ResolvedArgs {
+pub fn default_resolved_interactive() -> ResolvedArgs {
   resolve_with_config(default_args(), &SetupConfig::new()).unwrap()
 }
 
-pub fn default_resolved_mono(repos: Vec<String>) -> star_setup::cli::ResolvedArgs {
+pub fn default_resolved_mono(repos: Vec<String>) -> ResolvedArgs {
   let mut args = default_args();
   args.repo = Some("user/test-repo".to_string());
   args.yes = true;
