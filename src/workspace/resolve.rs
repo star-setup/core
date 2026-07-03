@@ -1,4 +1,4 @@
-use crate::workspace::Workspace;
+use crate::{ctx::IoCtx, workspace::Workspace};
 use std::{fs, path::Path};
 
 /// Resolves a workspace from optional path overrides.
@@ -8,6 +8,8 @@ pub fn resolve_workspace(
   path: Option<&Path>,
   mono_dir: Option<&str>,
   build_dir: Option<&str>,
+  io: &mut IoCtx<'_>,
+  verbose: bool,
 ) -> Result<Workspace, String> {
   let base = path.unwrap_or_else(|| Path::new("."));
   let root = base.join(mono_dir.unwrap_or("build-mono"));
@@ -30,6 +32,10 @@ pub fn resolve_workspace(
     .map(|entry| entry.path())
     .filter(|p| p.is_dir() && p.join(".git").exists())
     .collect();
+
+  if verbose {
+    writeln!(io.output, "  Resolved workspace: {}", root.display()).ok();
+  }
 
   Ok(Workspace {
     root,

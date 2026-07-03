@@ -33,7 +33,7 @@ pub fn add_profile(
   flags: RunFlags,
 ) -> Result<(), String> {
   if args.len() < 2 {
-    return Err("--profile-add requires NAME REPO1 [REPO2 ...]".to_string());
+    return Err("profile add requires NAME REPO1 [REPO2 ...]".to_string());
   }
 
   let name = args[0].clone();
@@ -41,7 +41,7 @@ pub fn add_profile(
 
   if has_profile(config, &name)
     && !confirm_abort(
-      &format!("Warning: Profile '{name}' already exists. Overwrite?"),
+      &format!("  Warning: Profile '{name}' already exists. Overwrite?"),
       yes,
       io,
     )?
@@ -50,17 +50,17 @@ pub fn add_profile(
   }
 
   if flags.dry_run {
-    writeln!(io.output, "Would save profile '{name}' to config file").ok();
+    writeln!(io.output, "  Would save profile '{name}' to config file").ok();
   } else {
     insert_profile(config, &name, repos.clone());
-    let path = save_config(config)?;
-    writeln!(io.output, "Profile '{name}' added successfully").ok();
-    writeln!(io.output, "Configuration saved to: {}", path.display()).ok();
+    let path = save_config(config, flags.timing, &mut io.output)?;
+    writeln!(io.output, "  Profile '{name}' added successfully").ok();
+    writeln!(io.output, "  Configuration saved to: {}", path.display()).ok();
   }
   print_profile_details(io.output, "Profile details:", "Repositories", &repos);
   writeln!(
     io.output,
-    "\nUsage: star-setup username/test-repo --profile {name}"
+    "  Usage: star-setup username/test-repo --profile {name}"
   )
   .ok();
   Ok(())
@@ -78,7 +78,7 @@ pub fn remove_profile(
 ) -> Result<(), String> {
   let repos = match config.profiles.get(name) {
     None => {
-      writeln!(io.output, "Warning: Profile '{name}' not found.").ok();
+      writeln!(io.output, "  Warning: Profile '{name}' not found.").ok();
       return Ok(());
     }
     Some(r) => r.clone(),
@@ -92,7 +92,7 @@ pub fn remove_profile(
   );
 
   if !confirm_abort(
-    &format!("Are you sure you want to remove profile '{name}'?"),
+    &format!("  Are you sure you want to remove profile '{name}'?"),
     yes,
     io,
   )? {
@@ -100,12 +100,16 @@ pub fn remove_profile(
   }
 
   if flags.dry_run {
-    writeln!(io.output, "Would remove profile '{name}' from config file").ok();
+    writeln!(
+      io.output,
+      "  Would remove profile '{name}' from config file"
+    )
+    .ok();
   } else {
     remove_profile_entry(config, name);
-    let path = save_config(config)?;
-    writeln!(io.output, "\nProfile '{name}' removed successfully").ok();
-    writeln!(io.output, "Configuration saved to: {}\n", path.display()).ok();
+    let path = save_config(config, flags.timing, &mut io.output)?;
+    writeln!(io.output, "  Profile '{name}' removed successfully").ok();
+    writeln!(io.output, "  Configuration saved to: {}", path.display()).ok();
   }
   Ok(())
 }

@@ -1,17 +1,18 @@
 use crate::{
   cli::{detect_mono_build_system, BuildSystem, ResolvedArgs},
   commands::{
-    build_repo_list, configure_and_build, extract_repo_input,
+    build_project, build_repo_list, extract_repo_input,
     mono::{
       clone_mono_repos,
       display::{resolve_setup_paths, SetupPaths},
       generate_mono_config, generate_watch_scripts, open_watch_scripts, print_setup_complete,
     },
-    prepare_build_dir, resolve_repos_for_mono, resolve_test_repo,
+    prepare_build_dir, print_mode_header, resolve_repos_for_mono, resolve_test_repo, ModeHeader,
   },
   config::SetupConfig,
   ctx::RunCtx,
   repository::repo_dir_name,
+  utils::{dry_run::detect_or_dry_run, dry_run_or_do},
 };
 use std::{
   fs,
@@ -28,26 +29,45 @@ pub fn mono_repo_mode(
   ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
   let total = std::time::Instant::now();
-
   let repo_input = extract_repo_input(args)?;
   let test_repo = resolve_test_repo(repo_input)?;
-  let deps = resolve_repos_for_mono(args, config, &test_repo, &mut ctx.io)?;
+  let deps = resolve_repos_for_mono(args, config, &mut ctx.io)?;
   let repos = build_repo_list(&test_repo, &deps);
-  writeln!(ctx.io.output, "Total repositories: {}\n", repos.len()).ok();
+
+  print_mode_header(
+    &ModeHeader {
+      mode: if args.mono.profile.is_some() {
+        "Profile"
+      } else {
+        "Mono-repository"
+      },
+      test_repo: Some(&test_repo),
+      repo_name: None,
+      use_ssh: args.connection.ssh,
+      mono_dir: Some(&args.mono.mono_dir),
+      profile: args.mono.profile.as_deref(),
+      lib_count: Some(deps.len()),
+      repo_count: Some(repos.len()),
+    },
+    &mut ctx.io,
+  );
 
   let mono_repo_path = base_dir.join(&args.mono.mono_dir);
   let repos_path = mono_repo_path.join("repos");
-  if ctx.flags.dry_run {
-    writeln!(
-      ctx.io.output,
-      "Would create directory: {}",
-      repos_path.display()
-    )
-    .ok();
-  } else {
-    crate::time!(ctx.flags.timing, ctx.io.output, "Create directory", {
-      fs::create_dir_all(&repos_path).map_err(|e| e.to_string())?;
-    });
+  if ctx.flags.verbose {
+    writeln!(ctx.io.output, "Creating directory").ok();
+  }
+  dry_run_or_do(
+    "create directory",
+    "Creating",
+    &repos_path,
+    &mut ctx.io,
+    ctx.flags,
+    "Create directory",
+    || fs::create_dir_all(&repos_path).map_err(|e| e.to_string()),
+  )?;
+  if ctx.flags.verbose {
+    writeln!(ctx.io.output).ok();
   }
 
   clone_mono_repos(&repos, &repos_path, args.connection.ssh, ctx)?;
@@ -58,32 +78,29 @@ pub fn mono_repo_mode(
     .collect();
 
   let build_path = mono_repo_path.join(&args.build.build_dir);
-
-  let build_system = if let Some(bs) = args.build.build_system {
-    Some(bs)
-  } else if !ctx.flags.dry_run {
-    Some(detect_mono_build_system(&repo_dirs, ctx)?)
-  } else {
-    None
-  };
+  let build_system = detect_or_dry_run(args.build.build_system, ctx, |ctx| {
+    detect_mono_build_system(&repo_dirs, ctx)
+  })?;
 
   let canonical_map = if let Some(bs) = build_system {
     let map = generate_mono_config(bs, &mono_repo_path, &repos_path, &repo_dirs, &repos, ctx)?;
     if bs != BuildSystem::Npm {
       prepare_build_dir(build_path.as_path(), args.build.clean, ctx)?;
+    } else if args.build.clean && ctx.flags.verbose {
+      writeln!(ctx.io.output, "  --clean has no effect for npm projects").ok();
     }
-    configure_and_build(args, &mono_repo_path, &build_path, bs, true, ctx)?;
+    build_project(args, &build_path, &mono_repo_path, bs, true, ctx)?;
     map
   } else {
-    prepare_build_dir(build_path.as_path(), args.build.clean, ctx)?;
     None
   };
 
-  if build_system == Some(BuildSystem::Npm) && !args.build.no_watch && !ctx.flags.dry_run {
-    generate_watch_scripts(&mono_repo_path, &repos_path, &repos, &mut ctx.io, ctx.flags)?;
-    if args.build.watch {
-      open_watch_scripts(&mono_repo_path, &mut ctx.io)?;
-    }
+  if build_system == Some(BuildSystem::Npm)
+    && !args.build.no_watch
+    && generate_watch_scripts(&mono_repo_path, &repos_path, &repos, &mut ctx.io, ctx.flags)?
+    && args.build.watch
+  {
+    open_watch_scripts(&mono_repo_path, &mut ctx.io, ctx.flags)?;
   }
 
   let paths = if ctx.flags.dry_run {
@@ -106,6 +123,15 @@ pub fn mono_repo_mode(
     )
   };
 
-  print_setup_complete(&paths, total, &mut ctx.io, ctx.flags);
+  if ctx.flags.dry_run || build_system.is_none() {
+    writeln!(
+      ctx.io.output,
+      "Would finish setup in {}",
+      paths.mono_repo_disp.display()
+    )
+    .ok();
+  } else {
+    print_setup_complete(&paths, total, &mut ctx.io, ctx.flags);
+  }
   Ok(())
 }

@@ -1,9 +1,5 @@
-use crate::{
-  cli::{BuildSystem, ResolvedArgs},
-  commands::build_project,
-  ctx::RunCtx,
-};
-use std::{fs, path::Path};
+use crate::{cli::ResolvedArgs, ctx::RunCtx, utils::dry_run_or_do};
+use std::fs;
 
 /// Prepares the build directory, optionally cleaning it first.
 /// # Errors
@@ -13,50 +9,43 @@ pub fn prepare_build_dir(
   clean: bool,
   ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
-  if clean && ctx.flags.dry_run {
-    writeln!(ctx.io.output, "Cleaning build directory\n").ok();
-    writeln!(
-      ctx.io.output,
-      "Would remove directory: {}",
-      build_path.display()
-    )
-    .ok();
-  } else if clean && build_path.exists() {
-    writeln!(ctx.io.output, "Cleaning build directory\n").ok();
-    crate::time!(ctx.flags.timing, ctx.io.output, "Clean", {
-      fs::remove_dir_all(build_path).map_err(|e| e.to_string())?;
-    });
+  if clean {
+    writeln!(ctx.io.output, "Cleaning build directory").ok();
+    dry_run_or_do(
+      "remove directory",
+      "Removing",
+      build_path,
+      &mut ctx.io,
+      ctx.flags,
+      "Clean",
+      || {
+        if build_path.exists() {
+          fs::remove_dir_all(build_path).map_err(|e| e.to_string())
+        } else {
+          Ok(())
+        }
+      },
+    )?;
+    if ctx.flags.verbose {
+      writeln!(ctx.io.output, "  Finished cleaning\n").ok();
+    }
   }
 
-  writeln!(ctx.io.output, "Creating build directory\n").ok();
-  if ctx.flags.dry_run {
-    writeln!(
-      ctx.io.output,
-      "Would create directory: {}",
-      build_path.display()
-    )
-    .ok();
-  } else {
-    crate::time!(ctx.flags.timing, ctx.io.output, "Create build directory", {
-      fs::create_dir_all(build_path).map_err(|e| e.to_string())?;
-    });
+  writeln!(ctx.io.output, "Creating build directory").ok();
+  dry_run_or_do(
+    "create directory",
+    "Creating",
+    build_path,
+    &mut ctx.io,
+    ctx.flags,
+    "Create build directory",
+    || fs::create_dir_all(build_path).map_err(|e| e.to_string()),
+  )?;
+
+  if ctx.flags.verbose {
+    writeln!(ctx.io.output, "  Finished creating\n").ok();
   }
   Ok(())
-}
-
-/// Detects the build system and runs configuration and optional build.
-/// # Errors
-/// Returns an error if detection or build fails.
-pub fn configure_and_build(
-  args: &ResolvedArgs,
-  project_path: &Path,
-  build_path: &Path,
-  build_system: BuildSystem,
-  is_mono: bool,
-  ctx: &mut RunCtx<'_, '_>,
-) -> Result<(), String> {
-  writeln!(ctx.io.output, "Configuring project\n").ok();
-  build_project(args, build_path, project_path, build_system, is_mono, ctx)
 }
 
 /// Extracts and sanitizes the repository input from args.

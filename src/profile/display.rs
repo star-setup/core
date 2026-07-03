@@ -19,7 +19,7 @@ pub fn list_profiles(config: &SetupConfig, io: &mut IoCtx<'_>) {
   if config.profiles.is_empty() {
     writeln!(
       io.output,
-      "No profiles configured. Run with --init-config to create a default configuration."
+      "No profiles configured. Run with profile add to create a new profile."
     )
     .ok();
     return;

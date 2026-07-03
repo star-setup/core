@@ -78,7 +78,7 @@ fn test_detect_build_system_timing_output() {
   });
   assert!(String::from_utf8(output)
     .unwrap()
-    .contains("[timing] Detect:"));
+    .contains("[timing] Scanned directory:"));
 }
 
 #[test]
@@ -143,7 +143,7 @@ fn test_detect_mono_build_system_timing_output() {
   });
   assert!(String::from_utf8(output)
     .unwrap()
-    .contains("[timing] Detect:"));
+    .contains("[timing] Scanned directories:"));
 }
 
 #[test]

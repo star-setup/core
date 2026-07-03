@@ -13,6 +13,7 @@ fn test_print_mode_header_repo_name_without_test_repo() {
         mono_dir: None,
         profile: None,
         lib_count: None,
+        repo_count: None,
       },
       io,
     );

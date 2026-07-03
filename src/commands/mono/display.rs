@@ -71,20 +71,20 @@ pub fn print_setup_complete(
   io: &mut IoCtx<'_>,
   flags: RunFlags,
 ) {
-  writeln!(io.output, "Setup complete").ok();
+  writeln!(io.output, "  Setup complete").ok();
   writeln!(
     io.output,
-    "Repositories in: {}",
+    "  Repositories in: {}",
     paths.mono_repo_disp.display()
   )
   .ok();
   if let Some(exe) = &paths.exe_path {
-    writeln!(io.output, "Executable: {}", exe.display()).ok();
+    writeln!(io.output, "  Executable: {}", exe.display()).ok();
   }
   if let Some(build) = &paths.build_disp {
-    writeln!(io.output, "Build output in: {}", build.display()).ok();
+    writeln!(io.output, "  Build output in: {}", build.display()).ok();
   }
   if flags.timing {
-    writeln!(io.output, "[timing] Total: {:.2?}", total.elapsed()).ok();
+    writeln!(io.output, "  [timing] Total: {:.2?}", total.elapsed()).ok();
   }
 }

@@ -1,4 +1,4 @@
-use super::common::{default_resolved_with_no_build, with_ctx_runner, MockRunner};
+use super::common::{default_resolved_with_no_build, with_ctx, with_ctx_runner, MockRunner};
 use star_setup::{
   cli::BuildSystem,
   commands::{build_project, cmake_build, meson_build},
@@ -90,6 +90,16 @@ fn test_npm_build_with_build_step() {
   });
   assert_eq!(runner.calls.len(), 2);
   assert!(runner.calls[1].0.contains(&"build".to_string()));
+}
+
+#[test]
+fn test_npm_build_install_only_prints_header() {
+  let args = default_resolved_with_no_build(true);
+  let (_, output) = with_ctx(MockRunner::new(), |tmp_path, ctx| {
+    star_setup::commands::npm_build(&args, tmp_path, false, ctx).unwrap();
+  });
+  let out = String::from_utf8(output).unwrap();
+  assert!(out.contains("Installing dependencies"));
 }
 
 #[test]

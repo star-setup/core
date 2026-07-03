@@ -83,12 +83,14 @@ impl Runner for DryRunRunner {
     &mut self,
     cmd: &[&str],
     cwd: Option<&Path>,
-    _flags: RunFlags,
+    flags: RunFlags,
     output: &mut dyn Write,
   ) -> Result<(), String> {
-    writeln!(output, "Would run: {}", cmd.join(" ")).map_err(|e| e.to_string())?;
-    if let Some(dir) = cwd {
-      writeln!(output, "  in directory: {}", dir.display()).map_err(|e| e.to_string())?;
+    if flags.verbose {
+      writeln!(output, "  Would run: {}", cmd.join(" ")).map_err(|e| e.to_string())?;
+      if let Some(dir) = cwd {
+        writeln!(output, "    in directory: {}", dir.display()).map_err(|e| e.to_string())?;
+      }
     }
     Ok(())
   }

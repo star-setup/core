@@ -1,11 +1,9 @@
 use crate::{
   cli::{detect_build_system, BuildSystem, ResolvedArgs},
-  commands::{
-    configure_and_build, extract_repo_input, prepare_build_dir, print_mode_header, ModeHeader,
-  },
+  commands::{build_project, extract_repo_input, prepare_build_dir, print_mode_header, ModeHeader},
   ctx::RunCtx,
-  prompts::confirm,
-  repository::{clone_repository, pull_repository, repo_dir_name},
+  repository::{clone_repository, repo_dir_name},
+  utils::dry_run::detect_or_dry_run,
 };
 use std::path::Path;
 
@@ -18,9 +16,9 @@ pub fn single_repo_mode(
   ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
   let total = std::time::Instant::now();
-
   let repo = extract_repo_input(args)?;
   let dir_name = repo_dir_name(repo);
+  let repo_path = base_dir.join(&dir_name);
 
   print_mode_header(
     &ModeHeader {
@@ -31,42 +29,35 @@ pub fn single_repo_mode(
       mono_dir: None,
       profile: None,
       lib_count: None,
+      repo_count: None,
     },
     &mut ctx.io,
   );
 
-  let repo_path = base_dir.join(&dir_name);
-  if repo_path.exists() {
-    writeln!(ctx.io.output, "Repository {dir_name} already exists").ok();
-    if confirm("Update existing repository?", args.yes, &mut ctx.io)? {
-      writeln!(ctx.io.output, "Updating {dir_name}\n").ok();
-      crate::time!(ctx.flags.timing, ctx.io.output, "Update", {
-        pull_repository(&repo_path, ctx)?;
-      });
-    }
-  } else {
-    clone_repository(repo, base_dir, args.connection.ssh, ctx)?;
-  }
+  writeln!(ctx.io.output, "Cloning repository").ok();
+  clone_repository(repo, base_dir, args.connection.ssh, false, args.yes, ctx)?;
+  writeln!(ctx.io.output).ok();
 
   let build_path = repo_path.join(&args.build.build_dir);
-  let build_system = if let Some(bs) = args.build.build_system {
-    Some(bs)
-  } else if !ctx.flags.dry_run {
-    Some(detect_build_system(&repo_path, ctx)?)
-  } else {
-    None
-  };
+  let build_system = detect_or_dry_run(args.build.build_system, ctx, |ctx| {
+    detect_build_system(&repo_path, ctx)
+  })?;
 
   if let Some(build_system) = build_system {
     if build_system == BuildSystem::Npm {
-      configure_and_build(args, &repo_path, &repo_path, build_system, false, ctx)?;
+      if args.build.clean && ctx.flags.verbose {
+        writeln!(ctx.io.output, "  --clean has no effect for npm projects").ok();
+      }
+      build_project(args, &repo_path, &repo_path, build_system, false, ctx)?;
     } else {
       prepare_build_dir(&build_path, args.build.clean, ctx)?;
-      configure_and_build(args, &repo_path, &build_path, build_system, false, ctx)?;
+      build_project(args, &build_path, &repo_path, build_system, false, ctx)?;
     }
   }
 
-  if build_system == Some(BuildSystem::Npm) {
+  if ctx.flags.dry_run || build_system.is_none() {
+    writeln!(ctx.io.output, "Would finish in {dir_name}").ok();
+  } else if build_system == Some(BuildSystem::Npm) {
     writeln!(ctx.io.output, "Project finished in {dir_name}").ok();
   } else {
     writeln!(

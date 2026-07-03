@@ -70,7 +70,7 @@ fn test_clone_skips_existing_directory() {
     let repo_dir = tmp_path.join("owner-repo");
     std::fs::create_dir_all(&repo_dir).unwrap();
 
-    let result = clone_repository("owner/repo", tmp_path, false, ctx);
+    let result = clone_repository("owner/repo", tmp_path, false, true, false, ctx);
     assert!(result.is_ok());
     assert!(repo_dir.exists());
   });
@@ -81,7 +81,7 @@ fn test_clone_repository_calls_git_clone() {
   let tmp = tempfile::TempDir::new().unwrap();
 
   let runner = with_ctx_runner(MockRunner::new(), |_, ctx| {
-    clone_repository("user/repo", tmp.path(), false, ctx).unwrap();
+    clone_repository("user/repo", tmp.path(), false, true, false, ctx).unwrap();
   });
 
   assert_eq!(runner.calls.len(), 1);

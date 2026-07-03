@@ -29,6 +29,7 @@ fn test_workspace_clean_removes_build_dir() {
 fn test_workspace_clean_dry_run() {
   let (_, output) = with_ctx(MockRunner::new(), |tmp, ctx| {
     ctx.flags.dry_run = true;
+    ctx.flags.verbose = true;
 
     let ws = make_workspace(tmp, vec![]);
     fs::create_dir_all(&ws.build_path).unwrap();

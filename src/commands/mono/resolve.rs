@@ -1,10 +1,4 @@
-use crate::{
-  cli::ResolvedArgs,
-  commands::{print_mode_header, ModeHeader},
-  config::SetupConfig,
-  ctx::IoCtx,
-  profile::list_profiles,
-};
+use crate::{cli::ResolvedArgs, config::SetupConfig, ctx::IoCtx, profile::list_profiles};
 
 /// Resolves the list of repositories for mono-repo mode from a profile or explicit repo list.
 /// # Errors
@@ -12,7 +6,6 @@ use crate::{
 pub fn resolve_repos_for_mono(
   args: &ResolvedArgs,
   config: &SetupConfig,
-  test_repo: &str,
   io: &mut IoCtx<'_>,
 ) -> Result<Vec<String>, String> {
   if let Some(profile_name) = &args.mono.profile {
@@ -23,32 +16,8 @@ pub fn resolve_repos_for_mono(
     if profile_repos.is_empty() {
       return Err(format!("Profile '{profile_name}' has no repositories"));
     }
-    print_mode_header(
-      &ModeHeader {
-        mode: "Profile",
-        test_repo: Some(test_repo),
-        repo_name: None,
-        use_ssh: args.connection.ssh,
-        mono_dir: Some(&args.mono.mono_dir),
-        profile: Some(profile_name),
-        lib_count: Some(profile_repos.len()),
-      },
-      io,
-    );
     Ok(profile_repos.clone())
   } else if let Some(r) = &args.mono.repos {
-    print_mode_header(
-      &ModeHeader {
-        mode: "Mono-repository",
-        test_repo: Some(test_repo),
-        repo_name: None,
-        use_ssh: args.connection.ssh,
-        mono_dir: Some(&args.mono.mono_dir),
-        profile: None,
-        lib_count: Some(r.len()),
-      },
-      io,
-    );
     Ok(r.clone())
   } else {
     Err("No repos or profile specified for mono-repo mode".to_string())

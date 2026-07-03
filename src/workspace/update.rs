@@ -14,26 +14,31 @@ impl Workspace {
 
     let mut errors: Vec<String> = Vec::new();
 
-    for repo_dir in &self.repo_dirs {
-      let name = repo_dir
-        .file_name()
-        .map(|n| n.to_string_lossy())
-        .unwrap_or_default();
+    crate::time!(ctx.flags.timing, ctx.io.output, "Update", {
+      for repo_dir in &self.repo_dirs {
+        let name = repo_dir
+          .file_name()
+          .map(|n| n.to_string_lossy())
+          .unwrap_or_default();
 
-      if ctx.flags.dry_run {
-        writeln!(ctx.io.output, "Would update {name}").ok();
-        continue;
-      }
+        if ctx.flags.dry_run {
+          writeln!(ctx.io.output, "  Would update {name}").ok();
+          continue;
+        }
 
-      writeln!(ctx.io.output, "  Updating {name}").ok();
-      if let Err(e) = pull_repository(repo_dir, ctx) {
-        writeln!(ctx.io.output, "  Failed to update {name}: {e}").ok();
-        errors.push(format!("{name}: {e}"));
+        writeln!(ctx.io.output, "  Updating {name}").ok();
+        crate::time!(ctx.flags.timing, ctx.io.output, &name, {
+          if let Err(e) = pull_repository(repo_dir, ctx) {
+            writeln!(ctx.io.output, "  Failed to update {name}: {e}").ok();
+            errors.push(format!("{name}: {e}"));
+          }
+        });
       }
-    }
+      Ok::<(), String>(())
+    })?;
 
     if errors.is_empty() {
-      writeln!(ctx.io.output, "\nDone").ok();
+      writeln!(ctx.io.output, "  Done").ok();
       Ok(())
     } else {
       Err(format!(

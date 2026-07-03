@@ -31,17 +31,26 @@ pub fn create_default_config(
   io: &mut IoCtx<'_>,
   flags: RunFlags,
 ) -> Result<(), String> {
-  if path.exists()
-    && !confirm_abort(
-      &format!("{} already exists. Overwrite?", path.display()),
-      yes,
-      io,
-    )?
-  {
+  let prompt = if flags.dry_run {
+    format!(
+      "  {} already exists. Overwrite? [DRY-RUN]: No changes will be made",
+      path.display()
+    )
+  } else {
+    format!("  {} already exists. Overwrite?", path.display())
+  };
+  if path.exists() && !confirm_abort(&prompt, yes, io)? {
     return Ok(());
   }
 
-  if !flags.dry_run {
+  if flags.dry_run {
+    writeln!(
+      io.output,
+      "  Would create config file: {}",
+      dunce::canonicalize(&path).unwrap_or(path).display()
+    )
+    .ok();
+  } else {
     let mut config = SetupConfig::new();
     config.path = Some(path.clone());
     config.configs.insert(
@@ -61,19 +70,20 @@ pub fn create_default_config(
       },
     );
 
-    save_config(&mut config)?;
+    let path = save_config(&mut config, flags.timing, &mut io.output)?;
+
+    writeln!(
+      io.output,
+      "  Created config file: {}",
+      dunce::canonicalize(&path).unwrap_or(path).display()
+    )
+    .ok();
   }
 
-  writeln!(
-    io.output,
-    "Created config file: {}",
-    dunce::canonicalize(&path).unwrap_or(path).display()
-  )
-  .ok();
-  writeln!(io.output, "Edit this file to customize your defaults.").ok();
-  writeln!(io.output, "\nConfig files are checked in this order:").ok();
-  writeln!(io.output, "  1. ./.star-setup.json (current directory)").ok();
-  writeln!(io.output, "  2. ~/.star-setup.json (home directory)").ok();
+  writeln!(io.output, "  Edit this file to customize your defaults.\n").ok();
+  writeln!(io.output, "  Config files are checked in this order:").ok();
+  writeln!(io.output, "    1. ./.star-setup.json (current directory)").ok();
+  writeln!(io.output, "    2. ~/.star-setup.json (home directory)").ok();
 
   Ok(())
 }
@@ -91,7 +101,7 @@ pub fn add_config(
 ) -> Result<(), String> {
   if has_config(config, name)
     && !confirm_abort(
-      &format!("Warning: Configuration '{name}' already exists. Overwrite?"),
+      &format!("  Warning: Configuration '{name}' already exists. Overwrite?"),
       yes,
       io,
     )?
@@ -102,21 +112,21 @@ pub fn add_config(
   if flags.dry_run {
     writeln!(
       io.output,
-      "Would save configuration '{name}' to config file"
+      "  Would save configuration '{name}' to config file"
     )
     .ok();
   } else {
     insert_config(config, name, entry);
-    let path = save_config(config)?;
+    let path: PathBuf = save_config(config, flags.timing, &mut io.output)?;
     writeln!(
       io.output,
-      "Configuration '{name}' added successfully to {}",
+      "  Configuration '{name}' added successfully to {}",
       path.display()
     )
     .ok();
     let e: &ConfigEntry = &config.configs[name];
-    writeln!(io.output, "Configuration details:").ok();
-    write!(io.output, "{}", format_entry(e)).ok();
+    writeln!(io.output, "  Configuration details:").ok();
+    write!(io.output, "  {}", format_entry(e)).ok();
   }
   Ok(())
 }
@@ -132,29 +142,29 @@ pub fn remove_config(
   flags: RunFlags,
 ) -> Result<(), String> {
   let Some(e) = config.configs.get(name) else {
-    writeln!(io.output, "\nWarning: Config '{name}' not found.\n").ok();
+    writeln!(io.output, "  Warning: Config '{name}' not found.\n").ok();
     return Ok(());
   };
 
-  writeln!(io.output, "Config {name}").ok();
-  writeln!(io.output, "Configuration details:").ok();
-  write!(io.output, "{}", format_entry(e)).ok();
+  writeln!(io.output, "  Config {name}").ok();
+  writeln!(io.output, "  Configuration details:").ok();
+  write!(io.output, "  {}", format_entry(e)).ok();
 
-  if !confirm_abort("\nAre you sure you want to remove this config?", yes, io)? {
+  if !confirm_abort("  Are you sure you want to remove this config?", yes, io)? {
     return Ok(());
   }
 
   if flags.dry_run {
     writeln!(
       io.output,
-      "Would remove configuration '{name}' from config file"
+      "  Would remove configuration '{name}' from config file"
     )
     .ok();
   } else {
     remove_config_entry(config, name);
-    let path = save_config(config)?;
-    writeln!(io.output, "\nConfig '{name}' was successfully removed").ok();
-    writeln!(io.output, "Configuration saved to: {}\n", path.display()).ok();
+    let path = save_config(config, flags.timing, &mut io.output)?;
+    writeln!(io.output, "  Config '{name}' was successfully removed").ok();
+    writeln!(io.output, "  Configuration saved to: {}", path.display()).ok();
   }
   Ok(())
 }

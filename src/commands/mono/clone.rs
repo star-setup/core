@@ -12,15 +12,26 @@ pub fn clone_mono_repos(
   writeln!(ctx.io.output, "Cloning repositories").ok();
   crate::time!(ctx.flags.timing, ctx.io.output, "Clone", {
     for repo in repos {
-      clone_repository(repo, repos_path, ssh, ctx)?;
+      if ctx.flags.verbose {
+        writeln!(
+          ctx.io.output,
+          "  Cloning {}",
+          crate::repository::repo_dir_name(repo)
+        )
+        .ok();
+      }
+      clone_repository(repo, repos_path, ssh, true, false, ctx)?;
+    }
+    if ctx.flags.verbose {
+      writeln!(
+        ctx.io.output,
+        "  Finished cloning ({} repositories)",
+        repos.len()
+      )
+      .ok();
     }
     Ok::<(), String>(())
   })?;
-  writeln!(
-    ctx.io.output,
-    "\n  Finished cloning ({} repositories)\n",
-    repos.len()
-  )
-  .ok();
+  writeln!(ctx.io.output).ok();
   Ok(())
 }

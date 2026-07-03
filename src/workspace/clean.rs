@@ -1,4 +1,4 @@
-use crate::{ctx::RunCtx, workspace::Workspace};
+use crate::{ctx::RunCtx, utils::dry_run_or_do, workspace::Workspace};
 use std::fs;
 
 impl Workspace {
@@ -6,35 +6,37 @@ impl Workspace {
   /// # Errors
   /// Returns an error if the build directory cannot be removed.
   pub fn clean(&self, ctx: &mut RunCtx<'_, '_>) -> Result<(), String> {
+    writeln!(ctx.io.output, "Cleaning workspace").ok();
+
+    if self.root.join("package.json").exists() {
+      if ctx.flags.verbose {
+        writeln!(ctx.io.output, "  Clean has no effect for npm workspaces").ok();
+      }
+      return Ok(());
+    }
+
     if !self.build_path.exists() {
       writeln!(
         ctx.io.output,
-        "Build directory does not exist: {}",
+        "  Build directory does not exist: {}",
         self.build_path.display()
       )
       .ok();
       return Ok(());
     }
 
-    writeln!(
-      ctx.io.output,
-      "Removing build directory: {}",
-      self.build_path.display()
-    )
-    .ok();
-
-    if ctx.flags.dry_run {
-      writeln!(
-        ctx.io.output,
-        "Would remove directory: {}",
-        self.build_path.display()
-      )
-      .ok();
-    } else {
-      fs::remove_dir_all(&self.build_path)
-        .map_err(|e| format!("Failed to remove build directory: {e}"))?;
-      writeln!(ctx.io.output, "Done").ok();
-    }
+    dry_run_or_do(
+      "remove directory",
+      "Removing",
+      &self.build_path,
+      &mut ctx.io,
+      ctx.flags,
+      "Clean",
+      || {
+        fs::remove_dir_all(&self.build_path)
+          .map_err(|e| format!("Failed to remove build directory: {e}"))
+      },
+    )?;
 
     Ok(())
   }

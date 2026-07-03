@@ -6,6 +6,10 @@ use std::process::Command;
 /// # Errors
 /// Returns an error if any required tool is missing from PATH.
 pub fn check_prerequisites(io: &mut IoCtx<'_>, flags: RunFlags) -> Result<(), String> {
+  if flags.verbose {
+    writeln!(io.output, "Checking Prerequisites").ok();
+  }
+
   crate::time!(flags.timing, io.output, "Check prerequisites", {
     let missing: Vec<&str> = ["git", "cmake", "meson"]
       .into_iter()
@@ -16,7 +20,7 @@ pub fn check_prerequisites(io: &mut IoCtx<'_>, flags: RunFlags) -> Result<(), St
           .map_or(true, |o| !o.status.success());
 
         if !is_missing && flags.verbose {
-          let _ = writeln!(io.output, "   Found {tool}");
+          writeln!(io.output, "  Found {tool}").ok();
         }
         is_missing
       })
@@ -26,6 +30,13 @@ pub fn check_prerequisites(io: &mut IoCtx<'_>, flags: RunFlags) -> Result<(), St
       return Err(format!("Missing required tools: {}", missing.join(", ")));
     }
 
-    Ok(())
-  })
+    if flags.verbose {
+      writeln!(io.output, "  Prerequisites complete").ok();
+    }
+  });
+
+  if flags.verbose || flags.timing {
+    writeln!(io.output).ok();
+  }
+  Ok(())
 }

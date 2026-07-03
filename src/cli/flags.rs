@@ -3,6 +3,7 @@ use clap::Args as ClapArgs;
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(ClapArgs)]
+#[command(next_help_heading = "Connection")]
 pub struct ConnectionFlags {
   /// Use SSH instead of HTTPS for cloning
   #[arg(long, conflicts_with = "https")]
@@ -14,9 +15,10 @@ pub struct ConnectionFlags {
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(ClapArgs)]
+#[command(next_help_heading = "Build")]
 pub struct BuildFlags {
   /// Build type
-  #[arg(short = 'b', long)]
+  #[arg(long)]
   pub build_type: Option<String>,
 
   /// Build directory name
@@ -27,8 +29,8 @@ pub struct BuildFlags {
   #[arg(long, value_name = "BUILD_SYSTEM")]
   pub build_system: Option<BuildSystem>,
 
-  // Build after configuring (overrides config)
-  #[arg(long, conflicts_with = "no_build")]
+  /// Build after configuring (overrides config)
+  #[arg(short = 'b', long, conflicts_with = "no_build")]
   pub build: bool,
   /// Skip building, only configure
   #[arg(short = 'n', long, conflicts_with = "build")]
@@ -58,6 +60,7 @@ pub struct BuildFlags {
 }
 
 #[derive(ClapArgs)]
+#[command(next_help_heading = "Mono-repo")]
 pub struct MonoRepoFlags {
   /// Mono-repo mode
   #[arg(long)]
@@ -72,12 +75,13 @@ pub struct MonoRepoFlags {
   pub repos: Option<Vec<String>>,
 
   /// Use saved profile for library repositories
-  #[arg(long, conflicts_with = "repos")]
+  #[arg(short = 'p', long, conflicts_with = "repos")]
   pub profile: Option<String>,
 }
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(ClapArgs)]
+#[command(next_help_heading = "Diagnostics")]
 pub struct DiagnosticFlags {
   /// Show detailed command output
   #[arg(short = 'v', long, conflicts_with = "no_verbose")]
@@ -97,6 +101,6 @@ pub struct DiagnosticFlags {
   #[arg(long)]
   pub dry_run: bool,
   /// Do not use dry-run mode (overrides config)
-  #[arg(long, conflicts_with = "no_dry_run")]
+  #[arg(long, conflicts_with = "dry_run")]
   pub no_dry_run: bool,
 }

@@ -71,9 +71,9 @@ pub fn run_command(
   };
 
   if verbose {
-    writeln!(output, "Running: {}", cmd.join(" ")).ok();
+    writeln!(output, "  Running: {}", cmd.join(" ")).ok();
     if let Some(dir) = cwd {
-      writeln!(output, "  in directory: {}", dir.display()).ok();
+      writeln!(output, "    in directory: {}", dir.display()).ok();
     }
   }
 

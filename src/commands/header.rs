@@ -11,6 +11,7 @@ pub struct ModeHeader<'a> {
   pub mono_dir: Option<&'a str>,
   pub profile: Option<&'a str>,
   pub lib_count: Option<usize>,
+  pub repo_count: Option<usize>,
 }
 
 /// Prints a formatted header summarizing the current mode and configuration.
@@ -35,6 +36,9 @@ pub fn print_mode_header(header: &ModeHeader<'_>, io: &mut IoCtx<'_>) {
   }
   if let Some(c) = header.lib_count {
     writeln!(io.output, "  Libraries: {c}").ok();
+  }
+  if let Some(c) = header.repo_count {
+    writeln!(io.output, "  Total repositories: {c}").ok();
   }
   writeln!(io.output).ok();
 }

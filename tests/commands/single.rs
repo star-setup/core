@@ -74,18 +74,37 @@ fn test_single_repo_mode_dry_run_makes_no_fs_changes() {
 #[test]
 fn test_single_repo_mode_dry_run_clean_prints_would_remove() {
   let mut args = default_resolved();
-  args.diagnostic.dry_run = true;
   args.build.clean = true;
   args.build.build_system = Some(BuildSystem::Cmake);
 
   let (_, output) = with_ctx_input(b"", DryRunRunner, |tmp_path, ctx| {
     ctx.flags.dry_run = true;
+    ctx.flags.verbose = true;
     single_repo_mode(&args, tmp_path, ctx).unwrap();
     assert!(std::fs::read_dir(tmp_path).unwrap().next().is_none());
   });
   assert!(String::from_utf8(output)
     .unwrap()
     .contains("Would remove directory:"));
+}
+
+#[test]
+fn test_single_repo_mode_dry_run_with_build_system_says_would_finish() {
+  for bs in [BuildSystem::Npm, BuildSystem::Cmake, BuildSystem::Meson] {
+    let mut args = default_resolved();
+    args.diagnostic.dry_run = true;
+    args.build.build_system = Some(bs);
+
+    let (_, output) = with_ctx_input(b"", DryRunRunner, |tmp_path, ctx| {
+      ctx.flags.dry_run = true;
+      single_repo_mode(&args, tmp_path, ctx).unwrap();
+      assert!(std::fs::read_dir(tmp_path).unwrap().next().is_none());
+    });
+
+    let out = String::from_utf8(output).unwrap();
+    assert!(out.contains("Would finish in"), "{bs:?}: {out}");
+    assert!(!out.contains("Project finished"), "{bs:?}: {out}");
+  }
 }
 
 #[test]

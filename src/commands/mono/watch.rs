@@ -1,6 +1,7 @@
 use crate::{
   ctx::{IoCtx, RunFlags},
   repository::repo_dir_name,
+  utils::dry_run_or_do,
 };
 use std::{fs, path::Path};
 
@@ -64,11 +65,11 @@ pub fn generate_watch_scripts(
   repos: &[String],
   io: &mut IoCtx<'_>,
   flags: RunFlags,
-) -> Result<(), String> {
+) -> Result<bool, String> {
   let lib_dirs: Vec<String> = repos.iter().skip(1).map(|r| repo_dir_name(r)).collect();
 
   if lib_dirs.is_empty() {
-    return Ok(());
+    return Ok(false);
   }
 
   let ps1_lines: Vec<String> = lib_dirs
@@ -97,20 +98,42 @@ pub fn generate_watch_scripts(
     sh_lines.join("\n")
   );
 
-  fs::write(mono_dir.join("watch.ps1"), ps1_content)
-    .map_err(|e| format!("Failed to write watch.ps1: {e}"))?;
-  fs::write(mono_dir.join("watch.sh"), sh_content)
-    .map_err(|e| format!("Failed to write watch.sh: {e}"))?;
+  dry_run_or_do(
+    "write watch scripts",
+    "Writing",
+    mono_dir,
+    io,
+    flags,
+    "Write scripts",
+    || {
+      fs::write(mono_dir.join("watch.ps1"), ps1_content)
+        .map_err(|e| format!("Failed to write watch.ps1: {e}"))?;
+      fs::write(mono_dir.join("watch.sh"), sh_content)
+        .map_err(|e| format!("Failed to write watch.sh: {e}"))?;
+      Ok(())
+    },
+  )?;
 
-  writeln!(
-    io.output,
-    "Generated watch scripts at {}",
-    mono_dir.display()
-  )
-  .ok();
+  if flags.dry_run {
+    if flags.verbose {
+      writeln!(
+        io.output,
+        "  Would generate watch scripts at {}",
+        mono_dir.display()
+      )
+      .ok();
+    }
+  } else {
+    writeln!(
+      io.output,
+      "  Generated watch scripts at {}",
+      mono_dir.display()
+    )
+    .ok();
+  }
 
   if flags.verbose {
-    writeln!(io.output, "Watching {} libraries:", lib_dirs.len()).ok();
+    writeln!(io.output, "  Watching {} libraries:", lib_dirs.len()).ok();
     for d in &lib_dirs {
       let full_path =
         dunce::canonicalize(repos_path.join(d)).unwrap_or_else(|_| repos_path.join(d));
@@ -118,36 +141,49 @@ pub fn generate_watch_scripts(
     }
   }
 
-  Ok(())
+  Ok(true)
 }
 
 /// Opens watch scripts in new terminals.
 /// # Errors
 /// Returns an error if the terminal cannot be opened.
-pub fn open_watch_scripts(mono_dir: &Path, io: &mut IoCtx<'_>) -> Result<(), String> {
-  #[cfg(target_os = "windows")]
-  {
-    let ps1_path = mono_dir.join("watch.ps1");
-    std::process::Command::new("powershell")
-      .args([
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        ps1_path.to_str().ok_or("Invalid path")?,
-      ])
-      .spawn()
-      .map_err(|e| format!("Failed to open watch.ps1: {e}"))?;
+pub fn open_watch_scripts(
+  mono_dir: &Path,
+  io: &mut IoCtx<'_>,
+  flags: RunFlags,
+) -> Result<(), String> {
+  if flags.dry_run {
+    if flags.verbose {
+      writeln!(io.output, "  Would open watch scripts").ok();
+    }
+    return Ok(());
   }
 
-  #[cfg(not(target_os = "windows"))]
-  {
-    let sh_path = mono_dir.join("watch.sh");
-    std::process::Command::new("bash")
-      .arg(sh_path.to_str().ok_or("Invalid path")?)
-      .spawn()
-      .map_err(|e| format!("Failed to open watch.sh: {e}"))?;
-  }
+  crate::time!(flags.timing, io.output, "Open", {
+    #[cfg(target_os = "windows")]
+    {
+      let ps1_path = mono_dir.join("watch.ps1");
+      std::process::Command::new("powershell")
+        .args([
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          ps1_path.to_str().ok_or("Invalid path")?,
+        ])
+        .spawn()
+        .map_err(|e| format!("Failed to open watch.ps1: {e}"))?;
+    }
 
-  writeln!(io.output, "Opening watch scripts").ok();
+    #[cfg(not(target_os = "windows"))]
+    {
+      let sh_path = mono_dir.join("watch.sh");
+      std::process::Command::new("bash")
+        .arg(sh_path.to_str().ok_or("Invalid path")?)
+        .spawn()
+        .map_err(|e| format!("Failed to open watch.sh: {e}"))?;
+    }
+    Ok::<(), String>(())
+  })?;
+  writeln!(io.output, "  Opening watch scripts").ok();
   Ok(())
 }

@@ -63,36 +63,32 @@ pub fn handle_profile_cmd(
 /// # Errors
 /// Returns an error if resolving, updating, cleaning, or fetching status for the workspace fails.
 pub fn handle_workspace_cmd(
-  action: WorkspaceAction,
-  io: IoCtx,
+  action: &WorkspaceAction,
+  mut io: IoCtx,
   flags: RunFlags,
 ) -> Result<(), Box<dyn Error>> {
+  let target = match &action {
+    WorkspaceAction::Update { target }
+    | WorkspaceAction::Clean { target }
+    | WorkspaceAction::Status { target, .. } => target,
+  };
+  let ws = resolve_workspace(
+    target.path.as_deref(),
+    target.mono_dir.as_deref(),
+    target.build_dir.as_deref(),
+    &mut io,
+    flags.verbose,
+  )?;
+
   match action {
-    WorkspaceAction::Update {
-      path,
-      mono_dir,
-      build_dir,
-    } => {
-      let ws = resolve_workspace(path.as_deref(), mono_dir.as_deref(), build_dir.as_deref())?;
-      with_runner(io, flags, |ctx| ws.update(ctx).map_err(Into::into))?;
+    WorkspaceAction::Update { .. } => {
+      with_runner(io, flags, |ctx| ws.update(ctx).map_err(Into::into))
     }
-    WorkspaceAction::Status {
-      path,
-      mono_dir,
-      build_dir,
-      fetch,
-    } => {
-      let ws = resolve_workspace(path.as_deref(), mono_dir.as_deref(), build_dir.as_deref())?;
-      with_runner(io, flags, |ctx| ws.status(fetch, ctx).map_err(Into::into))?;
+    WorkspaceAction::Status { fetch, .. } => {
+      with_runner(io, flags, |ctx| ws.status(*fetch, ctx).map_err(Into::into))
     }
-    WorkspaceAction::Clean {
-      path,
-      mono_dir,
-      build_dir,
-    } => {
-      let ws = resolve_workspace(path.as_deref(), mono_dir.as_deref(), build_dir.as_deref())?;
-      with_runner(io, flags, |ctx| ws.clean(ctx).map_err(Into::into))?;
+    WorkspaceAction::Clean { .. } => {
+      with_runner(io, flags, |ctx| ws.clean(ctx).map_err(Into::into))
     }
   }
-  Ok(())
 }
