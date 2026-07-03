@@ -12,6 +12,7 @@ use crate::{
   config::SetupConfig,
   ctx::RunCtx,
   repository::repo_dir_name,
+  utils::dry_run_or_do,
 };
 use std::{
   fs,
@@ -51,22 +52,16 @@ pub fn mono_repo_mode(
     &mut ctx.io,
   );
 
-  writeln!(ctx.io.output, "Creating repo folder").ok();
   let mono_repo_path = base_dir.join(&args.mono.mono_dir);
   let repos_path = mono_repo_path.join("repos");
-  if ctx.flags.dry_run {
-    writeln!(
-      ctx.io.output,
-      "  Would create directory: {}",
-      repos_path.display()
-    )
-    .ok();
-  } else {
-    crate::time!(ctx.flags.timing, ctx.io.output, "Create directory", {
-      fs::create_dir_all(&repos_path).map_err(|e| e.to_string())?;
-    });
-  }
-  writeln!(ctx.io.output, "  Finished creating\n").ok();
+  dry_run_or_do(
+    "create directory",
+    "Creating",
+    &repos_path,
+    ctx,
+    "Create directory",
+    || fs::create_dir_all(&repos_path).map_err(|e| e.to_string()),
+  )?;
 
   clone_mono_repos(&repos, &repos_path, args.connection.ssh, ctx)?;
 

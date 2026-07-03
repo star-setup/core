@@ -2,6 +2,7 @@ use crate::{
   cli::{BuildSystem, ResolvedArgs},
   commands::build_project,
   ctx::RunCtx,
+  utils::dry_run_or_do,
 };
 use std::{fs, path::Path};
 
@@ -15,37 +16,34 @@ pub fn prepare_build_dir(
 ) -> Result<(), String> {
   if clean {
     writeln!(ctx.io.output, "Cleaning build directory").ok();
-    if ctx.flags.dry_run {
-      writeln!(
-        ctx.io.output,
-        "  Would remove directory: {}",
-        build_path.display()
-      )
-      .ok();
-    } else if build_path.exists() {
-      crate::time!(ctx.flags.timing, ctx.io.output, "Clean", {
-        fs::remove_dir_all(build_path).map_err(|e| e.to_string())?;
-      });
-    }
-    writeln!(ctx.io.output, "  Finished cleaning").ok();
-    writeln!(ctx.io.output).ok();
+    dry_run_or_do(
+      "remove directory",
+      "Removing",
+      build_path,
+      ctx,
+      "Clean",
+      || {
+        if build_path.exists() {
+          fs::remove_dir_all(build_path).map_err(|e| e.to_string())
+        } else {
+          Ok(())
+        }
+      },
+    )?;
+    writeln!(ctx.io.output, "  Finished cleaning\n").ok();
   }
 
   writeln!(ctx.io.output, "Creating build directory").ok();
-  if ctx.flags.dry_run {
-    writeln!(
-      ctx.io.output,
-      "  Would create directory: {}",
-      build_path.display()
-    )
-    .ok();
-  } else {
-    crate::time!(ctx.flags.timing, ctx.io.output, "Create build directory", {
-      fs::create_dir_all(build_path).map_err(|e| e.to_string())?;
-    });
-  }
-  writeln!(ctx.io.output, "  Finished creating").ok();
-  writeln!(ctx.io.output).ok();
+  dry_run_or_do(
+    "create directory",
+    "Creating",
+    build_path,
+    ctx,
+    "Create build directory",
+    || fs::create_dir_all(build_path).map_err(|e| e.to_string()),
+  )?;
+
+  writeln!(ctx.io.output, "  Finished creating\n").ok();
   Ok(())
 }
 

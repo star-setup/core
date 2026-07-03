@@ -1,4 +1,4 @@
-use crate::{ctx::RunCtx, workspace::Workspace};
+use crate::{ctx::RunCtx, utils::dry_run_or_do, workspace::Workspace};
 use std::fs;
 
 impl Workspace {
@@ -19,26 +19,17 @@ impl Workspace {
         .ok();
         return Ok(());
       }
-      if ctx.flags.dry_run {
-        writeln!(
-          ctx.io.output,
-          "  Would remove directory: {}",
-          node_modules.display()
-        )
-        .ok();
-      } else {
-        writeln!(
-          ctx.io.output,
-          "  Removing node_modules: {}",
-          node_modules.display()
-        )
-        .ok();
-        crate::time!(ctx.flags.timing, ctx.io.output, "Clean", {
+      dry_run_or_do(
+        "remove directory",
+        "Removing",
+        &node_modules,
+        ctx,
+        "Clean",
+        || {
           fs::remove_dir_all(&node_modules)
             .map_err(|e| format!("Failed to remove node_modules: {e}"))
-        })?;
-        writeln!(ctx.io.output, "  Done").ok();
-      }
+        },
+      )?;
       return Ok(());
     }
 
@@ -52,27 +43,17 @@ impl Workspace {
       return Ok(());
     }
 
-    writeln!(
-      ctx.io.output,
-      "  Removing build directory: {}",
-      self.build_path.display()
-    )
-    .ok();
-
-    if ctx.flags.dry_run {
-      writeln!(
-        ctx.io.output,
-        "  Would remove directory: {}",
-        self.build_path.display()
-      )
-      .ok();
-    } else {
-      crate::time!(ctx.flags.timing, ctx.io.output, "Clean", {
+    dry_run_or_do(
+      "remove directory",
+      "Removing",
+      &self.build_path,
+      ctx,
+      "Clean",
+      || {
         fs::remove_dir_all(&self.build_path)
           .map_err(|e| format!("Failed to remove build directory: {e}"))
-      })?;
-      writeln!(ctx.io.output, "  Done").ok();
-    }
+      },
+    )?;
 
     Ok(())
   }
