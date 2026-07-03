@@ -1,9 +1,16 @@
-use star_setup::ctx::{DryRunRunner, ProcessRunner, Runner};
+use star_setup::ctx::{DryRunRunner, ProcessRunner, RunFlags, Runner};
 use std::path::Path;
 mod common;
 use common::{with_io, with_io_output};
 
 use crate::common::make_flags;
+
+fn verbose_flags() -> RunFlags {
+  RunFlags {
+    verbose: true,
+    ..make_flags()
+  }
+}
 
 #[test]
 fn test_process_runner_runs_command() {
@@ -18,7 +25,7 @@ fn test_process_runner_runs_command() {
 fn test_dry_run_runner_prints_command() {
   let ((), output) = with_io_output(|io| {
     DryRunRunner
-      .run(&["git", "clone", "foo"], None, make_flags(), io.output)
+      .run(&["git", "clone", "foo"], None, verbose_flags(), io.output)
       .unwrap();
   });
   assert_eq!(output, "  Would run: git clone foo\n");
@@ -31,7 +38,7 @@ fn test_dry_run_runner_prints_cwd() {
       .run(
         &["cmake", ".."],
         Some(Path::new("/tmp/build")),
-        make_flags(),
+        verbose_flags(),
         io.output,
       )
       .unwrap();

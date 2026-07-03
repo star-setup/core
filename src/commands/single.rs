@@ -1,8 +1,6 @@
 use crate::{
   cli::{detect_build_system, BuildSystem, ResolvedArgs},
-  commands::{
-    configure_and_build, extract_repo_input, prepare_build_dir, print_mode_header, ModeHeader,
-  },
+  commands::{build_project, extract_repo_input, prepare_build_dir, print_mode_header, ModeHeader},
   ctx::RunCtx,
   repository::{clone_repository, repo_dir_name},
   utils::dry_run::detect_or_dry_run,
@@ -46,20 +44,15 @@ pub fn single_repo_mode(
 
   if let Some(build_system) = build_system {
     if build_system == BuildSystem::Npm {
-      configure_and_build(args, &repo_path, &repo_path, build_system, false, ctx)?;
+      build_project(args, &repo_path, &repo_path, build_system, false, ctx)?;
     } else {
       prepare_build_dir(&build_path, args.build.clean, ctx)?;
-      configure_and_build(args, &repo_path, &build_path, build_system, false, ctx)?;
+      build_project(args, &build_path, &repo_path, build_system, false, ctx)?;
     }
   }
 
-  if build_system.is_none() && ctx.flags.dry_run {
-    writeln!(
-      ctx.io.output,
-      "Would finish in {dir_name}/{}",
-      args.build.build_dir
-    )
-    .ok();
+  if build_system.is_none() {
+    writeln!(ctx.io.output, "Would finish in {dir_name}").ok();
   } else if build_system == Some(BuildSystem::Npm) {
     writeln!(ctx.io.output, "Project finished in {dir_name}").ok();
   } else {

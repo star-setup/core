@@ -33,7 +33,7 @@ pub fn add_profile(
   flags: RunFlags,
 ) -> Result<(), String> {
   if args.len() < 2 {
-    return Err("--profile-add requires NAME REPO1 [REPO2 ...]".to_string());
+    return Err("profile add requires NAME REPO1 [REPO2 ...]".to_string());
   }
 
   let name = args[0].clone();

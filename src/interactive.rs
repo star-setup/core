@@ -52,7 +52,6 @@ pub fn interactive_mode(args: &mut ResolvedArgs, io: &mut IoCtx<'_>) -> Result<(
         _ => {}
       }
     }
-    writeln!(io.output).ok();
   }
 
   let build_type_str = ask_default("  Build type", args.build.build_type.to_cmake(), io)?;

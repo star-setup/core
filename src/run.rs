@@ -49,7 +49,7 @@ pub fn run(config_path: PathBuf) -> Result<(), Box<dyn Error>> {
       Command::Profile(p) => {
         handle_profile_cmd(p.action, &mut config, yes, &mut io, flags)?;
       }
-      Command::Workspace(w) => handle_workspace_cmd(w.action, io, flags)?,
+      Command::Workspace(w) => handle_workspace_cmd(&w.action, io, flags)?,
     }
     return Ok(());
   }

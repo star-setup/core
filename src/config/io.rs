@@ -1,5 +1,9 @@
 use crate::config::SetupConfig;
-use std::{fs, io::{self, Write}, path::{Path, PathBuf}};
+use std::{
+  fs,
+  io::{self, Write},
+  path::{Path, PathBuf},
+};
 
 /// Returns the list of paths to search for a config file.
 #[must_use]
@@ -13,10 +17,13 @@ pub fn config_locations(path: &std::path::Path) -> Vec<PathBuf> {
   .collect()
 }
 
-fn io_error_msg(verb: &str, path: &Path, e: io::Error) -> String {
+fn io_error_msg(verb: &str, path: &Path, e: &io::Error) -> String {
   match e.kind() {
     io::ErrorKind::PermissionDenied => format!("Error: No permission to {verb} {}", path.display()),
-    _ => format!("An unexpected error occurred: {verb} {}: {e}", path.display()),
+    _ => format!(
+      "An unexpected error occurred: {verb} {}: {e}",
+      path.display()
+    ),
   }
 }
 
@@ -27,6 +34,10 @@ pub fn load_config(
   timing: bool,
   output: &mut impl Write,
 ) -> SetupConfig {
+  if verbose {
+    writeln!(output, "Loading config").ok();
+  }
+
   let mut invalid_count = 0;
 
   for path in locations {
@@ -53,14 +64,16 @@ pub fn load_config(
           }
         },
         Err(e) => {
-          writeln!(output, "  {}", io_error_msg("read", path, e)).ok();
+          writeln!(output, "  {}", io_error_msg("read", path, &e)).ok();
           invalid_count += 1;
           None
         }
       }
     });
-
     if let Some(config) = result {
+      if verbose || timing {
+        writeln!(output).ok();
+      }
       return config;
     }
   }
@@ -72,6 +85,9 @@ pub fn load_config(
       if invalid_count == 1 { "" } else { "s" }
     )
     .ok();
+  }
+  if verbose || timing {
+    writeln!(output).ok();
   }
   SetupConfig::new()
 }
@@ -97,7 +113,7 @@ pub fn save_config(
     serde_json::to_string_pretty(config).map_err(|e| format!("Failed to serialize config: {e}"))?;
 
   crate::time!(timing, output, "Write config", {
-    fs::write(&path, json).map_err(|e| io_error_msg("write to", &path, e))?;
+    fs::write(&path, json).map_err(|e| io_error_msg("write to", &path, &e))?;
   });
 
   Ok(path)

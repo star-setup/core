@@ -1,10 +1,5 @@
-use crate::{
-  cli::{BuildSystem, ResolvedArgs},
-  commands::build_project,
-  ctx::RunCtx,
-  utils::dry_run_or_do,
-};
-use std::{fs, path::Path};
+use crate::{cli::ResolvedArgs, ctx::RunCtx, utils::dry_run_or_do};
+use std::fs;
 
 /// Prepares the build directory, optionally cleaning it first.
 /// # Errors
@@ -45,21 +40,6 @@ pub fn prepare_build_dir(
 
   writeln!(ctx.io.output, "  Finished creating\n").ok();
   Ok(())
-}
-
-/// Detects the build system and runs configuration and optional build.
-/// # Errors
-/// Returns an error if detection or build fails.
-pub fn configure_and_build(
-  args: &ResolvedArgs,
-  project_path: &Path,
-  build_path: &Path,
-  build_system: BuildSystem,
-  is_mono: bool,
-  ctx: &mut RunCtx<'_, '_>,
-) -> Result<(), String> {
-  writeln!(ctx.io.output, "Configuring project").ok();
-  build_project(args, build_path, project_path, build_system, is_mono, ctx)
 }
 
 /// Extracts and sanitizes the repository input from args.

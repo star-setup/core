@@ -1,7 +1,7 @@
 use crate::{
   cli::{detect_mono_build_system, BuildSystem, ResolvedArgs},
   commands::{
-    build_repo_list, configure_and_build, extract_repo_input,
+    build_project, build_repo_list, extract_repo_input,
     mono::{
       clone_mono_repos,
       display::{resolve_setup_paths, SetupPaths},
@@ -54,6 +54,9 @@ pub fn mono_repo_mode(
 
   let mono_repo_path = base_dir.join(&args.mono.mono_dir);
   let repos_path = mono_repo_path.join("repos");
+  if ctx.flags.verbose {
+    writeln!(ctx.io.output, "Creating directory").ok();
+  }
   dry_run_or_do(
     "create directory",
     "Creating",
@@ -62,6 +65,9 @@ pub fn mono_repo_mode(
     "Create directory",
     || fs::create_dir_all(&repos_path).map_err(|e| e.to_string()),
   )?;
+  if ctx.flags.verbose {
+    writeln!(ctx.io.output).ok();
+  }
 
   clone_mono_repos(&repos, &repos_path, args.connection.ssh, ctx)?;
 
@@ -80,18 +86,18 @@ pub fn mono_repo_mode(
     if bs != BuildSystem::Npm {
       prepare_build_dir(build_path.as_path(), args.build.clean, ctx)?;
     }
-    configure_and_build(args, &mono_repo_path, &build_path, bs, true, ctx)?;
+    build_project(args, &build_path, &mono_repo_path, bs, true, ctx)?;
     map
   } else {
-    prepare_build_dir(build_path.as_path(), args.build.clean, ctx)?;
     None
   };
 
-  if build_system == Some(BuildSystem::Npm) && !args.build.no_watch && !ctx.flags.dry_run {
-    generate_watch_scripts(&mono_repo_path, &repos_path, &repos, &mut ctx.io, ctx.flags)?;
-    if args.build.watch {
-      open_watch_scripts(&mono_repo_path, &mut ctx.io, ctx.flags)?;
-    }
+  if build_system == Some(BuildSystem::Npm)
+    && !args.build.no_watch
+    && generate_watch_scripts(&mono_repo_path, &repos_path, &repos, &mut ctx.io, ctx.flags)?
+    && args.build.watch
+  {
+    open_watch_scripts(&mono_repo_path, &mut ctx.io, ctx.flags)?;
   }
 
   let paths = if ctx.flags.dry_run {
@@ -114,7 +120,7 @@ pub fn mono_repo_mode(
     )
   };
 
-  if build_system.is_none() && ctx.flags.dry_run {
+  if build_system.is_none() {
     writeln!(
       ctx.io.output,
       "Would finish setup in {}",

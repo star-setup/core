@@ -1,7 +1,6 @@
 use crate::{cli::BuildSystem, ctx::RunCtx};
 use std::path::Path;
 
-
 /// Prints a dry-run message or executes `op`, timing it if not a dry run.
 /// # Errors
 /// Returns an error if `op` fails.
@@ -14,11 +13,17 @@ pub fn dry_run_or_do(
   op: impl FnOnce() -> Result<(), String>,
 ) -> Result<(), String> {
   if ctx.flags.dry_run {
-    writeln!(ctx.io.output, "  Would {verb}: {}", path.display()).ok();
+    if ctx.flags.verbose {
+      writeln!(ctx.io.output, "  Would {verb}: {}", path.display()).ok();
+    }
   } else {
-    writeln!(ctx.io.output, "  {progressive}: {}", path.display()).ok();
+    if ctx.flags.verbose {
+      writeln!(ctx.io.output, "  {progressive}: {}", path.display()).ok();
+    }
     crate::time!(ctx.flags.timing, ctx.io.output, timer_label, { op() })?;
-    writeln!(ctx.io.output, "  Done").ok();
+    if ctx.flags.verbose {
+      writeln!(ctx.io.output, "  Done").ok();
+    }
   }
   Ok(())
 }
@@ -42,12 +47,16 @@ where
       }
       Some(bs)
     } else if ctx.flags.dry_run {
-      writeln!(ctx.io.output, "  Would detect build system after cloning").ok();
+      if ctx.flags.verbose {
+        writeln!(ctx.io.output, "  Would detect build system after cloning").ok();
+      }
       None
     } else {
       Some(detect_fn(ctx)?)
     };
-    writeln!(ctx.io.output, "  Finished detecting").ok();
+    if ctx.flags.verbose {
+      writeln!(ctx.io.output, "  Finished detecting").ok();
+    }
     r
   });
   writeln!(ctx.io.output).ok();

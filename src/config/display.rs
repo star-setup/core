@@ -45,7 +45,7 @@ pub fn list_configs(config: &SetupConfig, io: &mut IoCtx<'_>) {
     writeln!(io.output, "  No configurations created.").ok();
     writeln!(
       io.output,
-      "  Run with --init-config to create a default configuration."
+      "  Run with 'star-setup config init' to create a default configuration."
     )
     .ok();
     return;

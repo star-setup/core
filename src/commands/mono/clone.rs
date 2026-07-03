@@ -28,7 +28,6 @@ pub fn clone_mono_repos(
     .ok();
     Ok::<(), String>(())
   })?;
-
   writeln!(ctx.io.output).ok();
   Ok(())
 }

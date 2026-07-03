@@ -64,11 +64,11 @@ pub fn generate_watch_scripts(
   repos: &[String],
   io: &mut IoCtx<'_>,
   flags: RunFlags,
-) -> Result<(), String> {
+) -> Result<bool, String> {
   let lib_dirs: Vec<String> = repos.iter().skip(1).map(|r| repo_dir_name(r)).collect();
 
   if lib_dirs.is_empty() {
-    return Ok(());
+    return Ok(false);
   }
 
   let ps1_lines: Vec<String> = lib_dirs
@@ -121,7 +121,7 @@ pub fn generate_watch_scripts(
     }
   }
 
-  Ok(())
+  Ok(true)
 }
 
 /// Opens watch scripts in new terminals.

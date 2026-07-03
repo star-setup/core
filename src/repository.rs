@@ -64,7 +64,9 @@ pub fn clone_repository(
         ctx.flags,
         ctx.io.output,
       )?;
-      writeln!(ctx.io.output, "  Finished cloning {repo_name}").ok();
+      if ctx.flags.verbose {
+        writeln!(ctx.io.output, "  Finished cloning {repo_name}").ok();
+      }
       Ok::<(), String>(())
     })
     .map_err(|e| format!("Failed to clone {repo_path}: {e}"))?;

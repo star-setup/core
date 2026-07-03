@@ -59,7 +59,6 @@ pub fn detect_mono_build_system(
   dirs: &[PathBuf],
   ctx: &mut RunCtx<'_, '_>,
 ) -> Result<BuildSystem, String> {
-  writeln!(ctx.io.output, "  Detecting build system\n").ok();
   crate::time!(ctx.flags.timing, ctx.io.output, "Scanned directories", {
     let mut detected = Vec::new();
     if dirs.iter().all(|d| d.join("CMakeLists.txt").exists()) {

@@ -130,9 +130,11 @@ pub fn build_project(
   mono: bool,
   ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
-  match build_system {
+  let result = match build_system {
     BuildSystem::Cmake => cmake_build(args, build_path, mono, ctx),
     BuildSystem::Meson => meson_build(args, build_path, source_path, ctx),
     BuildSystem::Npm => npm_build(args, source_path, mono, ctx),
-  }
+  };
+  writeln!(ctx.io.output).ok();
+  result
 }
