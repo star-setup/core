@@ -1,5 +1,5 @@
 use crate::config::SetupConfig;
-use std::{fs, io, io::Write, path::PathBuf};
+use std::{fs, io::{self, Write}, path::{Path, PathBuf}};
 
 /// Returns the list of paths to search for a config file.
 #[must_use]
@@ -11,6 +11,13 @@ pub fn config_locations(path: &std::path::Path) -> Vec<PathBuf> {
   .into_iter()
   .flatten()
   .collect()
+}
+
+fn io_error_msg(verb: &str, path: &Path, e: io::Error) -> String {
+  match e.kind() {
+    io::ErrorKind::PermissionDenied => format!("Error: No permission to {verb} {}", path.display()),
+    _ => format!("An unexpected error occurred: {verb} {}: {e}", path.display()),
+  }
 }
 
 /// Loads configuration from the first valid JSON file in `locations`.
@@ -45,18 +52,8 @@ pub fn load_config(
             None
           }
         },
-        Err(e) if e.kind() == io::ErrorKind::PermissionDenied => {
-          writeln!(output, "  Error: No permission to read {}", path.display()).ok();
-          invalid_count += 1;
-          None
-        }
         Err(e) => {
-          writeln!(
-            output,
-            "  An unexpected error occurred reading {}: {e}",
-            path.display()
-          )
-          .ok();
+          writeln!(output, "  {}", io_error_msg("read", path, e)).ok();
           invalid_count += 1;
           None
         }
@@ -100,16 +97,7 @@ pub fn save_config(
     serde_json::to_string_pretty(config).map_err(|e| format!("Failed to serialize config: {e}"))?;
 
   crate::time!(timing, output, "Write config", {
-    fs::write(&path, json).map_err(|e| match e.kind() {
-      io::ErrorKind::PermissionDenied => {
-        format!("Error: No permission to write to {}", path.display())
-      }
-      _ => format!(
-        "An unexpected error occurred writing {}: {}",
-        path.display(),
-        e
-      ),
-    })?;
+    fs::write(&path, json).map_err(|e| io_error_msg("write to", &path, e))?;
   });
 
   Ok(path)
