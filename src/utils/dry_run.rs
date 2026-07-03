@@ -1,4 +1,7 @@
-use crate::{cli::BuildSystem, ctx::RunCtx};
+use crate::{
+  cli::BuildSystem,
+  ctx::{IoCtx, RunCtx, RunFlags},
+};
 use std::path::Path;
 
 /// Prints a dry-run message or executes `op`, timing it if not a dry run.
@@ -8,21 +11,22 @@ pub fn dry_run_or_do(
   verb: &str,
   progressive: &str,
   path: &Path,
-  ctx: &mut RunCtx,
+  io: &mut IoCtx<'_>,
+  flags: RunFlags,
   timer_label: &str,
   op: impl FnOnce() -> Result<(), String>,
 ) -> Result<(), String> {
-  if ctx.flags.dry_run {
-    if ctx.flags.verbose {
-      writeln!(ctx.io.output, "  Would {verb}: {}", path.display()).ok();
+  if flags.dry_run {
+    if flags.verbose {
+      writeln!(io.output, "  Would {verb}: {}", path.display()).ok();
     }
   } else {
-    if ctx.flags.verbose {
-      writeln!(ctx.io.output, "  {progressive}: {}", path.display()).ok();
+    if flags.verbose {
+      writeln!(io.output, "  {progressive}: {}", path.display()).ok();
     }
-    crate::time!(ctx.flags.timing, ctx.io.output, timer_label, { op() })?;
-    if ctx.flags.verbose {
-      writeln!(ctx.io.output, "  Done").ok();
+    crate::time!(flags.timing, io.output, timer_label, { op() })?;
+    if flags.verbose {
+      writeln!(io.output, "  Done").ok();
     }
   }
   Ok(())

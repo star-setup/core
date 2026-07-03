@@ -1,6 +1,7 @@
 use crate::{
   ctx::{IoCtx, RunFlags},
   repository::repo_dir_name,
+  utils::dry_run_or_do,
 };
 use std::{fs, path::Path};
 
@@ -97,20 +98,39 @@ pub fn generate_watch_scripts(
     sh_lines.join("\n")
   );
 
-  crate::time!(flags.timing, io.output, "Write scripts", {
-    fs::write(mono_dir.join("watch.ps1"), ps1_content)
-      .map_err(|e| format!("Failed to write watch.ps1: {e}"))?;
-    fs::write(mono_dir.join("watch.sh"), sh_content)
-      .map_err(|e| format!("Failed to write watch.sh: {e}"))?;
-    Ok::<(), String>(())
-  })?;
+  dry_run_or_do(
+    "write watch scripts",
+    "Writing",
+    mono_dir,
+    io,
+    flags,
+    "Write scripts",
+    || {
+      fs::write(mono_dir.join("watch.ps1"), ps1_content)
+        .map_err(|e| format!("Failed to write watch.ps1: {e}"))?;
+      fs::write(mono_dir.join("watch.sh"), sh_content)
+        .map_err(|e| format!("Failed to write watch.sh: {e}"))?;
+      Ok(())
+    },
+  )?;
 
-  writeln!(
-    io.output,
-    "  Generated watch scripts at {}",
-    mono_dir.display()
-  )
-  .ok();
+  if flags.dry_run {
+    if flags.verbose {
+      writeln!(
+        io.output,
+        "  Would generate watch scripts at {}",
+        mono_dir.display()
+      )
+      .ok();
+    }
+  } else {
+    writeln!(
+      io.output,
+      "  Generated watch scripts at {}",
+      mono_dir.display()
+    )
+    .ok();
+  }
 
   if flags.verbose {
     writeln!(io.output, "  Watching {} libraries:", lib_dirs.len()).ok();
@@ -132,6 +152,13 @@ pub fn open_watch_scripts(
   io: &mut IoCtx<'_>,
   flags: RunFlags,
 ) -> Result<(), String> {
+  if flags.dry_run {
+    if flags.verbose {
+      writeln!(io.output, "  Would open watch scripts").ok();
+    }
+    return Ok(());
+  }
+
   crate::time!(flags.timing, io.output, "Open", {
     #[cfg(target_os = "windows")]
     {

@@ -40,6 +40,31 @@ fn test_mono_repo_mode_dry_run_makes_no_fs_changes() {
 }
 
 #[test]
+fn test_mono_repo_mode_dry_run_with_build_system_makes_no_fs_changes() {
+  for bs in [
+    star_setup::cli::BuildSystem::Npm,
+    star_setup::cli::BuildSystem::Cmake,
+    star_setup::cli::BuildSystem::Meson,
+  ] {
+    let mut args = default_resolved_mono(vec!["user/lib1".to_string()]);
+    args.diagnostic.dry_run = true;
+    args.build.build_system = Some(bs);
+    args.build.watch = true;
+
+    with_ctx(DryRunRunner, |tmp_path, ctx| {
+      ctx.flags.dry_run = true;
+
+      mono_repo_mode(&args, &SetupConfig::new(), tmp_path, ctx).unwrap();
+
+      assert!(
+        std::fs::read_dir(tmp_path).unwrap().next().is_none(),
+        "{bs:?} dry-run wrote to disk"
+      );
+    });
+  }
+}
+
+#[test]
 fn test_mono_repo_mode_with_build_system_flag() {
   let mut args = default_resolved_mono(vec!["user/lib1".to_string()]);
   args.build.build_system = Some(star_setup::cli::BuildSystem::Cmake);

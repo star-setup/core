@@ -15,7 +15,8 @@ pub fn prepare_build_dir(
       "remove directory",
       "Removing",
       build_path,
-      ctx,
+      &mut ctx.io,
+      ctx.flags,
       "Clean",
       || {
         if build_path.exists() {
@@ -35,7 +36,8 @@ pub fn prepare_build_dir(
     "create directory",
     "Creating",
     build_path,
-    ctx,
+    &mut ctx.io,
+    ctx.flags,
     "Create build directory",
     || fs::create_dir_all(build_path).map_err(|e| e.to_string()),
   )?;

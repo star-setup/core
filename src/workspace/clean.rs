@@ -29,7 +29,8 @@ impl Workspace {
       "remove directory",
       "Removing",
       &self.build_path,
-      ctx,
+      &mut ctx.io,
+      ctx.flags,
       "Clean",
       || {
         fs::remove_dir_all(&self.build_path)
