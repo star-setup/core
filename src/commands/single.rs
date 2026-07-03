@@ -36,6 +36,7 @@ pub fn single_repo_mode(
 
   writeln!(ctx.io.output, "Cloning repository").ok();
   clone_repository(repo, base_dir, args.connection.ssh, false, args.yes, ctx)?;
+  writeln!(ctx.io.output).ok();
 
   let build_path = repo_path.join(&args.build.build_dir);
   let build_system = detect_or_dry_run(args.build.build_system, ctx, |ctx| {

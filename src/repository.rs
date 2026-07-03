@@ -72,7 +72,6 @@ pub fn clone_repository(
     .map_err(|e| format!("Failed to clone {repo_path}: {e}"))?;
   }
 
-  writeln!(ctx.io.output).ok();
   Ok(())
 }
 
