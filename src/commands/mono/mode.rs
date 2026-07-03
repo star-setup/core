@@ -85,6 +85,8 @@ pub fn mono_repo_mode(
     let map = generate_mono_config(bs, &mono_repo_path, &repos_path, &repo_dirs, &repos, ctx)?;
     if bs != BuildSystem::Npm {
       prepare_build_dir(build_path.as_path(), args.build.clean, ctx)?;
+    } else if args.build.clean && ctx.flags.verbose {
+      writeln!(ctx.io.output, "  --clean has no effect for npm projects").ok();
     }
     build_project(args, &build_path, &mono_repo_path, bs, true, ctx)?;
     map

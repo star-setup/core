@@ -25,7 +25,9 @@ pub fn prepare_build_dir(
         }
       },
     )?;
-    writeln!(ctx.io.output, "  Finished cleaning\n").ok();
+    if ctx.flags.verbose {
+      writeln!(ctx.io.output, "  Finished cleaning\n").ok();
+    }
   }
 
   writeln!(ctx.io.output, "Creating build directory").ok();
@@ -38,7 +40,9 @@ pub fn prepare_build_dir(
     || fs::create_dir_all(build_path).map_err(|e| e.to_string()),
   )?;
 
-  writeln!(ctx.io.output, "  Finished creating\n").ok();
+  if ctx.flags.verbose {
+    writeln!(ctx.io.output, "  Finished creating\n").ok();
+  }
   Ok(())
 }
 

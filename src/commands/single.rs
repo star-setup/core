@@ -44,6 +44,9 @@ pub fn single_repo_mode(
 
   if let Some(build_system) = build_system {
     if build_system == BuildSystem::Npm {
+      if args.build.clean && ctx.flags.verbose {
+        writeln!(ctx.io.output, "  --clean has no effect for npm projects").ok();
+      }
       build_project(args, &repo_path, &repo_path, build_system, false, ctx)?;
     } else {
       prepare_build_dir(&build_path, args.build.clean, ctx)?;

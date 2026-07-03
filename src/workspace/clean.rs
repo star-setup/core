@@ -9,27 +9,9 @@ impl Workspace {
     writeln!(ctx.io.output, "Cleaning workspace").ok();
 
     if self.root.join("package.json").exists() {
-      let node_modules = self.root.join("node_modules");
-      if !node_modules.exists() {
-        writeln!(
-          ctx.io.output,
-          "  node_modules does not exist: {}",
-          node_modules.display()
-        )
-        .ok();
-        return Ok(());
+      if ctx.flags.verbose {
+        writeln!(ctx.io.output, "  Clean has no effect for npm workspaces").ok();
       }
-      dry_run_or_do(
-        "remove directory",
-        "Removing",
-        &node_modules,
-        ctx,
-        "Clean",
-        || {
-          fs::remove_dir_all(&node_modules)
-            .map_err(|e| format!("Failed to remove node_modules: {e}"))
-        },
-      )?;
       return Ok(());
     }
 
