@@ -1,9 +1,10 @@
 use crate::{
-  cli::BuildType,
+  cli::BuildType::Debug,
   config::{format_entry, save_config, ConfigEntry, SetupConfig},
   ctx::{IoCtx, RunFlags},
   prompts::confirm_abort,
 };
+use dunce::canonicalize;
 use std::path::PathBuf;
 
 /// Inserts or overwrites a named configuration entry.
@@ -47,7 +48,7 @@ pub fn create_default_config(
     writeln!(
       io.output,
       "  Would create config file: {}",
-      dunce::canonicalize(&path).unwrap_or(path).display()
+      canonicalize(&path).unwrap_or(path).display()
     )
     .ok();
   } else {
@@ -57,7 +58,7 @@ pub fn create_default_config(
       "default".to_string(),
       ConfigEntry {
         ssh: false,
-        build_type: BuildType::Debug,
+        build_type: Debug,
         build_dir: "build".to_string(),
         mono_dir: "build-mono".to_string(),
         no_build: false,
@@ -75,7 +76,7 @@ pub fn create_default_config(
     writeln!(
       io.output,
       "  Created config file: {}",
-      dunce::canonicalize(&path).unwrap_or(path).display()
+      canonicalize(&path).unwrap_or(path).display()
     )
     .ok();
   }

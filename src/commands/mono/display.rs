@@ -1,11 +1,14 @@
 use crate::{
-  cli::BuildSystem,
+  cli::{BuildSystem, BuildSystem::Npm},
   ctx::{IoCtx, RunFlags},
   repository::repo_dir_name,
 };
+use dunce::canonicalize;
 use std::{
   collections::HashMap,
+  hash::BuildHasher,
   path::{Path, PathBuf},
+  time::Instant,
 };
 
 /// Resolved display paths for the setup completion summary.
@@ -20,7 +23,7 @@ pub struct SetupPaths {
 
 /// Resolves display paths for setup completion summary.
 #[must_use]
-pub fn resolve_setup_paths<S: std::hash::BuildHasher>(
+pub fn resolve_setup_paths<S: BuildHasher>(
   canonical_map: Option<&HashMap<String, String, S>>,
   mono_repo_path: &Path,
   build_path: &Path,
@@ -28,7 +31,7 @@ pub fn resolve_setup_paths<S: std::hash::BuildHasher>(
   build_system: Option<BuildSystem>,
 ) -> SetupPaths {
   let mono_repo_disp =
-    dunce::canonicalize(mono_repo_path).unwrap_or_else(|_| mono_repo_path.to_path_buf());
+    canonicalize(mono_repo_path).unwrap_or_else(|_| mono_repo_path.to_path_buf());
 
   let (exe_path, build_disp) = if let Some(map) = canonical_map {
     let test_repo_name = repo_dir_name(test_repo);
@@ -45,14 +48,14 @@ pub fn resolve_setup_paths<S: std::hash::BuildHasher>(
           .join("repos")
           .join(&test_repo_name)
           .join(&exe_name);
-        dunce::canonicalize(&p).unwrap_or(p)
+        canonicalize(&p).unwrap_or(p)
       });
     (exe_path, None)
   } else {
-    let build_disp = if build_system == Some(BuildSystem::Npm) {
+    let build_disp = if build_system == Some(Npm) {
       None
     } else {
-      Some(dunce::canonicalize(build_path).unwrap_or_else(|_| build_path.to_path_buf()))
+      Some(canonicalize(build_path).unwrap_or_else(|_| build_path.to_path_buf()))
     };
     (None, build_disp)
   };
@@ -67,7 +70,7 @@ pub fn resolve_setup_paths<S: std::hash::BuildHasher>(
 /// Prints the setup completion summary.
 pub fn print_setup_complete(
   paths: &SetupPaths,
-  total: std::time::Instant,
+  total: Instant,
   io: &mut IoCtx<'_>,
   flags: RunFlags,
 ) {

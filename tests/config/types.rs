@@ -4,6 +4,7 @@ use star_setup::{
   config::ConfigEntry,
 };
 
+/* =====     FROM_FLAGS     ===== */
 #[test]
 fn test_from_flags_defaults() {
   let connection = ConnectionFlags {
@@ -99,6 +100,7 @@ fn test_from_flags_with_values() {
   assert_eq!(entry.cmake_flags, vec!["-DFOO=ON"]);
 }
 
+/* =====     DEFAULT_RESOLVED     ===== */
 #[test]
 fn test_from_resolved_args() {
   let args = default_resolved();

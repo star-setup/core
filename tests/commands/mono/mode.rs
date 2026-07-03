@@ -1,5 +1,7 @@
 use crate::common::{default_resolved_mono, with_ctx, with_ctx_runner, MockRunner};
-use star_setup::{commands::mono_repo_mode, config::SetupConfig, ctx::DryRunRunner};
+use star_setup::{
+  cli::BuildSystem, commands::mono_repo_mode, config::SetupConfig, ctx::DryRunRunner,
+};
 use std::{
   fs::{create_dir_all, read_dir, write},
   path::Path,
@@ -45,11 +47,7 @@ fn test_mono_repo_mode_dry_run_makes_no_fs_changes() {
 
 #[test]
 fn test_mono_repo_mode_dry_run_with_build_system_makes_no_fs_changes() {
-  for bs in [
-    star_setup::cli::BuildSystem::Npm,
-    star_setup::cli::BuildSystem::Cmake,
-    star_setup::cli::BuildSystem::Meson,
-  ] {
+  for bs in [BuildSystem::Npm, BuildSystem::Cmake, BuildSystem::Meson] {
     let mut args = default_resolved_mono(vec!["user/lib1".to_string()]);
     args.diagnostic.dry_run = true;
     args.build.build_system = Some(bs);
@@ -71,7 +69,7 @@ fn test_mono_repo_mode_dry_run_with_build_system_makes_no_fs_changes() {
 #[test]
 fn test_mono_repo_mode_with_build_system_flag() {
   let mut args = default_resolved_mono(vec!["user/lib1".to_string()]);
-  args.build.build_system = Some(star_setup::cli::BuildSystem::Cmake);
+  args.build.build_system = Some(BuildSystem::Cmake);
 
   let runner = with_ctx_runner(MockRunner::new(), |tmp_path, ctx| {
     let repos_path = tmp_path.join(&args.mono.mono_dir).join("repos");

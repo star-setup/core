@@ -3,7 +3,11 @@ use crate::{
   repository::repo_dir_name,
   utils::dry_run_or_do,
 };
-use std::{fs, path::Path};
+use serde_json::{from_str, Value};
+use std::{
+  fs::{self, read_to_string},
+  path::Path,
+};
 
 /// Shared helper to generate, write, and log monorepo build configuration files.
 fn write_mono_repo_config(
@@ -170,8 +174,8 @@ pub fn create_mono_repo_package_json(
       continue;
     }
     let pkg_path = repos_path.join(dir).join("package.json");
-    if let Ok(content) = fs::read_to_string(&pkg_path) {
-      match serde_json::from_str::<serde_json::Value>(&content) {
+    if let Ok(content) = read_to_string(&pkg_path) {
+      match from_str::<Value>(&content) {
         Ok(json) => {
           if let Some(name) = json.get("name").and_then(|n| n.as_str()) {
             overrides.push(format!("    \"{name}\": \"*\""));

@@ -1,5 +1,6 @@
 use crate::common::with_io_output;
 use star_setup::utils::process::run_command;
+use tempfile::TempDir;
 
 #[test]
 fn test_run_command_errors_on_empty() {
@@ -18,7 +19,7 @@ fn test_run_command_verbose_outputs_command() {
 #[test]
 fn test_run_command_verbose_outputs_cwd() {
   let ((), out) = with_io_output(|io| {
-    let tmp = tempfile::TempDir::new().unwrap();
+    let tmp = TempDir::new().unwrap();
     run_command(&["git", "--version"], Some(tmp.path()), true, io.output).unwrap();
   });
   assert!(out.contains("in directory:"));

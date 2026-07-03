@@ -1,5 +1,5 @@
 use crate::{ctx::IoCtx, workspace::Workspace};
-use std::{fs, path::Path};
+use std::{fs::read_dir, path::Path};
 
 /// Resolves a workspace from optional path overrides.
 /// # Errors
@@ -26,7 +26,7 @@ pub fn resolve_workspace(
     ));
   }
 
-  let repo_dirs = fs::read_dir(&repos_path)
+  let repo_dirs = read_dir(&repos_path)
     .map_err(|e| format!("Failed to read repos directory: {e}"))?
     .filter_map(Result::ok)
     .map(|entry| entry.path())

@@ -1,5 +1,8 @@
 use crate::{
-  cli::{ConfigAction, ProfileAction, WorkspaceAction},
+  cli::{
+    ConfigAction, ProfileAction, WorkspaceAction,
+    WorkspaceAction::{Clean, Status, Update},
+  },
   config::{
     add_config, create_default_config, list_configs, remove_config, ConfigEntry, SetupConfig,
   },
@@ -7,7 +10,7 @@ use crate::{
   profile::{add_profile, list_profiles, remove_profile},
   workspace::resolve_workspace,
 };
-use std::{error::Error, path::PathBuf};
+use std::{error::Error, iter::once, path::PathBuf};
 
 /// Handles configuration-related subcommands.
 /// # Errors
@@ -52,7 +55,7 @@ pub fn handle_profile_cmd(
     ProfileAction::List => list_profiles(config, io),
     ProfileAction::Remove { name } => remove_profile(config, &name, yes, io, flags)?,
     ProfileAction::Add { name, repos } => {
-      let vals = std::iter::once(name).chain(repos).collect::<Vec<_>>();
+      let vals = once(name).chain(repos).collect::<Vec<_>>();
       add_profile(config, &vals, yes, io, flags)?;
     }
   }
@@ -68,9 +71,7 @@ pub fn handle_workspace_cmd(
   flags: RunFlags,
 ) -> Result<(), Box<dyn Error>> {
   let target = match &action {
-    WorkspaceAction::Update { target }
-    | WorkspaceAction::Clean { target }
-    | WorkspaceAction::Status { target, .. } => target,
+    Update { target } | Clean { target } | Status { target, .. } => target,
   };
   let ws = resolve_workspace(
     target.path.as_deref(),
@@ -81,14 +82,10 @@ pub fn handle_workspace_cmd(
   )?;
 
   match action {
-    WorkspaceAction::Update { .. } => {
-      with_runner(io, flags, |ctx| ws.update(ctx).map_err(Into::into))
-    }
-    WorkspaceAction::Status { fetch, .. } => {
+    Update { .. } => with_runner(io, flags, |ctx| ws.update(ctx).map_err(Into::into)),
+    Status { fetch, .. } => {
       with_runner(io, flags, |ctx| ws.status(*fetch, ctx).map_err(Into::into))
     }
-    WorkspaceAction::Clean { .. } => {
-      with_runner(io, flags, |ctx| ws.clean(ctx).map_err(Into::into))
-    }
+    Clean { .. } => with_runner(io, flags, |ctx| ws.clean(ctx).map_err(Into::into)),
   }
 }

@@ -2,7 +2,7 @@ use crate::{
   common::{with_ctx, MockRunner},
   helpers::make_workspace,
 };
-use std::fs;
+use std::fs::{create_dir_all, write};
 
 #[test]
 fn test_workspace_clean_no_build_dir() {
@@ -18,8 +18,8 @@ fn test_workspace_clean_no_build_dir() {
 fn test_workspace_clean_removes_build_dir() {
   with_ctx(MockRunner::new(), |tmp, ctx| {
     let ws = make_workspace(tmp, vec![]);
-    fs::create_dir_all(&ws.build_path).unwrap();
-    fs::write(ws.build_path.join("dummy.txt"), "").unwrap();
+    create_dir_all(&ws.build_path).unwrap();
+    write(ws.build_path.join("dummy.txt"), "").unwrap();
     ws.clean(ctx).unwrap();
     assert!(!ws.build_path.exists());
   });
@@ -32,7 +32,7 @@ fn test_workspace_clean_dry_run() {
     ctx.flags.verbose = true;
 
     let ws = make_workspace(tmp, vec![]);
-    fs::create_dir_all(&ws.build_path).unwrap();
+    create_dir_all(&ws.build_path).unwrap();
 
     ws.clean(ctx).unwrap();
 

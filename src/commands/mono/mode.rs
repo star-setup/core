@@ -1,5 +1,5 @@
 use crate::{
-  cli::{detect_mono_build_system, BuildSystem, ResolvedArgs},
+  cli::{detect_mono_build_system, BuildSystem::Npm, ResolvedArgs},
   commands::{
     build_project, build_repo_list, extract_repo_input,
     mono::{
@@ -16,6 +16,7 @@ use crate::{
 use std::{
   fs,
   path::{Path, PathBuf},
+  time::Instant,
 };
 
 /// Clones and configures a mono-repo ecosystem from a profile or explicit repository list.
@@ -27,7 +28,7 @@ pub fn mono_repo_mode(
   base_dir: &Path,
   ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
-  let total = std::time::Instant::now();
+  let total = Instant::now();
   let repo_input = extract_repo_input(args)?;
   let test_repo = resolve_test_repo(repo_input)?;
   let deps = resolve_repos_for_mono(args, config, &mut ctx.io)?;
@@ -83,7 +84,7 @@ pub fn mono_repo_mode(
 
   let canonical_map = if let Some(bs) = build_system {
     let map = generate_mono_config(bs, &mono_repo_path, &repos_path, &repo_dirs, &repos, ctx)?;
-    if bs != BuildSystem::Npm {
+    if bs != Npm {
       prepare_build_dir(build_path.as_path(), args.build.clean, ctx)?;
     } else if args.build.clean && ctx.flags.verbose {
       writeln!(ctx.io.output, "  --clean has no effect for npm projects").ok();
@@ -94,7 +95,7 @@ pub fn mono_repo_mode(
     None
   };
 
-  if build_system == Some(BuildSystem::Npm)
+  if build_system == Some(Npm)
     && !args.build.no_watch
     && generate_watch_scripts(&mono_repo_path, &repos_path, &repos, &mut ctx.io, ctx.flags)?
     && args.build.watch
@@ -106,7 +107,7 @@ pub fn mono_repo_mode(
     SetupPaths {
       mono_repo_disp: mono_repo_path.clone(),
       exe_path: None,
-      build_disp: if build_system == Some(BuildSystem::Npm) {
+      build_disp: if build_system == Some(Npm) {
         None
       } else {
         Some(build_path.clone())

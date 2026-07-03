@@ -1,7 +1,9 @@
 use crate::common::{make_flags, with_io_dir};
 use star_setup::commands::{hoist_wraps, parse_project_name, parse_provide_pairs};
+use std::fs::{create_dir, read_to_string, write};
 use tempfile::TempDir;
 
+/* =====     PARSE_PROJECT_NAME     ===== */
 #[test]
 fn test_parse_project_name() {
   let cases = [
@@ -22,6 +24,7 @@ fn test_parse_project_name() {
   }
 }
 
+/* =====     PARSE_PROVIDE_PAIRS     ===== */
 #[test]
 fn test_parse_provide_pairs_basic() {
   let content = "[provide]\nmy_lib = my_lib_dep\n";
@@ -57,9 +60,10 @@ fn test_parse_provide_pairs_no_provide_section() {
   assert!(pairs.is_empty());
 }
 
+/* =====     HELPERS     ===== */
 fn make_repo(project_name: &str) -> TempDir {
   let tmp = TempDir::new().unwrap();
-  std::fs::write(
+  write(
     tmp.path().join("meson.build"),
     format!("project('{project_name}', 'cpp')"),
   )
@@ -67,6 +71,7 @@ fn make_repo(project_name: &str) -> TempDir {
   tmp
 }
 
+/* =====     HOIST_WRAPS     ===== */
 #[test]
 fn test_hoist_wraps_empty_repos() {
   with_io_dir(|repos_dir, io| {
@@ -94,7 +99,7 @@ fn test_hoist_wraps_emits_wrap_without_provide() {
     let wrap = repos_dir.join("my_lib.wrap");
     assert!(wrap.exists());
 
-    let content = std::fs::read_to_string(&wrap).unwrap();
+    let content = read_to_string(&wrap).unwrap();
     assert!(content.contains("directory ="));
     assert!(!content.contains("[provide]"));
   });
@@ -105,19 +110,19 @@ fn test_hoist_wraps_emits_wrap_with_provide() {
   with_io_dir(|repos_dir, io| {
     let repo = make_repo("my-lib");
     let subprojects = repo.path().join("subprojects");
-    std::fs::create_dir(&subprojects).unwrap();
-    std::fs::write(
+    create_dir(&subprojects).unwrap();
+    write(
       subprojects.join("my_lib.wrap"),
       "[provide]\nmy_lib = my_lib_dep\n",
     )
     .unwrap();
-    std::fs::write(subprojects.join("readme.txt"), "ignore me").unwrap();
+    write(subprojects.join("readme.txt"), "ignore me").unwrap();
 
     let result = hoist_wraps(repos_dir, &[repo.path().to_path_buf()], io, make_flags()).unwrap();
 
     assert!(result.contains_key("my_lib"));
     let wrap = repos_dir.join("my_lib.wrap");
-    let content = std::fs::read_to_string(&wrap).unwrap();
+    let content = read_to_string(&wrap).unwrap();
     assert!(content.contains("[provide]"));
     assert!(content.contains("my_lib = my_lib_dep"));
   });

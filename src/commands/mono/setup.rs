@@ -1,5 +1,8 @@
 use crate::{
-  cli::BuildSystem,
+  cli::{
+    BuildSystem,
+    BuildSystem::{Cmake, Meson, Npm},
+  },
   commands::{
     create_mono_repo_cmakelists, create_mono_repo_mesonbuild, hoist_wraps,
     mono::create_mono_repo_package_json,
@@ -7,7 +10,11 @@ use crate::{
   ctx::RunCtx,
   repository::repo_dir_name,
 };
-use std::path::PathBuf;
+use std::{
+  collections::{HashMap, HashSet},
+  iter::once,
+  path::PathBuf,
+};
 
 /// Generates root build configuration files for the mono-repo.
 /// # Errors
@@ -19,14 +26,14 @@ pub fn generate_mono_config(
   repo_dirs: &[PathBuf],
   repos: &[String],
   ctx: &mut RunCtx<'_, '_>,
-) -> Result<Option<std::collections::HashMap<String, String>>, String> {
+) -> Result<Option<HashMap<String, String>>, String> {
   writeln!(ctx.io.output, "  Creating mono-repo configuration").ok();
   match build_system {
-    BuildSystem::Cmake => {
+    Cmake => {
       create_mono_repo_cmakelists(mono_repo_path, repos, &mut ctx.io, ctx.flags)?;
       Ok(None)
     }
-    BuildSystem::Meson => {
+    Meson => {
       let map = hoist_wraps(repos_path, repo_dirs, &mut ctx.io, ctx.flags)?;
       let subproject_names: Vec<String> = repos
         .iter()
@@ -42,7 +49,7 @@ pub fn generate_mono_config(
       create_mono_repo_mesonbuild(mono_repo_path, &subproject_names, &mut ctx.io, ctx.flags)?;
       Ok(Some(map))
     }
-    BuildSystem::Npm => {
+    Npm => {
       create_mono_repo_package_json(mono_repo_path, repos_path, repos, &mut ctx.io, ctx.flags)?;
       Ok(None)
     }
@@ -52,8 +59,8 @@ pub fn generate_mono_config(
 /// Builds the full ordered list of repositories, deduplicating by directory name.
 #[must_use]
 pub fn build_repo_list(test_repo: &str, deps: &[String]) -> Vec<String> {
-  let mut seen = std::collections::HashSet::new();
-  std::iter::once(test_repo.to_string())
+  let mut seen = HashSet::new();
+  once(test_repo.to_string())
     .chain(deps.iter().cloned())
     .filter(|r| seen.insert(repo_dir_name(r)))
     .collect()

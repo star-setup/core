@@ -1,5 +1,3 @@
-//! Build system dispatch and per-system build functions.
-
 use crate::{
   cli::{BuildSystem, ResolvedArgs},
   ctx::RunCtx,

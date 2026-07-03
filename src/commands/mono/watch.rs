@@ -3,7 +3,13 @@ use crate::{
   repository::repo_dir_name,
   utils::dry_run_or_do,
 };
-use std::{fs, path::Path};
+use dunce::canonicalize;
+use serde_json::{from_str, Value};
+use std::process::Command;
+use std::{
+  fs::{read_to_string, write},
+  path::Path,
+};
 
 /// Reads a lib's package.json and returns the appropriate watch command.
 fn get_watch_command(
@@ -13,7 +19,7 @@ fn get_watch_command(
   flags: RunFlags,
 ) -> Option<String> {
   let pkg_path = repos_path.join(dir).join("package.json");
-  match fs::read_to_string(&pkg_path) {
+  match read_to_string(&pkg_path) {
     Err(_) => {
       if flags.verbose {
         writeln!(
@@ -24,7 +30,7 @@ fn get_watch_command(
       }
       None
     }
-    Ok(content) => match serde_json::from_str::<serde_json::Value>(&content) {
+    Ok(content) => match from_str::<Value>(&content) {
       Err(_) => {
         if flags.verbose {
           writeln!(
@@ -106,9 +112,9 @@ pub fn generate_watch_scripts(
     flags,
     "Write scripts",
     || {
-      fs::write(mono_dir.join("watch.ps1"), ps1_content)
+      write(mono_dir.join("watch.ps1"), ps1_content)
         .map_err(|e| format!("Failed to write watch.ps1: {e}"))?;
-      fs::write(mono_dir.join("watch.sh"), sh_content)
+      write(mono_dir.join("watch.sh"), sh_content)
         .map_err(|e| format!("Failed to write watch.sh: {e}"))?;
       Ok(())
     },
@@ -135,8 +141,7 @@ pub fn generate_watch_scripts(
   if flags.verbose {
     writeln!(io.output, "  Watching {} libraries:", lib_dirs.len()).ok();
     for d in &lib_dirs {
-      let full_path =
-        dunce::canonicalize(repos_path.join(d)).unwrap_or_else(|_| repos_path.join(d));
+      let full_path = canonicalize(repos_path.join(d)).unwrap_or_else(|_| repos_path.join(d));
       writeln!(io.output, "  {d:<24} -> {}", full_path.display()).ok();
     }
   }
@@ -163,7 +168,7 @@ pub fn open_watch_scripts(
     #[cfg(target_os = "windows")]
     {
       let ps1_path = mono_dir.join("watch.ps1");
-      std::process::Command::new("powershell")
+      Command::new("powershell")
         .args([
           "-ExecutionPolicy",
           "Bypass",
@@ -177,7 +182,7 @@ pub fn open_watch_scripts(
     #[cfg(not(target_os = "windows"))]
     {
       let sh_path = mono_dir.join("watch.sh");
-      std::process::Command::new("bash")
+      Command::new("bash")
         .arg(sh_path.to_str().ok_or("Invalid path")?)
         .spawn()
         .map_err(|e| format!("Failed to open watch.sh: {e}"))?;

@@ -1,5 +1,5 @@
 use crate::cli::BuildSystem;
-use clap::Args as ClapArgs;
+use clap::{ArgAction::Append, Args as ClapArgs};
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(ClapArgs)]
@@ -44,11 +44,11 @@ pub struct BuildFlags {
   pub no_clean: bool,
 
   /// Additional `CMake` arguments
-  #[arg(long = "cmake-arg", action = clap::ArgAction::Append)]
+  #[arg(long = "cmake-arg", action = Append)]
   pub cmake_flags: Vec<String>,
 
   /// Additional Meson arguments
-  #[arg(long = "meson-arg", action = clap::ArgAction::Append)]
+  #[arg(long = "meson-arg", action = Append)]
   pub meson_flags: Vec<String>,
 
   /// Automatically open watch scripts for npm mono-repo mode.

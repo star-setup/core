@@ -1,13 +1,12 @@
-use std::fs::create_dir_all;
-
+use crate::common::{with_ctx, with_ctx_runner, MockRunner};
 use star_setup::{
   ctx::ProcessRunner,
   repository::{clone_repo, clone_repos, ExistsAction},
 };
+use std::fs::create_dir_all;
 use tempfile::TempDir;
 
-use crate::common::{with_ctx, with_ctx_runner, MockRunner};
-
+/* =====     CLONE_REPO     ===== */
 #[test]
 fn test_clone_skips_existing_directory() {
   with_ctx_runner(ProcessRunner, |tmp_path, ctx| {
@@ -49,6 +48,7 @@ fn test_clone_repo_calls_git_clone() {
   assert_eq!(cwd.as_deref(), Some(tmp.path()));
 }
 
+/* =====     CLONE_REPOS     ===== */
 #[test]
 fn test_clone_repos_calls_clone_for_each_repo() {
   let runner = with_ctx_runner(MockRunner::new(), |tmp_path, ctx| {

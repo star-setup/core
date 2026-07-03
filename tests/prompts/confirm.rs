@@ -1,6 +1,7 @@
 use crate::common::{with_io_input, with_io_input_output};
 use star_setup::prompts::{confirm, confirm_batch, BatchConfirm};
 
+/* =====     CONFIRM     ===== */
 #[test]
 fn test_confirm_input_cases() {
   let cases = [
@@ -29,6 +30,7 @@ fn test_confirm_errors_on_eof() {
   assert!(result.unwrap_err().contains("unexpected end of input"));
 }
 
+/* =====     CONFIRM_BATCH     ===== */
 #[test]
 fn test_confirm_batch_input_cases() {
   let cases = [
@@ -38,9 +40,24 @@ fn test_confirm_batch_input_cases() {
     (b"\n", true, BatchConfirm::No, "empty defaults to no"),
     (b"a\n", true, BatchConfirm::YesAll, "a accepts all"),
     (b"s\n", true, BatchConfirm::NoAll, "s skips all"),
-    (b"x\ny\n", true, BatchConfirm::Yes, "invalid input reprompts"),
-    (b"a\ny\n", false, BatchConfirm::Yes, "a invalid without allow_all"),
-    (b"s\nn\n", false, BatchConfirm::No, "s invalid without allow_all"),
+    (
+      b"x\ny\n",
+      true,
+      BatchConfirm::Yes,
+      "invalid input reprompts",
+    ),
+    (
+      b"a\ny\n",
+      false,
+      BatchConfirm::Yes,
+      "a invalid without allow_all",
+    ),
+    (
+      b"s\nn\n",
+      false,
+      BatchConfirm::No,
+      "s invalid without allow_all",
+    ),
   ];
   for (input, allow_all, expected, name) in cases {
     let result = with_io_input(input, |io| confirm_batch("prompt", allow_all, io));

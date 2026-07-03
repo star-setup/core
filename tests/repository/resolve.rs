@@ -1,5 +1,6 @@
 use star_setup::repository::{repo_dir_name, resolve_repo_url};
 
+/* =====     REPO_DIR_NAME     ===== */
 #[test]
 fn test_repo_dir_name() {
   let cases = [
@@ -25,6 +26,7 @@ fn test_repo_dir_name_no_owner() {
   assert_eq!(repo_dir_name("repo"), "repo");
 }
 
+/* =====     RESOLVE_REPO_URL     ===== */
 #[test]
 fn test_resolve_repo_url() {
   let cases = vec![

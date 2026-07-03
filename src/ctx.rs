@@ -3,6 +3,7 @@ use std::{
   error::Error,
   io::{BufRead, Write},
   path::Path,
+  process::Command,
 };
 
 /// IO context passed to functions that need input/output and behavioral flags.
@@ -57,7 +58,7 @@ impl Runner for ProcessRunner {
     if cmd.is_empty() {
       return Err("No command provided".to_string());
     }
-    let mut command = std::process::Command::new(cmd[0]);
+    let mut command = Command::new(cmd[0]);
     command.args(&cmd[1..]);
     if let Some(dir) = cwd {
       command.current_dir(dir);

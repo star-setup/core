@@ -1,11 +1,14 @@
 use crate::{cli::ResolvedArgs, ctx::RunCtx, utils::dry_run_or_do};
-use std::fs;
+use std::{
+  fs::{create_dir_all, remove_dir_all},
+  path::Path,
+};
 
 /// Prepares the build directory, optionally cleaning it first.
 /// # Errors
 /// Returns an error if the build directory cannot be created or removed.
 pub fn prepare_build_dir(
-  build_path: &std::path::Path,
+  build_path: &Path,
   clean: bool,
   ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
@@ -20,7 +23,7 @@ pub fn prepare_build_dir(
       "Clean",
       || {
         if build_path.exists() {
-          fs::remove_dir_all(build_path).map_err(|e| e.to_string())
+          remove_dir_all(build_path).map_err(|e| e.to_string())
         } else {
           Ok(())
         }
@@ -39,7 +42,7 @@ pub fn prepare_build_dir(
     &mut ctx.io,
     ctx.flags,
     "Create build directory",
-    || fs::create_dir_all(build_path).map_err(|e| e.to_string()),
+    || create_dir_all(build_path).map_err(|e| e.to_string()),
   )?;
 
   if ctx.flags.verbose {

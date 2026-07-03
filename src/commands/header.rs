@@ -1,5 +1,3 @@
-//! Mode header rendering
-
 use crate::ctx::IoCtx;
 
 /// Header information printed at the start of each command mode.

@@ -1,6 +1,9 @@
 use crate::{
   ctx::{IoCtx, RunCtx},
-  prompts::{confirm, confirm_batch, BatchConfirm},
+  prompts::{
+    confirm, confirm_batch,
+    BatchConfirm::{No, NoAll, Yes, YesAll},
+  },
   repository::{pull_repo, repo_dir_name, resolve_repo_url},
 };
 use std::{
@@ -133,13 +136,13 @@ pub fn clone_repos(
           }
           Ok(
             match confirm_batch("  Update existing repository?", allow_all, io)? {
-              BatchConfirm::Yes => ExistsAction::Update,
-              BatchConfirm::No => ExistsAction::Skip,
-              BatchConfirm::YesAll => {
+              Yes => ExistsAction::Update,
+              No => ExistsAction::Skip,
+              YesAll => {
                 remembered = Some(true);
                 ExistsAction::Update
               }
-              BatchConfirm::NoAll => {
+              NoAll => {
                 remembered = Some(false);
                 ExistsAction::Skip
               }

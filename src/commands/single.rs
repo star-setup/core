@@ -1,12 +1,15 @@
 use crate::{
-  cli::{detect_build_system, BuildSystem, ResolvedArgs},
+  cli::{detect_build_system, BuildSystem::Npm, ResolvedArgs},
   commands::{build_project, extract_repo_input, prepare_build_dir, print_mode_header, ModeHeader},
   ctx::RunCtx,
   prompts::confirm,
-  repository::{clone_repo, repo_dir_name, ExistsAction},
+  repository::{
+    clone_repo, repo_dir_name,
+    ExistsAction::{Skip, Update},
+  },
   utils::dry_run::detect_or_dry_run,
 };
-use std::path::Path;
+use std::{path::Path, time::Instant};
 
 /// Clones and configures a single repository.
 /// # Errors
@@ -16,7 +19,7 @@ pub fn single_repo_mode(
   base_dir: &Path,
   ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
-  let total = std::time::Instant::now();
+  let total = Instant::now();
   let repo = extract_repo_input(args)?;
   let dir_name = repo_dir_name(repo);
   let repo_path = base_dir.join(&dir_name);
@@ -42,9 +45,9 @@ pub fn single_repo_mode(
     args.connection.ssh,
     |io| {
       Ok(if confirm("  Update existing repository?", args.yes, io)? {
-        ExistsAction::Update
+        Update
       } else {
-        ExistsAction::Skip
+        Skip
       })
     },
     ctx,
@@ -57,7 +60,7 @@ pub fn single_repo_mode(
   })?;
 
   if let Some(build_system) = build_system {
-    if build_system == BuildSystem::Npm {
+    if build_system == Npm {
       if args.build.clean && ctx.flags.verbose {
         writeln!(ctx.io.output, "  --clean has no effect for npm projects").ok();
       }
@@ -70,7 +73,7 @@ pub fn single_repo_mode(
 
   if ctx.flags.dry_run || build_system.is_none() {
     writeln!(ctx.io.output, "Would finish in {dir_name}").ok();
-  } else if build_system == Some(BuildSystem::Npm) {
+  } else if build_system == Some(Npm) {
     writeln!(ctx.io.output, "Project finished in {dir_name}").ok();
   } else {
     writeln!(
