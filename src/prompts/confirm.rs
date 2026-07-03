@@ -22,6 +22,7 @@ pub fn confirm_abort(warning_msg: &str, yes: bool, io: &mut IoCtx<'_>) -> Result
   Ok(true)
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BatchConfirm {
   Yes,
   No,
