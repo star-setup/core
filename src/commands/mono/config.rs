@@ -27,7 +27,7 @@ fn write_mono_repo_config(
   #[allow(clippy::to_string_in_format_args)]
   writeln!(
     io.output,
-    "Created root {} at {}\n",
+    "  Created root {} at {}\n",
     filename.to_string(),
     mono_dir.display()
   )
@@ -194,7 +194,7 @@ pub fn create_mono_repo_package_json(
   #[allow(clippy::to_string_in_format_args)]
   writeln!(
     io.output,
-    "Created root {} at {}\n",
+    "  Created root {} at {}\n",
     "package.json".to_string(),
     mono_dir.display()
   )

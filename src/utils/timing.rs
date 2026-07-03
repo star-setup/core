@@ -4,10 +4,11 @@ macro_rules! time {
     let t = std::time::Instant::now();
     let result = $block;
     if $timing {
-      let _ = std::io::Write::write_fmt(
+      std::io::Write::write_fmt(
         $output,
         format_args!("  [timing] {}: {:.2?}\n", $msg, t.elapsed()),
-      );
+      )
+      .ok();
     }
     result
   }};

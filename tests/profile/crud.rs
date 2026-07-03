@@ -122,7 +122,7 @@ fn test_remove_profile_removes_and_saves() {
     let mut config = SetupConfig::new();
     config.path = Some(path.clone());
     insert_profile(&mut config, "myprofile", vec!["user/repo1".to_string()]);
-    save_config(&mut config).unwrap();
+    save_config(&mut config, false, &mut io.output).unwrap();
 
     remove_profile(&mut config, "myprofile", true, io, make_flags()).unwrap();
     assert!(!has_profile(&config, "myprofile"));
@@ -159,10 +159,11 @@ fn test_save_and_load_profile_roundtrip() {
     "myprofile",
     vec!["user/repo1".to_string(), "user/repo2".to_string()],
   );
-  save_config(&mut config).unwrap();
 
   with_io_output(|io| {
-    let loaded = load_config(&[path], &mut io.output);
+    save_config(&mut config, false, &mut io.output).unwrap();
+
+    let loaded = load_config(&[path], false, false, &mut io.output);
     assert!(loaded.profiles.contains_key("myprofile"));
     assert_eq!(
       loaded.profiles["myprofile"],

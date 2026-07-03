@@ -53,7 +53,7 @@ fn test_resolve_repos_for_mono_empty_profile_errors() {
   args.mono.profile = Some("emptyprofile".to_string());
 
   with_io(|io| {
-    let result = resolve_repos_for_mono(&args, &config, "user/repo", io);
+    let result = resolve_repos_for_mono(&args, &config, io);
     assert!(result.is_err());
     assert!(result.unwrap_err().contains("has no repositories"));
   });
@@ -70,7 +70,7 @@ fn test_resolve_repos_for_mono_with_profile() {
   args.mono.profile = Some("myprofile".to_string());
 
   with_io(|io| {
-    let result = resolve_repos_for_mono(&args, &config, "user/repo", io);
+    let result = resolve_repos_for_mono(&args, &config, io);
     assert!(result.is_ok());
     assert_eq!(result.unwrap(), vec!["user/lib1", "user/lib2"]);
   });
@@ -83,7 +83,7 @@ fn test_resolve_repos_for_mono_with_explicit_repos() {
   args.mono.repos = Some(vec!["user/lib1".to_string(), "user/lib2".to_string()]);
 
   with_io(|io| {
-    let result = resolve_repos_for_mono(&args, &config, "user/repo", io);
+    let result = resolve_repos_for_mono(&args, &config, io);
     assert!(result.is_ok());
     assert_eq!(result.unwrap(), vec!["user/lib1", "user/lib2"]);
   });
@@ -95,7 +95,7 @@ fn test_resolve_repos_for_mono_no_repos_or_profile_errors() {
   let args = default_resolved();
 
   with_io(|io| {
-    let result = resolve_repos_for_mono(&args, &config, "user/repo", io);
+    let result = resolve_repos_for_mono(&args, &config, io);
     assert!(result.is_err());
     assert!(result
       .unwrap_err()
@@ -110,7 +110,7 @@ fn test_resolve_repos_for_mono_profile_not_found_errors() {
   args.mono.profile = Some("nonexistent".to_string());
 
   with_io(|io| {
-    let result = resolve_repos_for_mono(&args, &config, "user/repo", io);
+    let result = resolve_repos_for_mono(&args, &config, io);
     assert!(result.is_err());
     assert!(result.unwrap_err().contains("not found"));
   });

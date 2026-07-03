@@ -7,7 +7,7 @@ use crate::{
       display::{resolve_setup_paths, SetupPaths},
       generate_mono_config, generate_watch_scripts, open_watch_scripts, print_setup_complete,
     },
-    prepare_build_dir, resolve_repos_for_mono, resolve_test_repo,
+    prepare_build_dir, print_mode_header, resolve_repos_for_mono, resolve_test_repo, ModeHeader,
   },
   config::SetupConfig,
   ctx::RunCtx,
@@ -28,19 +28,36 @@ pub fn mono_repo_mode(
   ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
   let total = std::time::Instant::now();
-
   let repo_input = extract_repo_input(args)?;
   let test_repo = resolve_test_repo(repo_input)?;
-  let deps = resolve_repos_for_mono(args, config, &test_repo, &mut ctx.io)?;
+  let deps = resolve_repos_for_mono(args, config, &mut ctx.io)?;
   let repos = build_repo_list(&test_repo, &deps);
-  writeln!(ctx.io.output, "Total repositories: {}\n", repos.len()).ok();
 
+  print_mode_header(
+    &ModeHeader {
+      mode: if args.mono.profile.is_some() {
+        "Profile"
+      } else {
+        "Mono-repository"
+      },
+      test_repo: Some(&test_repo),
+      repo_name: None,
+      use_ssh: args.connection.ssh,
+      mono_dir: Some(&args.mono.mono_dir),
+      profile: args.mono.profile.as_deref(),
+      lib_count: Some(deps.len()),
+      repo_count: Some(repos.len()),
+    },
+    &mut ctx.io,
+  );
+
+  writeln!(ctx.io.output, "Creating repo folder").ok();
   let mono_repo_path = base_dir.join(&args.mono.mono_dir);
   let repos_path = mono_repo_path.join("repos");
   if ctx.flags.dry_run {
     writeln!(
       ctx.io.output,
-      "Would create directory: {}",
+      "  Would create directory: {}",
       repos_path.display()
     )
     .ok();
@@ -49,6 +66,7 @@ pub fn mono_repo_mode(
       fs::create_dir_all(&repos_path).map_err(|e| e.to_string())?;
     });
   }
+  writeln!(ctx.io.output, "  Finished creating\n").ok();
 
   clone_mono_repos(&repos, &repos_path, args.connection.ssh, ctx)?;
 
@@ -57,16 +75,25 @@ pub fn mono_repo_mode(
     .map(|r| repos_path.join(repo_dir_name(r)))
     .collect();
 
+  writeln!(ctx.io.output, "Detecting build system").ok();
   let build_path = mono_repo_path.join(&args.build.build_dir);
+  let build_system = crate::time!(ctx.flags.timing, ctx.io.output, "Detect", {
+    let result = if let Some(bs) = args.build.build_system {
+      if ctx.flags.verbose {
+        writeln!(ctx.io.output, "  Build system flag set: {bs:?}").ok();
+      }
+      Some(bs)
+    } else if ctx.flags.dry_run {
+      writeln!(ctx.io.output, "  Would detect build system after cloning").ok();
+      None
+    } else {
+      Some(detect_mono_build_system(&repo_dirs, ctx)?)
+    };
+    writeln!(ctx.io.output, "  Finished detecting").ok();
+    result
+  });
+  writeln!(ctx.io.output).ok();
 
-  let build_system = if let Some(bs) = args.build.build_system {
-    Some(bs)
-  } else if ctx.flags.dry_run {
-    writeln!(ctx.io.output, "Would detect build system after cloning").ok();
-    None
-  } else {
-    Some(detect_mono_build_system(&repo_dirs, ctx)?)
-  };
   let canonical_map = if let Some(bs) = build_system {
     let map = generate_mono_config(bs, &mono_repo_path, &repos_path, &repo_dirs, &repos, ctx)?;
     if bs != BuildSystem::Npm {
@@ -82,7 +109,7 @@ pub fn mono_repo_mode(
   if build_system == Some(BuildSystem::Npm) && !args.build.no_watch && !ctx.flags.dry_run {
     generate_watch_scripts(&mono_repo_path, &repos_path, &repos, &mut ctx.io, ctx.flags)?;
     if args.build.watch {
-      open_watch_scripts(&mono_repo_path, &mut ctx.io)?;
+      open_watch_scripts(&mono_repo_path, &mut ctx.io, ctx.flags)?;
     }
   }
 

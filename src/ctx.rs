@@ -86,9 +86,9 @@ impl Runner for DryRunRunner {
     _flags: RunFlags,
     output: &mut dyn Write,
   ) -> Result<(), String> {
-    writeln!(output, "Would run: {}", cmd.join(" ")).map_err(|e| e.to_string())?;
+    writeln!(output, "  Would run: {}", cmd.join(" ")).map_err(|e| e.to_string())?;
     if let Some(dir) = cwd {
-      writeln!(output, "  in directory: {}", dir.display()).map_err(|e| e.to_string())?;
+      writeln!(output, "    in directory: {}", dir.display()).map_err(|e| e.to_string())?;
     }
     Ok(())
   }

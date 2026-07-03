@@ -13,26 +13,29 @@ pub fn prepare_build_dir(
   clean: bool,
   ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
-  if clean && ctx.flags.dry_run {
-    writeln!(ctx.io.output, "Cleaning build directory\n").ok();
-    writeln!(
-      ctx.io.output,
-      "Would remove directory: {}",
-      build_path.display()
-    )
-    .ok();
-  } else if clean && build_path.exists() {
-    writeln!(ctx.io.output, "Cleaning build directory\n").ok();
-    crate::time!(ctx.flags.timing, ctx.io.output, "Clean", {
-      fs::remove_dir_all(build_path).map_err(|e| e.to_string())?;
-    });
+  if clean {
+    writeln!(ctx.io.output, "Cleaning build directory").ok();
+    if ctx.flags.dry_run {
+      writeln!(
+        ctx.io.output,
+        "  Would remove directory: {}",
+        build_path.display()
+      )
+      .ok();
+    } else if build_path.exists() {
+      crate::time!(ctx.flags.timing, ctx.io.output, "Clean", {
+        fs::remove_dir_all(build_path).map_err(|e| e.to_string())?;
+      });
+    }
+    writeln!(ctx.io.output, "  Finished cleaning").ok();
+    writeln!(ctx.io.output).ok();
   }
 
-  writeln!(ctx.io.output, "Creating build directory\n").ok();
+  writeln!(ctx.io.output, "Creating build directory").ok();
   if ctx.flags.dry_run {
     writeln!(
       ctx.io.output,
-      "Would create directory: {}",
+      "  Would create directory: {}",
       build_path.display()
     )
     .ok();
@@ -41,6 +44,8 @@ pub fn prepare_build_dir(
       fs::create_dir_all(build_path).map_err(|e| e.to_string())?;
     });
   }
+  writeln!(ctx.io.output, "  Finished creating").ok();
+  writeln!(ctx.io.output).ok();
   Ok(())
 }
 
@@ -55,7 +60,7 @@ pub fn configure_and_build(
   is_mono: bool,
   ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
-  writeln!(ctx.io.output, "Configuring project\n").ok();
+  writeln!(ctx.io.output, "Configuring project").ok();
   build_project(args, build_path, project_path, build_system, is_mono, ctx)
 }
 

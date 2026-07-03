@@ -30,10 +30,10 @@ fn test_save_and_load_roundtrip() {
       meson_flags: vec![],
     },
   );
-  save_config(&mut config).unwrap();
 
   with_io_output(|io| {
-    let loaded = load_config(&[path], &mut io.output);
+    save_config(&mut config, false, &mut io.output).unwrap();
+    let loaded = load_config(&[path], false, false, &mut io.output);
     assert!(loaded.configs.contains_key("default"));
     assert!(loaded.configs["default"].ssh);
     assert_eq!(loaded.configs["default"].build_type, BuildType::Release);
@@ -45,7 +45,7 @@ fn test_save_and_load_roundtrip() {
 #[test]
 fn test_load_config_skips_missing_local_file() {
   with_io_output(|io| {
-    let config = load_config(&[], &mut io.output);
+    let config = load_config(&[], false, false, &mut io.output);
     assert!(config.configs.is_empty());
   });
 }
@@ -57,7 +57,7 @@ fn test_load_config_handles_invalid_json() {
   std::fs::write(&path, "{invalid json").unwrap();
 
   with_io_output(|io| {
-    let config = load_config(&[path], &mut io.output);
+    let config = load_config(&[path], false, false, &mut io.output);
     assert!(config.configs.is_empty());
   });
 }
@@ -67,6 +67,8 @@ fn test_load_config_skips_nonexistent_path() {
   with_io_output(|io| {
     let config = load_config(
       &[PathBuf::from("/nonexistent/path/.star-setup.json")],
+      false,
+      false,
       &mut io.output,
     );
     assert!(config.configs.is_empty());
@@ -81,17 +83,18 @@ fn test_load_config_first_valid_wins() {
   let path2 = tmp2.path().join(".star-setup.json");
 
   let mut config1 = SetupConfig::new();
-  config1.path = Some(path1.clone());
-  insert_config(&mut config1, "first", sample_entry());
-  save_config(&mut config1).unwrap();
-
   let mut config2 = SetupConfig::new();
-  config2.path = Some(path2.clone());
-  insert_config(&mut config2, "second", sample_entry());
-  save_config(&mut config2).unwrap();
 
   with_io_output(|io| {
-    let loaded = load_config(&[path1, path2], &mut io.output);
+    config1.path = Some(path1.clone());
+    insert_config(&mut config1, "first", sample_entry());
+    save_config(&mut config1, false, &mut io.output).unwrap();
+
+    config2.path = Some(path2.clone());
+    insert_config(&mut config2, "second", sample_entry());
+    save_config(&mut config2, false, &mut io.output).unwrap();
+
+    let loaded = load_config(&[path1, path2], false, false, &mut io.output);
     assert!(loaded.configs.contains_key("first"));
     assert!(!loaded.configs.contains_key("second"));
   });
@@ -109,10 +112,10 @@ fn test_load_config_falls_through_invalid_to_valid() {
   let mut config2 = SetupConfig::new();
   config2.path = Some(path2.clone());
   insert_config(&mut config2, "second", sample_entry());
-  save_config(&mut config2).unwrap();
 
   with_io_output(|io| {
-    let loaded = load_config(&[path1, path2], &mut io.output);
+    save_config(&mut config2, false, &mut io.output).unwrap();
+    let loaded = load_config(&[path1, path2], false, false, &mut io.output);
     assert!(loaded.configs.contains_key("second"));
   });
 }

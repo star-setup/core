@@ -145,7 +145,7 @@ fn test_remove_config_removes_and_saves() {
     let mut config = SetupConfig::new();
     config.path = Some(path.clone());
     insert_config(&mut config, "myconfig", sample_entry());
-    save_config(&mut config).unwrap();
+    save_config(&mut config, false, &mut io.output).unwrap();
 
     remove_config(&mut config, "myconfig", true, io, make_flags()).unwrap();
     assert!(!has_config(&config, "myconfig"));

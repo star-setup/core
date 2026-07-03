@@ -21,7 +21,7 @@ fn test_dry_run_runner_prints_command() {
       .run(&["git", "clone", "foo"], None, make_flags(), io.output)
       .unwrap();
   });
-  assert_eq!(output, "Would run: git clone foo\n");
+  assert_eq!(output, "  Would run: git clone foo\n");
 }
 
 #[test]
@@ -36,7 +36,7 @@ fn test_dry_run_runner_prints_cwd() {
       )
       .unwrap();
   });
-  assert!(output.contains("Would run: cmake .."));
+  assert!(output.contains("  Would run: cmake .."));
   assert!(output.contains("  in directory: /tmp/build"));
 }
 

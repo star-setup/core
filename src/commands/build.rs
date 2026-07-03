@@ -30,7 +30,7 @@ pub fn cmake_build(
   });
 
   if !args.build.no_build {
-    writeln!(ctx.io.output, "Building project\n").ok();
+    writeln!(ctx.io.output, "Building project").ok();
     crate::time!(ctx.flags.timing, ctx.io.output, "CMake build", {
       ctx.runner.run(
         &[
@@ -75,7 +75,7 @@ pub fn meson_build(
     ctx.runner.run(&meson_cmd, None, ctx.flags, ctx.io.output)?;
   });
   if !args.build.no_build {
-    writeln!(ctx.io.output, "Building project\n").ok();
+    writeln!(ctx.io.output, "Building project").ok();
     crate::time!(ctx.flags.timing, ctx.io.output, "Meson compile", {
       ctx.runner.run(
         &["meson", "compile", "-C", to_str(build_path)?],
@@ -106,7 +106,7 @@ pub fn npm_build(
     )?;
   });
   if !args.build.no_build && !is_mono {
-    writeln!(ctx.io.output, "Building project\n").ok();
+    writeln!(ctx.io.output, "Building project").ok();
     crate::time!(ctx.flags.timing, ctx.io.output, "npm build", {
       ctx.runner.run(
         &["npm", "run", "build"],

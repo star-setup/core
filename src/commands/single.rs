@@ -4,8 +4,7 @@ use crate::{
     configure_and_build, extract_repo_input, prepare_build_dir, print_mode_header, ModeHeader,
   },
   ctx::RunCtx,
-  prompts::confirm,
-  repository::{clone_repository, pull_repository, repo_dir_name},
+  repository::{clone_repository, repo_dir_name},
 };
 use std::path::Path;
 
@@ -18,9 +17,9 @@ pub fn single_repo_mode(
   ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
   let total = std::time::Instant::now();
-
   let repo = extract_repo_input(args)?;
   let dir_name = repo_dir_name(repo);
+  let repo_path = base_dir.join(&dir_name);
 
   print_mode_header(
     &ModeHeader {
@@ -31,32 +30,32 @@ pub fn single_repo_mode(
       mono_dir: None,
       profile: None,
       lib_count: None,
+      repo_count: None,
     },
     &mut ctx.io,
   );
 
-  let repo_path = base_dir.join(&dir_name);
-  if repo_path.exists() {
-    writeln!(ctx.io.output, "Repository {dir_name} already exists").ok();
-    if confirm("Update existing repository?", args.yes, &mut ctx.io)? {
-      writeln!(ctx.io.output, "Updating {dir_name}\n").ok();
-      crate::time!(ctx.flags.timing, ctx.io.output, "Update", {
-        pull_repository(&repo_path, ctx)?;
-      });
-    }
-  } else {
-    clone_repository(repo, base_dir, args.connection.ssh, ctx)?;
-  }
+  writeln!(ctx.io.output, "Cloning repository").ok();
+  clone_repository(repo, base_dir, args.connection.ssh, false, args.yes, ctx)?;
 
+  writeln!(ctx.io.output, "Detecting build system").ok();
   let build_path = repo_path.join(&args.build.build_dir);
-  let build_system = if let Some(bs) = args.build.build_system {
-    Some(bs)
-  } else if ctx.flags.dry_run {
-    writeln!(ctx.io.output, "Would detect build system after cloning").ok();
-    None
-  } else {
-    Some(detect_build_system(&repo_path, ctx)?)
-  };
+  let build_system = crate::time!(ctx.flags.timing, ctx.io.output, "Detect", {
+    let result = if let Some(bs) = args.build.build_system {
+      if ctx.flags.verbose {
+        writeln!(ctx.io.output, "  Build system flag set: {bs:?}").ok();
+      }
+      Some(bs)
+    } else if ctx.flags.dry_run {
+      writeln!(ctx.io.output, "  Would detect build system after cloning").ok();
+      None
+    } else {
+      Some(detect_build_system(&repo_path, ctx)?)
+    };
+    writeln!(ctx.io.output, "  Finished detecting").ok();
+    result
+  });
+  writeln!(ctx.io.output).ok();
 
   if let Some(build_system) = build_system {
     if build_system == BuildSystem::Npm {

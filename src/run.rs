@@ -23,10 +23,15 @@ pub fn run(config_path: PathBuf) -> Result<(), Box<dyn Error>> {
   let mut stdout = io::stdout();
   let is_terminal = stdin.is_terminal() && stdout.is_terminal();
 
-  let mut config = load_config(&config_locations(config_path.as_path()), &mut stdout);
   let mut raw = Args::parse();
-  let command = raw.command.take();
   let yes = raw.yes;
+  let command = raw.command.take();
+  let mut config = load_config(
+    &config_locations(config_path.as_path()),
+    raw.diagnostic.verbose,
+    raw.diagnostic.timing,
+    &mut stdout,
+  );
 
   let mut args = resolve_with_config(raw, &config).map_err(Box::<dyn Error>::from)?;
   let mut flags = args.diagnostic;

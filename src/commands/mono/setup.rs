@@ -20,7 +20,7 @@ pub fn generate_mono_config(
   repos: &[String],
   ctx: &mut RunCtx<'_, '_>,
 ) -> Result<Option<std::collections::HashMap<String, String>>, String> {
-  writeln!(ctx.io.output, "Creating mono-repo configuration").ok();
+  writeln!(ctx.io.output, "  Creating mono-repo configuration").ok();
   match build_system {
     BuildSystem::Cmake => {
       create_mono_repo_cmakelists(mono_repo_path, repos, &mut ctx.io, ctx.flags)?;

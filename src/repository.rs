@@ -1,6 +1,6 @@
 //! Repository functions including cloning and URL resolution.
 
-use crate::ctx::RunCtx;
+use crate::{ctx::RunCtx, prompts::confirm};
 use std::path::Path;
 
 /// Converts a repository path or URL to a local directory name (`owner-repo`).
@@ -41,28 +41,37 @@ pub fn clone_repository(
   repo_path: &str,
   target_dir: &Path,
   use_ssh: bool,
+  on_exists_skip: bool,
+  yes: bool,
   ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
   let repo_name = repo_dir_name(repo_path);
   let repo_dir = target_dir.join(&repo_name);
 
   if repo_dir.exists() {
-    writeln!(ctx.io.output, "\n  {repo_name} already exists").ok();
-    return Ok(());
+    writeln!(ctx.io.output, "  Repository already exists").ok();
+    if !on_exists_skip && confirm("  Update existing repository?", yes, &mut ctx.io)? {
+      crate::time!(ctx.flags.timing, ctx.io.output, "Update", {
+        pull_repository(&repo_dir, ctx)?;
+      });
+    }
+  } else {
+    let repo_url = resolve_repo_url(repo_path, use_ssh);
+    crate::time!(ctx.flags.timing, ctx.io.output, "Clone", {
+      ctx.runner.run(
+        &["git", "clone", &repo_url, &repo_name],
+        Some(target_dir),
+        ctx.flags,
+        ctx.io.output,
+      )?;
+      writeln!(ctx.io.output, "  Finished cloning {repo_name}").ok();
+      Ok::<(), String>(())
+    })
+    .map_err(|e| format!("Failed to clone {repo_path}: {e}"))?;
   }
 
-  writeln!(ctx.io.output, "\n  Cloning {repo_name}").ok();
-  let repo_url = resolve_repo_url(repo_path, use_ssh);
-
-  ctx
-    .runner
-    .run(
-      &["git", "clone", &repo_url, &repo_name],
-      Some(target_dir),
-      ctx.flags,
-      ctx.io.output,
-    )
-    .map_err(|e| format!("Failed to clone {repo_path}: {e}"))
+  writeln!(ctx.io.output).ok();
+  Ok(())
 }
 
 /// Pulls the latest changes for an existing repository.

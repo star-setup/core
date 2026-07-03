@@ -56,7 +56,7 @@ pub fn ask_choice(prompt: &str, options: &[&str], io: &mut IoCtx<'_>) -> Result<
     writeln!(io.output, "  {}) {opt}", i + 1).ok();
   }
   loop {
-    let input = read_input_line("Select: ", io)?;
+    let input = read_input_line("  Select: ", io)?;
     if let Ok(n) = input.parse::<usize>() {
       if n >= 1 && n <= options.len() {
         return Ok(n - 1);
@@ -104,7 +104,7 @@ pub fn confirm(prompt: &str, yes: bool, io: &mut IoCtx<'_>) -> Result<bool, Stri
 /// Returns an error if stdin reaches EOF unexpecedly.
 pub fn confirm_abort(warning_msg: &str, yes: bool, io: &mut IoCtx<'_>) -> Result<bool, String> {
   if !confirm(warning_msg, yes, io)? {
-    writeln!(io.output, "Aborted.").ok();
+    writeln!(io.output, "  Aborted.").ok();
     return Ok(false);
   }
   Ok(true)

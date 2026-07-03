@@ -64,7 +64,7 @@ pub fn handle_profile_cmd(
 /// Returns an error if resolving, updating, cleaning, or fetching status for the workspace fails.
 pub fn handle_workspace_cmd(
   action: WorkspaceAction,
-  io: IoCtx,
+  mut io: IoCtx,
   flags: RunFlags,
 ) -> Result<(), Box<dyn Error>> {
   match action {
@@ -73,7 +73,13 @@ pub fn handle_workspace_cmd(
       mono_dir,
       build_dir,
     } => {
-      let ws = resolve_workspace(path.as_deref(), mono_dir.as_deref(), build_dir.as_deref())?;
+      let ws = resolve_workspace(
+        path.as_deref(),
+        mono_dir.as_deref(),
+        build_dir.as_deref(),
+        &mut io,
+        flags.verbose,
+      )?;
       with_runner(io, flags, |ctx| ws.update(ctx).map_err(Into::into))?;
     }
     WorkspaceAction::Status {
@@ -82,7 +88,13 @@ pub fn handle_workspace_cmd(
       build_dir,
       fetch,
     } => {
-      let ws = resolve_workspace(path.as_deref(), mono_dir.as_deref(), build_dir.as_deref())?;
+      let ws = resolve_workspace(
+        path.as_deref(),
+        mono_dir.as_deref(),
+        build_dir.as_deref(),
+        &mut io,
+        flags.verbose,
+      )?;
       with_runner(io, flags, |ctx| ws.status(fetch, ctx).map_err(Into::into))?;
     }
     WorkspaceAction::Clean {
@@ -90,7 +102,13 @@ pub fn handle_workspace_cmd(
       mono_dir,
       build_dir,
     } => {
-      let ws = resolve_workspace(path.as_deref(), mono_dir.as_deref(), build_dir.as_deref())?;
+      let ws = resolve_workspace(
+        path.as_deref(),
+        mono_dir.as_deref(),
+        build_dir.as_deref(),
+        &mut io,
+        flags.verbose,
+      )?;
       with_runner(io, flags, |ctx| ws.clean(ctx).map_err(Into::into))?;
     }
   }
