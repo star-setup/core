@@ -17,7 +17,9 @@ use std::{
 
 /// Runs the setup process.
 /// # Errors
-/// Returns an error if the configuration file is missing or corrupted.
+/// Returns an error if arguments can't be resolved,
+///                  a required tool is missing,
+///                  or the selected mode fails.
 pub fn run(config_path: PathBuf) -> Result<(), Box<dyn Error>> {
   let mut stdin = io::stdin().lock();
   let mut stdout = io::stdout();
