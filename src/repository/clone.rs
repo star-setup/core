@@ -1,6 +1,6 @@
 use crate::{
   ctx::{IoCtx, RunCtx},
-  prompts::confirm,
+  prompts::{confirm, confirm_batch, BatchConfirm},
   repository::{pull_repo, repo_dir_name, resolve_repo_url},
 };
 use std::{
@@ -96,23 +96,58 @@ pub fn clone_repo(
   Ok(())
 }
 
-/// Clones all repositories into the given directory.
+/// Clones all repositories into the given directory, prompting before updating
+/// any that already exist (with all/skip-all shortcuts for 5 or more repos).
 /// # Errors
-/// Returns an error if any repository fails to clone or an existing invalid
-/// directory cannot be removed.
+/// Returns an error if any repository fails to clone, an existing invalid
+/// directory cannot be removed, or a confirmation prompt reaches end of input.
 pub fn clone_repos(
   repos: &[String],
   target_dir: &Path,
   ssh: bool,
+  yes: bool,
   ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
+  let allow_all = repos.len() >= 5;
+  let mut remembered: Option<bool> = None;
   writeln!(ctx.io.output, "Cloning repositories").ok();
   crate::time!(ctx.flags.timing, ctx.io.output, "Clone", {
     for repo in repos {
       if ctx.flags.verbose {
         writeln!(ctx.io.output, "  Cloning {}", repo_dir_name(repo)).ok();
       }
-      clone_repo(repo, target_dir, ssh, |_| Ok(ExistsAction::Skip), ctx)?;
+      clone_repo(
+        repo,
+        target_dir,
+        ssh,
+        |io| {
+          if yes {
+            return Ok(ExistsAction::Update);
+          }
+          if let Some(update) = remembered {
+            return Ok(if update {
+              ExistsAction::Update
+            } else {
+              ExistsAction::Skip
+            });
+          }
+          Ok(
+            match confirm_batch("  Update existing repository?", allow_all, io)? {
+              BatchConfirm::Yes => ExistsAction::Update,
+              BatchConfirm::No => ExistsAction::Skip,
+              BatchConfirm::YesAll => {
+                remembered = Some(true);
+                ExistsAction::Update
+              }
+              BatchConfirm::NoAll => {
+                remembered = Some(false);
+                ExistsAction::Skip
+              }
+            },
+          )
+        },
+        ctx,
+      )?;
     }
     if ctx.flags.verbose {
       writeln!(

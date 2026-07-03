@@ -2,7 +2,7 @@ use std::fs::create_dir_all;
 
 use star_setup::{
   ctx::ProcessRunner,
-  repository::{ExistsAction, clone_repo, clone_repos},
+  repository::{clone_repo, clone_repos, ExistsAction},
 };
 use tempfile::TempDir;
 
@@ -53,7 +53,7 @@ fn test_clone_repo_calls_git_clone() {
 fn test_clone_repos_calls_clone_for_each_repo() {
   let runner = with_ctx_runner(MockRunner::new(), |tmp_path, ctx| {
     let repos = vec!["user/repo1".to_string(), "user/repo2".to_string()];
-    clone_repos(&repos, tmp_path, false, ctx).unwrap();
+    clone_repos(&repos, tmp_path, false, false, ctx).unwrap();
   });
 
   assert_eq!(runner.calls.len(), 2);
@@ -66,7 +66,7 @@ fn test_clone_repos_calls_clone_for_each_repo() {
 #[test]
 fn test_clone_repos_empty() {
   let runner = with_ctx_runner(MockRunner::new(), |tmp_path, ctx| {
-    clone_repos(&[], tmp_path, false, ctx).unwrap();
+    clone_repos(&[], tmp_path, false, false, ctx).unwrap();
   });
 
   assert!(runner.calls.is_empty());
@@ -77,7 +77,7 @@ fn test_clone_repos_per_repo_lines_require_verbose() {
   let repos = vec!["user/repo1".to_string(), "user/repo2".to_string()];
 
   let (_, output) = with_ctx(MockRunner::new(), |tmp_path, ctx| {
-    clone_repos(&repos, tmp_path, false, ctx).unwrap();
+    clone_repos(&repos, tmp_path, false, false, ctx).unwrap();
   });
   let out = String::from_utf8(output).unwrap();
   assert!(out.contains("Cloning repositories"));
@@ -86,7 +86,7 @@ fn test_clone_repos_per_repo_lines_require_verbose() {
 
   let (_, output) = with_ctx(MockRunner::new(), |tmp_path, ctx| {
     ctx.flags.verbose = true;
-    clone_repos(&repos, tmp_path, false, ctx).unwrap();
+    clone_repos(&repos, tmp_path, false, false, ctx).unwrap();
   });
   let out = String::from_utf8(output).unwrap();
   assert!(out.contains("Cloning user-repo1"));

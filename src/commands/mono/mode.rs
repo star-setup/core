@@ -69,7 +69,7 @@ pub fn mono_repo_mode(
     writeln!(ctx.io.output).ok();
   }
 
-  clone_repos(&repos, &repos_path, args.connection.ssh, ctx)?;
+  clone_repos(&repos, &repos_path, args.connection.ssh, args.yes, ctx)?;
 
   let repo_dirs: Vec<PathBuf> = repos
     .iter()
