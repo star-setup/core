@@ -6,7 +6,8 @@ use std::{collections::HashMap, path::PathBuf};
 
 /// Represents a single named configuration entry.
 #[allow(clippy::struct_excessive_bools)]
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize)]
+#[serde(default)]
 pub struct ConfigEntry {
   /// Use SSH instead of HTTPS for cloning.
   pub ssh: bool,
@@ -76,6 +77,28 @@ impl ConfigEntry {
       no_dev: build.no_dev,
       cmake_flags: build.cmake_flags.clone(),
       meson_flags: build.meson_flags.clone(),
+    }
+  }
+}
+
+impl Default for ConfigEntry {
+  fn default() -> Self {
+    Self {
+      ssh: false,
+      build_type: BuildType::Debug,
+      build_dir: "build".to_string(),
+      mono_dir: "build-mono".to_string(),
+      no_build: false,
+      clean: false,
+      verbose: false,
+      timing: false,
+      dry_run: false,
+      watch: false,
+      no_watch: false,
+      dev: false,
+      no_dev: false,
+      cmake_flags: vec![],
+      meson_flags: vec![],
     }
   }
 }

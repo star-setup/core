@@ -1,5 +1,4 @@
 use crate::{
-  cli::BuildType::Debug,
   config::{format_entry, persist_or_dry_run, save_config, ConfigEntry, SetupConfig},
   ctx::{IoCtx, RunFlags},
   prompts::confirm_abort,
@@ -54,26 +53,9 @@ pub fn create_default_config(
   } else {
     let mut config = SetupConfig::new();
     config.path = Some(path.clone());
-    config.configs.insert(
-      "default".to_string(),
-      ConfigEntry {
-        ssh: false,
-        build_type: Debug,
-        build_dir: "build".to_string(),
-        mono_dir: "build-mono".to_string(),
-        no_build: false,
-        clean: false,
-        verbose: false,
-        timing: false,
-        dry_run: false,
-        watch: false,
-        no_watch: false,
-        dev: false,
-        no_dev: false,
-        cmake_flags: vec![],
-        meson_flags: vec![],
-      },
-    );
+    config
+      .configs
+      .insert("default".to_string(), ConfigEntry::default());
 
     let path = save_config(&mut config, flags.timing, &mut io.output)?;
 
