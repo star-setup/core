@@ -14,3 +14,5 @@ pub mod setup;
 pub use setup::{build_repo_list, generate_mono_config};
 pub mod watch;
 pub use watch::{generate_watch_scripts, open_watch_scripts};
+pub mod npm;
+pub use npm::read_package_json;

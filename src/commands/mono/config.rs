@@ -1,13 +1,10 @@
 use crate::{
+  commands::read_package_json,
   ctx::{IoCtx, RunFlags},
   repository::repo_dir_name,
   utils::{dry_run_or_do, report_summary},
 };
-use serde_json::{from_str, Value};
-use std::{
-  fs::{self, read_to_string},
-  path::Path,
-};
+use std::{fs::write, path::Path};
 
 /// Shared helper to generate, write, and log monorepo build configuration files.
 fn write_mono_repo_config(
@@ -31,7 +28,7 @@ fn write_mono_repo_config(
     io,
     flags,
     &format!("Generate {filename}"),
-    || fs::write(&file_path, content).map_err(|e| e.to_string()),
+    || write(&file_path, content).map_err(|e| e.to_string()),
   )?;
 
   report_summary(
@@ -157,30 +154,10 @@ pub fn create_mono_repo_package_json(
     if i == 0 {
       continue;
     }
-    let pkg_path = repos_path.join(dir).join("package.json");
-    if let Ok(content) = read_to_string(&pkg_path) {
-      match from_str::<Value>(&content) {
-        Ok(json) => {
-          if let Some(name) = json.get("name").and_then(|n| n.as_str()) {
-            overrides.push(format!("    \"{name}\": \"*\""));
-          }
-        }
-        Err(_) => {
-          if flags.verbose {
-            writeln!(
-              io.output,
-              "  Warning: malformed {dir}/package.json, skipping override"
-            )
-            .ok();
-          }
-        }
+    if let Some(json) = read_package_json(repos_path, dir, "skipping override", io, flags) {
+      if let Some(name) = json.get("name").and_then(|n| n.as_str()) {
+        overrides.push(format!("    \"{name}\": \"*\""));
       }
-    } else if flags.verbose {
-      writeln!(
-        io.output,
-        "  Warning: could not read {dir}/package.json, skipping override"
-      )
-      .ok();
     }
   }
 
@@ -202,7 +179,7 @@ pub fn create_mono_repo_package_json(
     io,
     flags,
     "Generate package.json",
-    || fs::write(&file_path, content).map_err(|e| e.to_string()),
+    || write(&file_path, content).map_err(|e| e.to_string()),
   )?;
 
   report_summary(

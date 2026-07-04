@@ -1,15 +1,12 @@
 use crate::{
+  commands::read_package_json,
   ctx::{IoCtx, RunFlags},
   repository::repo_dir_name,
   utils::{dry_run_or_do, report_summary},
 };
 use dunce::canonicalize;
-use serde_json::{from_str, Value};
 use std::process::Command;
-use std::{
-  fs::{read_to_string, write},
-  path::Path,
-};
+use std::{fs::write, path::Path};
 
 /// Reads a lib's package.json and returns the appropriate watch command.
 fn get_watch_command(
@@ -18,47 +15,21 @@ fn get_watch_command(
   io: &mut IoCtx<'_>,
   flags: RunFlags,
 ) -> Option<String> {
-  let pkg_path = repos_path.join(dir).join("package.json");
-  match read_to_string(&pkg_path) {
-    Err(_) => {
-      if flags.verbose {
-        writeln!(
-          io.output,
-          "  Warning: could not read {dir}/package.json, skipping"
-        )
-        .ok();
-      }
-      None
+  let json = read_package_json(repos_path, dir, "skipping", io, flags)?;
+  let scripts = json.get("scripts")?;
+  if scripts.get("watch").is_some() {
+    Some(format!("npm --workspace=repos/{dir} run watch"))
+  } else if scripts.get("build").is_some() {
+    Some(format!("npm --workspace=repos/{dir} run build -- --watch"))
+  } else {
+    if flags.verbose {
+      writeln!(
+        io.output,
+        "  Warning: {dir} has no watch or build script, skipping"
+      )
+      .ok();
     }
-    Ok(content) => match from_str::<Value>(&content) {
-      Err(_) => {
-        if flags.verbose {
-          writeln!(
-            io.output,
-            "  Warning: malformed {dir}/package.json, skipping"
-          )
-          .ok();
-        }
-        None
-      }
-      Ok(json) => {
-        let scripts = json.get("scripts")?;
-        if scripts.get("watch").is_some() {
-          Some(format!("npm --workspace=repos/{dir} run watch"))
-        } else if scripts.get("build").is_some() {
-          Some(format!("npm --workspace=repos/{dir} run build -- --watch"))
-        } else {
-          if flags.verbose {
-            writeln!(
-              io.output,
-              "  Warning: {dir} has no watch or build script, skipping"
-            )
-            .ok();
-          }
-          None
-        }
-      }
-    },
+    None
   }
 }
 
