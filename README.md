@@ -131,6 +131,8 @@ star-setup username/repo
 
 Build system is auto-detected from the repository root (`CMakeLists.txt` → CMake, `meson.build` → Meson, `package.json` → npm).
 
+Pass `--dev` to launch the project's dev server after setup — runs in the foreground; press Ctrl-C to stop.
+
 ### Mono-Repo Mode
 Clones multiple repositories into a single workspace and auto-detects the build system.
 
@@ -210,7 +212,7 @@ star-setup username/repo --repos user/lib1 user/lib2
 star-setup username/repo --repos user/lib1 user/lib2 --no-watch
 ```
 
-After setup, run the game from its repo directory:
+After setup pass `--dev` to launch it automatically, or run the game from its repo directory:
 ```bash
 cd build-mono/repos/user-my-repo
 npm run dev
