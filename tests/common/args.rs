@@ -38,6 +38,8 @@ pub fn default_args() -> Args {
       meson_flags: vec![],
       watch: false,
       no_watch: false,
+      dev: false,
+      no_dev: false,
     },
     mono: MonoRepoFlags {
       mono_repo: false,

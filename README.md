@@ -86,6 +86,8 @@ cargo install --git https://github.com/star-setup/core
 | `--meson-arg <ARG>`       | Pass additional argument to Meson                      |
 | `--watch`                 | Generate and open watch scripts (npm mono-repo mode)   |
 | `--no-watch`              | Skip generating watch scripts (npm mono-repo mode)     |
+| `--dev`                   | Automatically start the dev server (npm)               |
+| `--no-dev`                | Skip opening the dev server (npm)                      |
 
 
 #### Mono-Repo

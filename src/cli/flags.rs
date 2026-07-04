@@ -57,6 +57,13 @@ pub struct BuildFlags {
   /// Skip generating watch scripts. (overrides config)
   #[arg(long, conflicts_with = "watch")]
   pub no_watch: bool,
+
+  /// Automatically open dev server.
+  #[arg(long, conflicts_with = "no_dev")]
+  pub dev: bool,
+  /// Skip opening the dev server. (overrides config)
+  #[arg(long, conflicts_with = "dev")]
+  pub no_dev: bool,
 }
 
 #[derive(ClapArgs)]
