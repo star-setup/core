@@ -78,24 +78,24 @@ pub fn generate_watch_scripts(
     return Ok(false);
   }
 
-  let ps1_lines: Vec<String> = lib_dirs
+  let watch_cmds: Vec<String> = lib_dirs
     .iter()
-    .filter_map(|d| {
-      get_watch_command(repos_path, d, io, flags).map(|cmd| {
-        format!(
-          "Start-Process powershell -ArgumentList '-NoExit', '-Command', 'cd \"{}\"; {cmd}'",
-          mono_dir.display()
-        )
-      })
+    .filter_map(|d| get_watch_command(repos_path, d, io, flags))
+    .collect();
+
+  let ps1_lines: Vec<String> = watch_cmds
+    .iter()
+    .map(|cmd| {
+      format!(
+        "Start-Process powershell -ArgumentList '-NoExit', '-Command', 'cd \"{}\"; {cmd}'",
+        mono_dir.display()
+      )
     })
     .collect();
 
-  let sh_lines: Vec<String> = lib_dirs
+  let sh_lines: Vec<String> = watch_cmds
     .iter()
-    .filter_map(|d| {
-      get_watch_command(repos_path, d, io, flags)
-        .map(|cmd| format!("cd \"{}\" && {cmd} &", mono_dir.display()))
-    })
+    .map(|cmd| format!("cd \"{}\" && {cmd} &", mono_dir.display()))
     .collect();
 
   let ps1_content = format!("# Watch all lib repositories\n{}\n", ps1_lines.join("\n"));
