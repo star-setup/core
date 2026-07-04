@@ -7,7 +7,7 @@ use crate::{
     clone_repo, repo_dir_name,
     ExistsAction::{Skip, Update},
   },
-  utils::dry_run::detect_or_dry_run,
+  utils::detect_or_dry_run,
 };
 use std::{path::Path, time::Instant};
 

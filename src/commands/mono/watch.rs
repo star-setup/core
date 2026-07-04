@@ -1,7 +1,7 @@
 use crate::{
   ctx::{IoCtx, RunFlags},
   repository::repo_dir_name,
-  utils::dry_run_or_do,
+  utils::{dry_run_or_do, report_summary},
 };
 use dunce::canonicalize;
 use serde_json::{from_str, Value};
@@ -120,23 +120,12 @@ pub fn generate_watch_scripts(
     },
   )?;
 
-  if flags.dry_run {
-    if flags.verbose {
-      writeln!(
-        io.output,
-        "  Would generate watch scripts at {}",
-        mono_dir.display()
-      )
-      .ok();
-    }
-  } else {
-    writeln!(
-      io.output,
-      "  Generated watch scripts at {}",
-      mono_dir.display()
-    )
-    .ok();
-  }
+  report_summary(
+    io,
+    flags,
+    &format!("generate watch scripts at {}", mono_dir.display()),
+    &format!("Generated watch scripts at {}", mono_dir.display()),
+  );
 
   if flags.verbose {
     writeln!(io.output, "  Watching {} libraries:", lib_dirs.len()).ok();

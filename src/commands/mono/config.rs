@@ -1,7 +1,7 @@
 use crate::{
   ctx::{IoCtx, RunFlags},
   repository::repo_dir_name,
-  utils::dry_run_or_do,
+  utils::{dry_run_or_do, report_summary},
 };
 use serde_json::{from_str, Value};
 use std::{
@@ -34,28 +34,12 @@ fn write_mono_repo_config(
     || fs::write(&file_path, content).map_err(|e| e.to_string()),
   )?;
 
-  // .to_string() is required to force an allocation and satisfy line coverage tracking
-  if flags.dry_run {
-    if flags.verbose {
-      #[allow(clippy::to_string_in_format_args)]
-      writeln!(
-        io.output,
-        "  Would create root {} at {}\n",
-        filename.to_string(),
-        mono_dir.display()
-      )
-      .ok();
-    }
-  } else {
-    #[allow(clippy::to_string_in_format_args)]
-    writeln!(
-      io.output,
-      "  Created root {} at {}\n",
-      filename.to_string(),
-      mono_dir.display()
-    )
-    .ok();
-  }
+  report_summary(
+    io,
+    flags,
+    &format!("create root {filename} at {}\n", mono_dir.display()),
+    &format!("Created root {filename} at {}\n", mono_dir.display()),
+  );
 
   Ok(())
 }
@@ -221,23 +205,12 @@ pub fn create_mono_repo_package_json(
     || fs::write(&file_path, content).map_err(|e| e.to_string()),
   )?;
 
-  if flags.dry_run {
-    if flags.verbose {
-      writeln!(
-        io.output,
-        "  Would create root package.json at {}\n",
-        mono_dir.display()
-      )
-      .ok();
-    }
-  } else {
-    writeln!(
-      io.output,
-      "  Created root package.json at {}\n",
-      mono_dir.display()
-    )
-    .ok();
-  }
+  report_summary(
+    io,
+    flags,
+    &format!("create root package.json at {}\n", mono_dir.display()),
+    &format!("Created root package.json at {}\n", mono_dir.display()),
+  );
 
   Ok(())
 }
