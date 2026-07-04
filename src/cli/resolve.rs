@@ -69,6 +69,30 @@ pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<Resol
     default.map(|e| e.clean),
     false,
   );
+  let watch = resolve_bool(
+    args.build.watch,
+    args.build.no_watch,
+    default.map(|e| e.watch),
+    false,
+  );
+  let no_watch = resolve_bool(
+    args.build.no_watch,
+    args.build.watch,
+    default.map(|e| e.no_watch),
+    false,
+  );
+  let dev = resolve_bool(
+    args.build.dev,
+    args.build.no_dev,
+    default.map(|e| e.dev),
+    false,
+  );
+  let no_dev = resolve_bool(
+    args.build.no_dev,
+    args.build.dev,
+    default.map(|e| e.no_dev),
+    false,
+  );
 
   let cmake_flags = Some(args.build.cmake_flags)
     .filter(|f| !f.is_empty())
@@ -104,12 +128,12 @@ pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<Resol
       build_system: args.build.build_system,
       no_build,
       clean,
+      watch,
+      no_watch,
+      dev,
+      no_dev,
       cmake_flags,
       meson_flags,
-      watch: args.build.watch,
-      no_watch: args.build.no_watch,
-      dev: args.build.dev,
-      no_dev: args.build.no_dev,
     },
     mono: ResolvedMonoFlags {
       mono_repo,

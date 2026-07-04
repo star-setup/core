@@ -16,6 +16,10 @@ pub fn format_entry(e: &ConfigEntry) -> String {
   writeln!(out, "  Clean flag: {}", e.clean).ok();
   writeln!(out, "  Verbose flag: {}", e.verbose).ok();
   writeln!(out, "  Timing flag: {}", e.timing).ok();
+  writeln!(out, "  Watch flag: {}", e.watch).ok();
+  writeln!(out, "  No-watch flag: {}", e.no_watch).ok();
+  writeln!(out, "  Dev flag: {}", e.dev).ok();
+  writeln!(out, "  No-dev flag: {}", e.no_dev).ok();
   if e.cmake_flags.is_empty() {
     out.push('\n');
   } else if e.cmake_flags.len() == 1 {

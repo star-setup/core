@@ -26,6 +26,14 @@ pub struct ConfigEntry {
   pub timing: bool,
   /// Print commands instead of executing them.
   pub dry_run: bool,
+  /// Automatically open the libraries watch scripts.
+  pub watch: bool,
+  /// Do not generate the libraries watch scripts.
+  pub no_watch: bool,
+  /// Automatically open the test repo's dev server.
+  pub dev: bool,
+  /// Do not open the test repo's dev server.
+  pub no_dev: bool,
   /// Additional `CMake` arguments.
   pub cmake_flags: Vec<String>,
   /// Additional `Meson` arguments.
@@ -62,6 +70,10 @@ impl ConfigEntry {
       verbose: diagnostic.verbose,
       timing: diagnostic.timing,
       dry_run: diagnostic.dry_run,
+      watch: build.watch,
+      no_watch: build.no_watch,
+      dev: build.dev,
+      no_dev: build.no_dev,
       cmake_flags: build.cmake_flags.clone(),
       meson_flags: build.meson_flags.clone(),
     }
@@ -80,6 +92,10 @@ impl From<&ResolvedArgs> for ConfigEntry {
       verbose: args.diagnostic.verbose,
       timing: args.diagnostic.timing,
       dry_run: args.diagnostic.dry_run,
+      watch: args.build.watch,
+      no_watch: args.build.no_watch,
+      dev: args.build.dev,
+      no_dev: args.build.no_dev,
       cmake_flags: args.build.cmake_flags.clone(),
       meson_flags: args.build.meson_flags.clone(),
     }
