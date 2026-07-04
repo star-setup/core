@@ -113,3 +113,25 @@ fn test_load_config_falls_through_invalid_to_valid() {
     assert!(loaded.configs.contains_key("second"));
   });
 }
+
+#[test]
+fn test_load_config_defaults_missing_fields() {
+  let tmp = TempDir::new().unwrap();
+  let path = tmp.path().join(".star-setup.json");
+  write(
+    &path,
+    r#"{ "configs": { "default": { "ssh": true, "verbose": true } } }"#,
+  )
+  .unwrap();
+
+  with_io_output(|io| {
+    let loaded = load_config(&[path], false, false, &mut io.output);
+    let entry = &loaded.configs["default"];
+    assert!(entry.ssh);
+    assert!(entry.verbose);
+    assert!(!entry.dev);
+    assert_eq!(entry.build_dir, "build");
+    assert_eq!(entry.mono_dir, "build-mono");
+    assert_eq!(entry.build_type, BuildType::Debug);
+  });
+}
