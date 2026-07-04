@@ -125,7 +125,11 @@ fn test_npm_build_install_only_prints_header() {
 fn test_npm_build_skips_build_without_script() {
   let args = default_resolved_with_no_build(false);
   let runner = with_ctx_runner(MockRunner::new(), |tmp_path, ctx| {
-    write(tmp_path.join("package.json"), r#"{"scripts": {"typecheck": "tsc --noEmit"}}"#).unwrap();
+    write(
+      tmp_path.join("package.json"),
+      r#"{"scripts": {"typecheck": "tsc --noEmit"}}"#,
+    )
+    .unwrap();
     npm_build(&args, tmp_path, false, ctx).unwrap();
   });
   assert_eq!(runner.calls.len(), 1);
