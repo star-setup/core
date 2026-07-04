@@ -8,6 +8,7 @@ use crate::{
   commands::read_package_json,
   ctx::{IoCtx, RunCtx, RunFlags},
 };
+use serde_json::Value;
 use std::{
   path::Path,
   process::{Command, Stdio},
@@ -21,13 +22,23 @@ pub fn resolve_dev_command(
 ) -> Option<String> {
   let json = read_package_json(repo_path, "skipping dev server", io, flags)?;
   if json.get("scripts").and_then(|s| s.get("dev")).is_some() {
-    Some("npm run dev".to_string())
-  } else {
-    if flags.verbose {
-      writeln!(io.output, "  No dev script found, skipping dev server").ok();
-    }
-    None
+    return Some("npm run dev".to_string());
   }
+  if is_vercel_project(repo_path, &json) {
+    return Some("vercel dev".to_string());
+  }
+  if flags.verbose {
+    writeln!(io.output, "  No dev script found, skipping dev server").ok();
+  }
+  None
+}
+
+fn is_vercel_project(repo_path: &Path, json: &Value) -> bool {
+  repo_path.join("vercel.json").exists()
+    || repo_path.join("api").is_dir()
+    || ["dependencies", "devDependencies"]
+      .iter()
+      .any(|k| json.get(k).and_then(|d| d.get("@vercel/node")).is_some())
 }
 
 /// Runs the dev server in the foreground, blocking until it exits (Ctrl-C).
