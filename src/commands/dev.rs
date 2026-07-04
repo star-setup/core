@@ -1,3 +1,5 @@
+#[cfg(not(target_os = "windows"))]
+use crate::utils::process::resolve_exe_args;
 use crate::{
   cli::{
     BuildSystem::{self, Npm},
@@ -5,7 +7,6 @@ use crate::{
   },
   commands::read_package_json,
   ctx::{IoCtx, RunCtx, RunFlags},
-  utils::process::resolve_exe_args,
 };
 use std::{
   path::Path,
@@ -51,11 +52,22 @@ pub fn open_dev_server(
   )
   .ok();
 
-  let parts: Vec<&str> = cmd.split_whitespace().collect();
-  let resolved = resolve_exe_args(&parts);
-  let mut command = Command::new(resolved[0]);
+  #[cfg(target_os = "windows")]
+  let mut command = {
+    let mut c = Command::new("powershell");
+    c.args(["-NoProfile", "-Command", cmd]);
+    c
+  };
+  #[cfg(not(target_os = "windows"))]
+  let mut command = {
+    let parts: Vec<&str> = cmd.split_whitespace().collect();
+    let resolved = resolve_exe_args(&parts);
+    let mut c = Command::new(resolved[0]);
+    c.args(&resolved[1..]);
+    c
+  };
+
   command
-    .args(&resolved[1..])
     .current_dir(repo_path)
     .stdin(Stdio::inherit())
     .stdout(Stdio::inherit())
