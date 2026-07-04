@@ -1,4 +1,4 @@
-use crate::{common::with_io_output, fixtures::sample_entry};
+use crate::common::with_io_output;
 use star_setup::{
   cli::BuildType,
   config::{insert_config, load_config, save_config, ConfigEntry, SetupConfig},
@@ -19,19 +19,8 @@ fn test_save_and_load_roundtrip() {
     ConfigEntry {
       ssh: true,
       build_type: BuildType::Release,
-      build_dir: "build".to_string(),
       mono_dir: "mono".to_string(),
-      no_build: false,
-      clean: false,
-      verbose: false,
-      timing: false,
-      dry_run: false,
-      cmake_flags: vec![],
-      meson_flags: vec![],
-      watch: false,
-      no_watch: false,
-      dev: false,
-      no_dev: false,
+      ..ConfigEntry::default()
     },
   );
 
@@ -92,11 +81,11 @@ fn test_load_config_first_valid_wins() {
 
   with_io_output(|io| {
     config1.path = Some(path1.clone());
-    insert_config(&mut config1, "first", sample_entry());
+    insert_config(&mut config1, "first", ConfigEntry::default());
     save_config(&mut config1, false, &mut io.output).unwrap();
 
     config2.path = Some(path2.clone());
-    insert_config(&mut config2, "second", sample_entry());
+    insert_config(&mut config2, "second", ConfigEntry::default());
     save_config(&mut config2, false, &mut io.output).unwrap();
 
     let loaded = load_config(&[path1, path2], false, false, &mut io.output);
@@ -116,11 +105,33 @@ fn test_load_config_falls_through_invalid_to_valid() {
 
   let mut config2 = SetupConfig::new();
   config2.path = Some(path2.clone());
-  insert_config(&mut config2, "second", sample_entry());
+  insert_config(&mut config2, "second", ConfigEntry::default());
 
   with_io_output(|io| {
     save_config(&mut config2, false, &mut io.output).unwrap();
     let loaded = load_config(&[path1, path2], false, false, &mut io.output);
     assert!(loaded.configs.contains_key("second"));
+  });
+}
+
+#[test]
+fn test_load_config_defaults_missing_fields() {
+  let tmp = TempDir::new().unwrap();
+  let path = tmp.path().join(".star-setup.json");
+  write(
+    &path,
+    r#"{ "configs": { "default": { "ssh": true, "verbose": true } } }"#,
+  )
+  .unwrap();
+
+  with_io_output(|io| {
+    let loaded = load_config(&[path], false, false, &mut io.output);
+    let entry = &loaded.configs["default"];
+    assert!(entry.ssh);
+    assert!(entry.verbose);
+    assert!(!entry.dev);
+    assert_eq!(entry.build_dir, "build");
+    assert_eq!(entry.mono_dir, "build-mono");
+    assert_eq!(entry.build_type, BuildType::Debug);
   });
 }

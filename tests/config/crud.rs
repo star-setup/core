@@ -1,13 +1,7 @@
-use crate::{
-  common::{make_flags, with_io_dir, with_io_input_output, with_io_output},
-  fixtures::sample_entry,
-};
-use star_setup::{
-  cli::BuildType,
-  config::{
-    add_config, create_default_config, has_config, insert_config, list_configs, remove_config,
-    remove_config_entry, save_config, ConfigEntry, SetupConfig,
-  },
+use crate::common::{make_flags, with_io_dir, with_io_input_output, with_io_output};
+use star_setup::config::{
+  add_config, create_default_config, has_config, insert_config, list_configs, remove_config,
+  remove_config_entry, save_config, ConfigEntry, SetupConfig,
 };
 use std::fs::{read_to_string, write};
 use tempfile::TempDir;
@@ -29,7 +23,7 @@ fn test_add_config_inserts_and_saves() {
     add_config(
       &mut config,
       "myconfig",
-      sample_entry(),
+      ConfigEntry::default(),
       true,
       io,
       make_flags(),
@@ -47,28 +41,19 @@ fn test_add_config_aborts_when_exists_and_not_confirmed() {
     let tmp = TempDir::new().unwrap();
     let mut config = SetupConfig::new();
     config.path = Some(tmp.path().join(".star-setup.json"));
-    insert_config(&mut config, "myconfig", sample_entry());
+    insert_config(
+      &mut config,
+      "myconfig",
+      ConfigEntry {
+        ssh: true,
+        ..ConfigEntry::default()
+      },
+    );
 
     add_config(
       &mut config,
       "myconfig",
-      ConfigEntry {
-        ssh: false,
-        build_type: BuildType::Debug,
-        build_dir: "build".to_string(),
-        mono_dir: "mono".to_string(),
-        no_build: false,
-        clean: false,
-        verbose: false,
-        timing: false,
-        dry_run: false,
-        cmake_flags: vec![],
-        meson_flags: vec![],
-        watch: false,
-        no_watch: false,
-        dev: false,
-        no_dev: false,
-      },
+      ConfigEntry::default(),
       false,
       io,
       make_flags(),
@@ -82,14 +67,21 @@ fn test_add_config_aborts_when_exists_and_not_confirmed() {
 #[test]
 fn test_has_config_true() {
   let mut config = SetupConfig::new();
-  insert_config(&mut config, "myconfig", sample_entry());
+  insert_config(&mut config, "myconfig", ConfigEntry::default());
   assert!(has_config(&config, "myconfig"));
 }
 
 #[test]
 fn test_insert_config() {
   let mut config = SetupConfig::new();
-  insert_config(&mut config, "myconfig", sample_entry());
+  insert_config(
+    &mut config,
+    "myconfig",
+    ConfigEntry {
+      ssh: true,
+      ..ConfigEntry::default()
+    },
+  );
   assert!(config.configs.contains_key("myconfig"));
   assert!(config.configs["myconfig"].ssh);
 }
@@ -97,7 +89,7 @@ fn test_insert_config() {
 #[test]
 fn test_remove_config_entry_exists() {
   let mut config = SetupConfig::new();
-  insert_config(&mut config, "myconfig", sample_entry());
+  insert_config(&mut config, "myconfig", ConfigEntry::default());
   assert!(remove_config_entry(&mut config, "myconfig"));
   assert!(!config.configs.contains_key("myconfig"));
 }
@@ -138,7 +130,7 @@ fn test_list_configs_empty() {
 fn test_list_configs_with_entries() {
   let ((), out) = with_io_output(|io| {
     let mut config = SetupConfig::new();
-    insert_config(&mut config, "myconfig", sample_entry());
+    insert_config(&mut config, "myconfig", ConfigEntry::default());
     list_configs(&config, io);
   });
   assert!(out.contains("myconfig"));
@@ -159,7 +151,7 @@ fn test_remove_config_removes_and_saves() {
     let path = tmp.join(".star-setup.json");
     let mut config = SetupConfig::new();
     config.path = Some(path.clone());
-    insert_config(&mut config, "myconfig", sample_entry());
+    insert_config(&mut config, "myconfig", ConfigEntry::default());
     save_config(&mut config, false, &mut io.output).unwrap();
 
     remove_config(&mut config, "myconfig", true, io, make_flags()).unwrap();
@@ -181,7 +173,7 @@ fn test_remove_config_aborts_when_not_confirmed() {
     let tmp = TempDir::new().unwrap();
     let mut config = SetupConfig::new();
     config.path = Some(tmp.path().join(".star-setup.json"));
-    insert_config(&mut config, "myconfig", sample_entry());
+    insert_config(&mut config, "myconfig", ConfigEntry::default());
 
     remove_config(&mut config, "myconfig", false, io, make_flags()).unwrap();
     assert!(has_config(&config, "myconfig"));

@@ -4,28 +4,6 @@ use star_setup::{
   config::{ConfigEntry, SetupConfig},
 };
 
-/* =====     HELPERS     ===== */
-/// Generates a base `ConfigEntry` with defaults.
-fn create_test_config_entry() -> ConfigEntry {
-  ConfigEntry {
-    ssh: false,
-    verbose: false,
-    build_type: BuildType::Debug,
-    build_dir: "build".to_string(),
-    mono_dir: "build-mono".to_string(),
-    no_build: false,
-    clean: false,
-    timing: false,
-    dry_run: false,
-    cmake_flags: vec![],
-    meson_flags: vec![],
-    watch: false,
-    no_watch: false,
-    dev: false,
-    no_dev: false,
-  }
-}
-
 /// Helper to quickly build a `SetupConfig` with a populated profile entry.
 fn config_with_entry(name: &str, entry: ConfigEntry) -> SetupConfig {
   let mut config = SetupConfig::new();
@@ -124,7 +102,7 @@ fn test_resolve_with_config_applies_config_defaults() {
       no_build: true,
       clean: true,
       cmake_flags: vec!["-DTEST=ON".to_string()],
-      ..create_test_config_entry()
+      ..ConfigEntry::default()
     },
   );
 
@@ -139,7 +117,7 @@ fn test_resolve_with_config_applies_config_defaults() {
 
 #[test]
 fn test_resolve_with_config_cli_overrides_config() {
-  let config = config_with_entry("default", create_test_config_entry());
+  let config = config_with_entry("default", ConfigEntry::default());
 
   let mut args = default_args();
   args.connection.ssh = true;
@@ -188,7 +166,7 @@ fn test_resolve_with_config_named_config_pulls_correct_values() {
       build_type: BuildType::RelWithDebInfo,
       build_dir: "out".to_string(),
       clean: true,
-      ..create_test_config_entry()
+      ..ConfigEntry::default()
     },
   );
 
@@ -208,7 +186,7 @@ fn test_resolve_with_config_cli_cmake_flags_not_overwritten_by_config() {
     "default",
     ConfigEntry {
       cmake_flags: vec!["-DCONFIG_FLAG=ON".to_string()],
-      ..create_test_config_entry()
+      ..ConfigEntry::default()
     },
   );
 
@@ -228,7 +206,7 @@ fn test_resolve_with_config_negative_flags_override_config() {
       verbose: true,
       no_build: true,
       clean: true,
-      ..create_test_config_entry()
+      ..ConfigEntry::default()
     },
   );
 
@@ -252,7 +230,7 @@ fn test_resolve_with_config_watch_dev_defaults_from_config() {
     ConfigEntry {
       watch: true,
       dev: true,
-      ..create_test_config_entry()
+      ..ConfigEntry::default()
     },
   );
 
@@ -270,7 +248,7 @@ fn test_resolve_with_config_cli_negatives_override_watch_dev_config() {
     ConfigEntry {
       watch: true,
       dev: true,
-      ..create_test_config_entry()
+      ..ConfigEntry::default()
     },
   );
 
@@ -292,7 +270,7 @@ fn test_resolve_with_config_cli_positives_override_no_watch_no_dev_config() {
     ConfigEntry {
       no_watch: true,
       no_dev: true,
-      ..create_test_config_entry()
+      ..ConfigEntry::default()
     },
   );
 
