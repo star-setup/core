@@ -15,7 +15,7 @@ fn get_watch_command(
   io: &mut IoCtx<'_>,
   flags: RunFlags,
 ) -> Option<String> {
-  let json = read_package_json(repos_path, dir, "skipping", io, flags)?;
+  let json = read_package_json(&repos_path.join(dir), "skipping", io, flags)?;
   let scripts = json.get("scripts")?;
   if scripts.get("watch").is_some() {
     Some(format!("npm --workspace=repos/{dir} run watch"))
