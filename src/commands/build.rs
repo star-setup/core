@@ -4,6 +4,21 @@ use crate::{
 };
 use std::path::Path;
 
+/// Runs `cmd`, timing it if `ctx.flags.timing` is set.
+/// # Errors
+/// Returns an error if the command fails.
+fn run_timed(
+  cmd: &[&str],
+  cwd: Option<&Path>,
+  label: &str,
+  ctx: &mut RunCtx<'_, '_>,
+) -> Result<(), String> {
+  crate::time!(ctx.flags.timing, ctx.io.output, label, {
+    ctx.runner.run(cmd, cwd, ctx.flags, ctx.io.output)?;
+  });
+  Ok(())
+}
+
 /// Runs `CMake` configuration and optionally builds the project in `build_path`.
 /// # Errors
 /// Returns an error if any `CMake` command fails.
@@ -21,28 +36,22 @@ pub fn cmake_build(
   };
   cmake_cmd.extend(args.build.cmake_flags.iter().map(String::as_str));
 
-  crate::time!(ctx.flags.timing, ctx.io.output, "CMake configure", {
-    ctx
-      .runner
-      .run(&cmake_cmd, Some(build_path), ctx.flags, ctx.io.output)?;
-  });
+  run_timed(&cmake_cmd, Some(build_path), "CMake configure", ctx)?;
 
   if !args.build.no_build {
     writeln!(ctx.io.output, "Building project").ok();
-    crate::time!(ctx.flags.timing, ctx.io.output, "CMake build", {
-      ctx.runner.run(
-        &[
-          "cmake",
-          "--build",
-          ".",
-          "--config",
-          args.build.build_type.to_cmake(),
-        ],
-        Some(build_path),
-        ctx.flags,
-        ctx.io.output,
-      )?;
-    });
+    run_timed(
+      &[
+        "cmake",
+        "--build",
+        ".",
+        "--config",
+        args.build.build_type.to_cmake(),
+      ],
+      Some(build_path),
+      "CMake build",
+      ctx,
+    )?;
   }
   Ok(())
 }
@@ -69,19 +78,15 @@ pub fn meson_build(
   meson_cmd.push(to_str(source_path)?);
   meson_cmd.extend(args.build.meson_flags.iter().map(String::as_str));
 
-  crate::time!(ctx.flags.timing, ctx.io.output, "Meson setup", {
-    ctx.runner.run(&meson_cmd, None, ctx.flags, ctx.io.output)?;
-  });
+  run_timed(&meson_cmd, None, "Meson setup", ctx)?;
   if !args.build.no_build {
     writeln!(ctx.io.output, "Building project").ok();
-    crate::time!(ctx.flags.timing, ctx.io.output, "Meson compile", {
-      ctx.runner.run(
-        &["meson", "compile", "-C", to_str(build_path)?],
-        None,
-        ctx.flags,
-        ctx.io.output,
-      )?;
-    });
+    run_timed(
+      &["meson", "compile", "-C", to_str(build_path)?],
+      None,
+      "Meson compile",
+      ctx,
+    )?;
   }
   Ok(())
 }
@@ -96,24 +101,15 @@ pub fn npm_build(
   ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
   writeln!(ctx.io.output, "Installing dependencies").ok();
-  crate::time!(ctx.flags.timing, ctx.io.output, "npm install", {
-    ctx.runner.run(
-      &["npm", "install"],
-      Some(source_path),
-      ctx.flags,
-      ctx.io.output,
-    )?;
-  });
+  run_timed(&["npm", "install"], Some(source_path), "npm install", ctx)?;
   if !args.build.no_build && !is_mono {
     writeln!(ctx.io.output, "Building project").ok();
-    crate::time!(ctx.flags.timing, ctx.io.output, "npm build", {
-      ctx.runner.run(
-        &["npm", "run", "build"],
-        Some(source_path),
-        ctx.flags,
-        ctx.io.output,
-      )?;
-    });
+    run_timed(
+      &["npm", "run", "build"],
+      Some(source_path),
+      "npm build",
+      ctx,
+    )?;
   }
   Ok(())
 }
