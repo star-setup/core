@@ -156,7 +156,7 @@ fn test_clone_repos_empty() {
 }
 
 #[test]
-fn test_clone_repos_per_repo_lines_require_verbose() {
+fn test_clone_repos_per_repo_lines_always_shown() {
   let repos = vec!["user/repo1".to_string(), "user/repo2".to_string()];
 
   let (_, output) = with_ctx(MockRunner::new(), |tmp_path, ctx| {
@@ -164,7 +164,7 @@ fn test_clone_repos_per_repo_lines_require_verbose() {
   });
   let out = String::from_utf8(output).unwrap();
   assert!(out.contains("Cloning repositories"));
-  assert!(!out.contains("Cloning user-repo1"));
+  assert!(out.contains("Cloning user-repo1"));
   assert!(!out.contains("Finished cloning (2 repositories)"));
 
   let (_, output) = with_ctx(MockRunner::new(), |tmp_path, ctx| {
@@ -172,6 +172,7 @@ fn test_clone_repos_per_repo_lines_require_verbose() {
     clone_repos(&repos, tmp_path, false, false, ctx).unwrap();
   });
   let out = String::from_utf8(output).unwrap();
+  assert!(out.contains("Cloning repositories"));
   assert!(out.contains("Cloning user-repo1"));
   assert!(out.contains("Finished cloning (2 repositories)"));
 }
