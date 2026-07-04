@@ -8,7 +8,7 @@ use crate::{
     },
     prepare_build_dir, print_mode_header, resolve_repos_for_mono, resolve_test_repo, ModeHeader,
   },
-  config::SetupConfig,
+  config::Config,
   ctx::RunCtx,
   repository::{clone_repos, repo_dir_name},
   utils::{detect_or_dry_run, dry_run_or_do},
@@ -24,7 +24,7 @@ use std::{
 /// Returns an error if no repository is specified, directory creation fails, or any build system command fails.
 pub fn mono_repo_mode(
   args: &ResolvedArgs,
-  config: &SetupConfig,
+  config: &Config,
   base_dir: &Path,
   ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {

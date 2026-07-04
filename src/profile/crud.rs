@@ -1,12 +1,12 @@
 use crate::{
-  config::{persist_or_dry_run, types::Profile, SetupConfig},
+  config::{persist_or_dry_run, types::Profile, Config},
   ctx::{IoCtx, RunFlags},
   profile::print_profile_details,
   prompts::confirm_abort,
 };
 
 /// Inserts or overwrites a named profile.
-pub fn insert_profile(config: &mut SetupConfig, name: &str, deps: Vec<String>) {
+pub fn insert_profile(config: &mut Config, name: &str, deps: Vec<String>) {
   config.profiles.insert(
     name.to_string(),
     Profile {
@@ -17,13 +17,13 @@ pub fn insert_profile(config: &mut SetupConfig, name: &str, deps: Vec<String>) {
 }
 
 /// Removes a named profile. Returns `true` if it existed.
-pub fn remove_profile_entry(config: &mut SetupConfig, name: &str) -> bool {
+pub fn remove_profile_entry(config: &mut Config, name: &str) -> bool {
   config.profiles.remove(name).is_some()
 }
 
 /// Returns `true` if a profile with the given name exists.
 #[must_use]
-pub fn has_profile(config: &SetupConfig, name: &str) -> bool {
+pub fn has_profile(config: &Config, name: &str) -> bool {
   config.profiles.contains_key(name)
 }
 
@@ -32,7 +32,7 @@ pub fn has_profile(config: &SetupConfig, name: &str) -> bool {
 /// # Errors
 /// Returns an error if fewer than two arguments are provided or if saving fails.
 pub fn add_profile(
-  config: &mut SetupConfig,
+  config: &mut Config,
   args: &[String],
   yes: bool,
   io: &mut IoCtx<'_>,
@@ -87,7 +87,7 @@ pub fn add_profile(
 /// # Errors
 /// Returns an error if saving the config file fails.
 pub fn remove_profile(
-  config: &mut SetupConfig,
+  config: &mut Config,
   name: &str,
   yes: bool,
   io: &mut IoCtx<'_>,

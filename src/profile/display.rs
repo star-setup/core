@@ -1,5 +1,5 @@
 use crate::{
-  config::types::{Profile, SetupConfig},
+  config::types::{Config, Profile},
   ctx::IoCtx,
 };
 use std::io::Write;
@@ -24,7 +24,7 @@ pub fn print_profile_details(
 }
 
 /// Lists all configured profiles.
-pub fn list_profiles(config: &SetupConfig, io: &mut IoCtx<'_>) {
+pub fn list_profiles(config: &Config, io: &mut IoCtx<'_>) {
   if config.profiles.is_empty() {
     writeln!(
       io.output,

@@ -1,13 +1,13 @@
 use crate::common::with_io_output;
 use star_setup::{
-  config::SetupConfig,
+  config::Config,
   profile::{insert_profile, list_profiles},
 };
 
 #[test]
 fn test_list_profiles_empty() {
   let ((), out) = with_io_output(|io| {
-    let config = SetupConfig::new();
+    let config = Config::new();
     list_profiles(&config, io);
   });
   assert!(out.contains("No profiles configured"));
@@ -16,7 +16,7 @@ fn test_list_profiles_empty() {
 #[test]
 fn test_list_profiles_with_entries() {
   let ((), out) = with_io_output(|io| {
-    let mut config = SetupConfig::new();
+    let mut config = Config::new();
     insert_profile(&mut config, "myprofile", vec!["user/repo1".to_string()]);
     list_profiles(&config, io);
   });

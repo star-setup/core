@@ -4,6 +4,28 @@ use crate::cli::{
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf};
 
+/// Top-level configuration structure.
+#[derive(Serialize, Deserialize, Default)]
+pub struct Config {
+  /// Named configuration entries.
+  #[serde(default)]
+  pub configs: HashMap<String, ConfigEntry>,
+  /// Named profile entries mapping profile names to repository lists.
+  #[serde(default)]
+  pub profiles: HashMap<String, Profile>,
+  /// Path to the config file this was loaded from, if any.
+  #[serde(skip)]
+  pub path: Option<PathBuf>,
+}
+
+impl Config {
+  /// Creates a new empty `Config`.
+  #[must_use]
+  pub fn new() -> Self {
+    Self::default()
+  }
+}
+
 /// Represents a single named configuration entry.
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Serialize, Deserialize)]
@@ -129,26 +151,4 @@ impl From<&ResolvedArgs> for ConfigEntry {
 pub struct Profile {
   pub test_repo: Option<String>,
   pub deps: Vec<String>,
-}
-
-/// Top-level configuration structure.
-#[derive(Serialize, Deserialize, Default)]
-pub struct SetupConfig {
-  /// Named configuration entries.
-  #[serde(default)]
-  pub configs: HashMap<String, ConfigEntry>,
-  /// Named profile entries mapping profile names to repository lists.
-  #[serde(default)]
-  pub profiles: HashMap<String, Profile>,
-  /// Path to the config file this was loaded from, if any.
-  #[serde(skip)]
-  pub path: Option<PathBuf>,
-}
-
-impl SetupConfig {
-  /// Creates a new empty `SetupConfig`.
-  #[must_use]
-  pub fn new() -> Self {
-    Self::default()
-  }
 }

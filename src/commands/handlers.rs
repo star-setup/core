@@ -3,9 +3,7 @@ use crate::{
     ConfigAction, ProfileAction, WorkspaceAction,
     WorkspaceAction::{Clean, Status, Update},
   },
-  config::{
-    add_config, create_default_config, list_configs, remove_config, ConfigEntry, SetupConfig,
-  },
+  config::{add_config, create_default_config, list_configs, remove_config, Config, ConfigEntry},
   ctx::{with_runner, IoCtx, RunFlags},
   profile::{add_profile, list_profiles, remove_profile},
   workspace::resolve_workspace,
@@ -17,7 +15,7 @@ use std::{error::Error, iter::once, path::PathBuf};
 /// Returns an error if configuration initializing, addition, or removal fails.
 pub fn handle_config_cmd(
   action: ConfigAction,
-  config: &mut SetupConfig,
+  config: &mut Config,
   config_path: PathBuf,
   yes: bool,
   io: &mut IoCtx,
@@ -46,7 +44,7 @@ pub fn handle_config_cmd(
 /// Returns an error if adding or removing profiles encounters an I/O or validation failure.
 pub fn handle_profile_cmd(
   action: ProfileAction,
-  config: &mut SetupConfig,
+  config: &mut Config,
   yes: bool,
   io: &mut IoCtx,
   flags: RunFlags,

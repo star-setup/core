@@ -1,7 +1,7 @@
 use crate::common::{make_flags, with_io_dir, with_io_input_output, with_io_output};
 use star_setup::config::{
   add_config, create_default_config, has_config, insert_config, list_configs, remove_config,
-  remove_config_entry, save_config, ConfigEntry, SetupConfig,
+  remove_config_entry, save_config, Config, ConfigEntry,
 };
 use std::fs::{read_to_string, write};
 use tempfile::TempDir;
@@ -9,7 +9,7 @@ use tempfile::TempDir;
 /* =====     HAS_CONFIG     ===== */
 #[test]
 fn test_has_config_false() {
-  let config = SetupConfig::new();
+  let config = Config::new();
   assert!(!has_config(&config, "nonexistent"));
 }
 
@@ -17,7 +17,7 @@ fn test_has_config_false() {
 fn test_add_config_inserts_and_saves() {
   with_io_dir(|tmp, io| {
     let path = tmp.join(".star-setup.json");
-    let mut config = SetupConfig::new();
+    let mut config = Config::new();
     config.path = Some(path.clone());
 
     add_config(
@@ -39,7 +39,7 @@ fn test_add_config_inserts_and_saves() {
 fn test_add_config_aborts_when_exists_and_not_confirmed() {
   with_io_input_output(b"n\n", |io| {
     let tmp = TempDir::new().unwrap();
-    let mut config = SetupConfig::new();
+    let mut config = Config::new();
     config.path = Some(tmp.path().join(".star-setup.json"));
     insert_config(
       &mut config,
@@ -66,14 +66,14 @@ fn test_add_config_aborts_when_exists_and_not_confirmed() {
 /* =====     INSERT_CONFIG     ===== */
 #[test]
 fn test_has_config_true() {
-  let mut config = SetupConfig::new();
+  let mut config = Config::new();
   insert_config(&mut config, "myconfig", ConfigEntry::default());
   assert!(has_config(&config, "myconfig"));
 }
 
 #[test]
 fn test_insert_config() {
-  let mut config = SetupConfig::new();
+  let mut config = Config::new();
   insert_config(
     &mut config,
     "myconfig",
@@ -88,7 +88,7 @@ fn test_insert_config() {
 
 #[test]
 fn test_remove_config_entry_exists() {
-  let mut config = SetupConfig::new();
+  let mut config = Config::new();
   insert_config(&mut config, "myconfig", ConfigEntry::default());
   assert!(remove_config_entry(&mut config, "myconfig"));
   assert!(!config.configs.contains_key("myconfig"));
@@ -120,7 +120,7 @@ fn test_create_default_config_aborts_when_exists_and_not_confirmed() {
 #[test]
 fn test_list_configs_empty() {
   let ((), out) = with_io_output(|io| {
-    let config = SetupConfig::new();
+    let config = Config::new();
     list_configs(&config, io);
   });
   assert!(out.contains("No configurations created"));
@@ -129,7 +129,7 @@ fn test_list_configs_empty() {
 #[test]
 fn test_list_configs_with_entries() {
   let ((), out) = with_io_output(|io| {
-    let mut config = SetupConfig::new();
+    let mut config = Config::new();
     insert_config(&mut config, "myconfig", ConfigEntry::default());
     list_configs(&config, io);
   });
@@ -140,7 +140,7 @@ fn test_list_configs_with_entries() {
 /* =====     REMOVE_CONFIG_ENTRY     ===== */
 #[test]
 fn test_remove_config_entry_missing() {
-  let mut config = SetupConfig::new();
+  let mut config = Config::new();
   assert!(!remove_config_entry(&mut config, "nonexistent"));
 }
 
@@ -149,7 +149,7 @@ fn test_remove_config_entry_missing() {
 fn test_remove_config_removes_and_saves() {
   with_io_dir(|tmp, io| {
     let path = tmp.join(".star-setup.json");
-    let mut config = SetupConfig::new();
+    let mut config = Config::new();
     config.path = Some(path.clone());
     insert_config(&mut config, "myconfig", ConfigEntry::default());
     save_config(&mut config, false, &mut io.output).unwrap();
@@ -161,7 +161,7 @@ fn test_remove_config_removes_and_saves() {
 
 #[test]
 fn test_remove_config_not_found() {
-  let mut config = SetupConfig::new();
+  let mut config = Config::new();
   with_io_output(|io| {
     remove_config(&mut config, "nonexistent", true, io, make_flags()).unwrap();
   });
@@ -171,7 +171,7 @@ fn test_remove_config_not_found() {
 fn test_remove_config_aborts_when_not_confirmed() {
   with_io_input_output(b"n\n", |io| {
     let tmp = TempDir::new().unwrap();
-    let mut config = SetupConfig::new();
+    let mut config = Config::new();
     config.path = Some(tmp.path().join(".star-setup.json"));
     insert_config(&mut config, "myconfig", ConfigEntry::default());
 

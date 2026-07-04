@@ -1,4 +1,4 @@
-use crate::{cli::ResolvedArgs, config::SetupConfig, ctx::IoCtx, profile::list_profiles};
+use crate::{cli::ResolvedArgs, config::Config, ctx::IoCtx, profile::list_profiles};
 
 /// Normalizes a repository input to `username/repo` format.
 /// # Errors
@@ -29,7 +29,7 @@ pub fn resolve_test_repo(repo_input: &str) -> Result<String, String> {
 /// Returns an error if the specified profile does not exist, or has no repositories.
 pub fn resolve_repos_for_mono(
   args: &ResolvedArgs,
-  config: &SetupConfig,
+  config: &Config,
   io: &mut IoCtx<'_>,
 ) -> Result<Vec<String>, String> {
   if let Some(profile_name) = &args.mono.profile {

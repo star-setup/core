@@ -2,7 +2,7 @@ use crate::common::{default_resolved, with_ctx, with_io, MockRunner};
 use star_setup::{
   cli::BuildSystem,
   commands::{generate_mono_config, resolve_repos_for_mono, resolve_test_repo},
-  config::{types::Profile, SetupConfig},
+  config::{types::Profile, Config},
 };
 use std::{
   fs::{create_dir_all, read_to_string, write},
@@ -53,7 +53,7 @@ fn test_resolve_test_repo_errors() {
 /* =====     RESOLVE_REPOS_FOR_MONO     ===== */
 #[test]
 fn test_resolve_repos_for_mono_empty_profile_errors() {
-  let mut config = SetupConfig::new();
+  let mut config = Config::new();
   config.profiles.insert(
     "emptyprofile".to_string(),
     Profile {
@@ -73,7 +73,7 @@ fn test_resolve_repos_for_mono_empty_profile_errors() {
 
 #[test]
 fn test_resolve_repos_for_mono_with_profile() {
-  let mut config = SetupConfig::new();
+  let mut config = Config::new();
   config.profiles.insert(
     "myprofile".to_string(),
     Profile {
@@ -93,7 +93,7 @@ fn test_resolve_repos_for_mono_with_profile() {
 
 #[test]
 fn test_resolve_repos_for_mono_with_explicit_repos() {
-  let config = SetupConfig::new();
+  let config = Config::new();
   let mut args = default_resolved();
   args.mono.repos = Some(vec!["user/lib1".to_string(), "user/lib2".to_string()]);
 
@@ -106,7 +106,7 @@ fn test_resolve_repos_for_mono_with_explicit_repos() {
 
 #[test]
 fn test_resolve_repos_for_mono_no_repos_or_profile_errors() {
-  let config = SetupConfig::new();
+  let config = Config::new();
   let args = default_resolved();
 
   with_io(|io| {
@@ -120,7 +120,7 @@ fn test_resolve_repos_for_mono_no_repos_or_profile_errors() {
 
 #[test]
 fn test_resolve_repos_for_mono_profile_not_found_errors() {
-  let config = SetupConfig::new();
+  let config = Config::new();
   let mut args = default_resolved();
   args.mono.profile = Some("nonexistent".to_string());
 

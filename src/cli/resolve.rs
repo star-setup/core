@@ -3,7 +3,7 @@ use crate::{
     Args, BuildFlags, BuildType, ConnectionFlags, DiagnosticFlags, MonoRepoFlags, ResolvedArgs,
     ResolvedBuildFlags, ResolvedConnectionFlags, ResolvedMonoFlags,
   },
-  config::{ConfigEntry, SetupConfig},
+  config::{Config, ConfigEntry},
   ctx::RunFlags,
 };
 
@@ -115,7 +115,7 @@ fn resolve_mono_flags(mono: MonoRepoFlags, default: Option<&ConfigEntry>) -> Res
 /// Resolves raw `Args` into `ResolvedArgs` by applying config defaults and CLI overrides.
 /// # Errors
 /// Returns an error if the named config does not exist in the provided `SetupConfig`.
-pub fn resolve_with_config(args: Args, config: &SetupConfig) -> Result<ResolvedArgs, String> {
+pub fn resolve_with_config(args: Args, config: &Config) -> Result<ResolvedArgs, String> {
   let config_name = args.config_name.as_deref().unwrap_or("default");
   let default = config.configs.get(config_name);
 

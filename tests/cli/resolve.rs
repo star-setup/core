@@ -1,12 +1,12 @@
 use crate::common::default_args;
 use star_setup::{
   cli::{resolve_bool, resolve_with_config, BuildType},
-  config::{ConfigEntry, SetupConfig},
+  config::{Config, ConfigEntry},
 };
 
 /// Helper to quickly build a `SetupConfig` with a populated profile entry.
-fn config_with_entry(name: &str, entry: ConfigEntry) -> SetupConfig {
-  let mut config = SetupConfig::new();
+fn config_with_entry(name: &str, entry: ConfigEntry) -> Config {
+  let mut config = Config::new();
   config.configs.insert(name.to_string(), entry);
   config
 }
@@ -80,7 +80,7 @@ fn test_resolve_bool() {
 /* =====     RESOLVE_WITH_CONFIG     ===== */
 #[test]
 fn test_resolve_with_config_defaults_when_no_config() {
-  let config = SetupConfig::new();
+  let config = Config::new();
   let resolved = resolve_with_config(default_args(), &config).unwrap();
   assert!(!resolved.connection.ssh);
   assert_eq!(resolved.build.build_type, BuildType::Debug);
@@ -130,7 +130,7 @@ fn test_resolve_with_config_cli_overrides_config() {
 
 #[test]
 fn test_resolve_with_config_errors_on_missing_config_name() {
-  let config = SetupConfig::new();
+  let config = Config::new();
   let mut args = default_args();
   args.config_name = Some("nonexistent".to_string());
 
@@ -139,7 +139,7 @@ fn test_resolve_with_config_errors_on_missing_config_name() {
 
 #[test]
 fn test_resolve_with_config_mono_repo_from_repos() {
-  let config = SetupConfig::new();
+  let config = Config::new();
   let mut args = default_args();
   args.mono.repos = Some(vec!["user/lib1".to_string()]);
 
@@ -149,7 +149,7 @@ fn test_resolve_with_config_mono_repo_from_repos() {
 
 #[test]
 fn test_resolve_with_config_mono_repo_from_profile() {
-  let config = SetupConfig::new();
+  let config = Config::new();
   let mut args = default_args();
   args.mono.profile = Some("myprofile".to_string());
 
