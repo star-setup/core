@@ -51,11 +51,11 @@ pub struct BuildFlags {
   #[arg(long = "meson-arg", action = Append)]
   pub meson_flags: Vec<String>,
 
-  /// Automatically open watch scripts for npm mono-repo mode.
-  #[arg(long)]
+  /// Automatically open watch scripts for libraries if applicable.
+  #[arg(long, conflicts_with = "no_watch")]
   pub watch: bool,
-  /// Skip generating watch scripts for npm mono-repo mode.
-  #[arg(long)]
+  /// Skip generating watch scripts. (overrides config)
+  #[arg(long, conflicts_with = "watch")]
   pub no_watch: bool,
 }
 
