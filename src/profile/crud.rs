@@ -1,5 +1,5 @@
 use crate::{
-  config::{save_config, SetupConfig},
+  config::{persist_or_dry_run, SetupConfig},
   ctx::{IoCtx, RunFlags},
   profile::print_profile_details,
   prompts::confirm_abort,
@@ -49,14 +49,17 @@ pub fn add_profile(
     return Ok(());
   }
 
-  if flags.dry_run {
-    writeln!(io.output, "  Would save profile '{name}' to config file").ok();
-  } else {
-    insert_profile(config, &name, repos.clone());
-    let path = save_config(config, flags.timing, &mut io.output)?;
-    writeln!(io.output, "  Profile '{name}' added successfully").ok();
-    writeln!(io.output, "  Configuration saved to: {}", path.display()).ok();
-  }
+  persist_or_dry_run(
+    config,
+    flags,
+    io,
+    &format!("Would save profile '{name}' to config file"),
+    |config| insert_profile(config, &name, repos.clone()),
+    |_config, path, io| {
+      writeln!(io.output, "  Profile '{name}' added successfully").ok();
+      writeln!(io.output, "  Configuration saved to: {}", path.display()).ok();
+    },
+  )?;
   print_profile_details(io.output, "Profile details:", "Repositories", &repos);
   writeln!(
     io.output,
@@ -99,17 +102,17 @@ pub fn remove_profile(
     return Ok(());
   }
 
-  if flags.dry_run {
-    writeln!(
-      io.output,
-      "  Would remove profile '{name}' from config file"
-    )
-    .ok();
-  } else {
-    remove_profile_entry(config, name);
-    let path = save_config(config, flags.timing, &mut io.output)?;
-    writeln!(io.output, "  Profile '{name}' removed successfully").ok();
-    writeln!(io.output, "  Configuration saved to: {}", path.display()).ok();
-  }
-  Ok(())
+  persist_or_dry_run(
+    config,
+    flags,
+    io,
+    &format!("Would remove profile '{name}' from config file"),
+    |config| {
+      remove_profile_entry(config, name);
+    },
+    |_config, path, io| {
+      writeln!(io.output, "  Profile '{name}' removed successfully").ok();
+      writeln!(io.output, "  Configuration saved to: {}", path.display()).ok();
+    },
+  )
 }

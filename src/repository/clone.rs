@@ -116,9 +116,7 @@ pub fn clone_repos(
   writeln!(ctx.io.output, "Cloning repositories").ok();
   crate::time!(ctx.flags.timing, ctx.io.output, "Clone", {
     for repo in repos {
-      if ctx.flags.verbose {
-        writeln!(ctx.io.output, "  Cloning {}", repo_dir_name(repo)).ok();
-      }
+      writeln!(ctx.io.output, "  Cloning {}", repo_dir_name(repo)).ok();
       clone_repo(
         repo,
         target_dir,

@@ -127,8 +127,8 @@ pub fn hoist_wraps(
         "Write wrap",
         || fs::write(&wrap_path, &wrap_content).map_err(|e| e.to_string()),
       )?;
-      if flags.dry_run {
-        if flags.verbose {
+      if flags.verbose {
+        if flags.dry_run {
           writeln!(
             io.output,
             "  Would generate wrap: {canonical_name}.wrap -> {dir_name}"

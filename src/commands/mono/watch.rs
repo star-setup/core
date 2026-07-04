@@ -1,15 +1,12 @@
 use crate::{
+  commands::read_package_json,
   ctx::{IoCtx, RunFlags},
   repository::repo_dir_name,
-  utils::dry_run_or_do,
+  utils::{dry_run_or_do, report_summary},
 };
 use dunce::canonicalize;
-use serde_json::{from_str, Value};
 use std::process::Command;
-use std::{
-  fs::{read_to_string, write},
-  path::Path,
-};
+use std::{fs::write, path::Path};
 
 /// Reads a lib's package.json and returns the appropriate watch command.
 fn get_watch_command(
@@ -18,47 +15,21 @@ fn get_watch_command(
   io: &mut IoCtx<'_>,
   flags: RunFlags,
 ) -> Option<String> {
-  let pkg_path = repos_path.join(dir).join("package.json");
-  match read_to_string(&pkg_path) {
-    Err(_) => {
-      if flags.verbose {
-        writeln!(
-          io.output,
-          "  Warning: could not read {dir}/package.json, skipping"
-        )
-        .ok();
-      }
-      None
+  let json = read_package_json(repos_path, dir, "skipping", io, flags)?;
+  let scripts = json.get("scripts")?;
+  if scripts.get("watch").is_some() {
+    Some(format!("npm --workspace=repos/{dir} run watch"))
+  } else if scripts.get("build").is_some() {
+    Some(format!("npm --workspace=repos/{dir} run build -- --watch"))
+  } else {
+    if flags.verbose {
+      writeln!(
+        io.output,
+        "  Warning: {dir} has no watch or build script, skipping"
+      )
+      .ok();
     }
-    Ok(content) => match from_str::<Value>(&content) {
-      Err(_) => {
-        if flags.verbose {
-          writeln!(
-            io.output,
-            "  Warning: malformed {dir}/package.json, skipping"
-          )
-          .ok();
-        }
-        None
-      }
-      Ok(json) => {
-        let scripts = json.get("scripts")?;
-        if scripts.get("watch").is_some() {
-          Some(format!("npm --workspace=repos/{dir} run watch"))
-        } else if scripts.get("build").is_some() {
-          Some(format!("npm --workspace=repos/{dir} run build -- --watch"))
-        } else {
-          if flags.verbose {
-            writeln!(
-              io.output,
-              "  Warning: {dir} has no watch or build script, skipping"
-            )
-            .ok();
-          }
-          None
-        }
-      }
-    },
+    None
   }
 }
 
@@ -78,24 +49,24 @@ pub fn generate_watch_scripts(
     return Ok(false);
   }
 
-  let ps1_lines: Vec<String> = lib_dirs
+  let watch_cmds: Vec<String> = lib_dirs
     .iter()
-    .filter_map(|d| {
-      get_watch_command(repos_path, d, io, flags).map(|cmd| {
-        format!(
-          "Start-Process powershell -ArgumentList '-NoExit', '-Command', 'cd \"{}\"; {cmd}'",
-          mono_dir.display()
-        )
-      })
+    .filter_map(|d| get_watch_command(repos_path, d, io, flags))
+    .collect();
+
+  let ps1_lines: Vec<String> = watch_cmds
+    .iter()
+    .map(|cmd| {
+      format!(
+        "Start-Process powershell -ArgumentList '-NoExit', '-Command', 'cd \"{}\"; {cmd}'",
+        mono_dir.display()
+      )
     })
     .collect();
 
-  let sh_lines: Vec<String> = lib_dirs
+  let sh_lines: Vec<String> = watch_cmds
     .iter()
-    .filter_map(|d| {
-      get_watch_command(repos_path, d, io, flags)
-        .map(|cmd| format!("cd \"{}\" && {cmd} &", mono_dir.display()))
-    })
+    .map(|cmd| format!("cd \"{}\" && {cmd} &", mono_dir.display()))
     .collect();
 
   let ps1_content = format!("# Watch all lib repositories\n{}\n", ps1_lines.join("\n"));
@@ -120,23 +91,12 @@ pub fn generate_watch_scripts(
     },
   )?;
 
-  if flags.dry_run {
-    if flags.verbose {
-      writeln!(
-        io.output,
-        "  Would generate watch scripts at {}",
-        mono_dir.display()
-      )
-      .ok();
-    }
-  } else {
-    writeln!(
-      io.output,
-      "  Generated watch scripts at {}",
-      mono_dir.display()
-    )
-    .ok();
-  }
+  report_summary(
+    io,
+    flags,
+    &format!("generate watch scripts at {}", mono_dir.display()),
+    &format!("Generated watch scripts at {}", mono_dir.display()),
+  );
 
   if flags.verbose {
     writeln!(io.output, "  Watching {} libraries:", lib_dirs.len()).ok();

@@ -4,6 +4,17 @@ use crate::{
 };
 use std::path::Path;
 
+/// Prints a "Would ..." summary in verbose dry-run mode, or a completed-action summary otherwise.
+pub fn report_summary(io: &mut IoCtx<'_>, flags: RunFlags, would_msg: &str, done_msg: &str) {
+  if flags.dry_run {
+    if flags.verbose {
+      writeln!(io.output, "  Would {would_msg}").ok();
+    }
+  } else {
+    writeln!(io.output, "  {done_msg}").ok();
+  }
+}
+
 /// Prints a dry-run message or executes `op`, timing it if not a dry run.
 /// # Errors
 /// Returns an error if `op` fails.

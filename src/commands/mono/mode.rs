@@ -11,7 +11,7 @@ use crate::{
   config::SetupConfig,
   ctx::RunCtx,
   repository::{clone_repos, repo_dir_name},
-  utils::{dry_run::detect_or_dry_run, dry_run_or_do},
+  utils::{detect_or_dry_run, dry_run_or_do},
 };
 use std::{
   fs,

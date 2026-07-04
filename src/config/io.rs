@@ -1,4 +1,7 @@
-use crate::config::SetupConfig;
+use crate::{
+  config::SetupConfig,
+  ctx::{IoCtx, RunFlags},
+};
 use serde_json::{from_str, to_string_pretty};
 use std::{
   fs::{read_to_string, write},
@@ -117,4 +120,27 @@ pub fn save_config(
   });
 
   Ok(path)
+}
+
+/// Runs `mutate` and saves the config, or prints `would_msg` in dry-run mode
+/// without mutating or saving. Calls `on_saved` with the saved path after a
+/// successful save.
+/// # Errors
+/// Returns an error if saving the config file fails.
+pub fn persist_or_dry_run(
+  config: &mut SetupConfig,
+  flags: RunFlags,
+  io: &mut IoCtx<'_>,
+  would_msg: &str,
+  mutate: impl FnOnce(&mut SetupConfig),
+  on_saved: impl FnOnce(&SetupConfig, &Path, &mut IoCtx<'_>),
+) -> Result<(), String> {
+  if flags.dry_run {
+    writeln!(io.output, "  {would_msg}").ok();
+  } else {
+    mutate(config);
+    let path = save_config(config, flags.timing, &mut io.output)?;
+    on_saved(config, &path, io);
+  }
+  Ok(())
 }
