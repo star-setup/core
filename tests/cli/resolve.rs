@@ -19,6 +19,10 @@ fn create_test_config_entry() -> ConfigEntry {
     dry_run: false,
     cmake_flags: vec![],
     meson_flags: vec![],
+    watch: false,
+    no_watch: false,
+    dev: false,
+    no_dev: false,
   }
 }
 
@@ -235,20 +239,70 @@ fn test_resolve_with_config_negative_flags_override_config() {
   args.build.no_clean = true;
 
   let resolved = resolve_with_config(args, &config).unwrap();
-  assert!(
-    !resolved.connection.ssh,
-    "https should override config ssh:true"
+  assert!(!resolved.connection.ssh);
+  assert!(!resolved.diagnostic.verbose);
+  assert!(!resolved.build.no_build);
+  assert!(!resolved.build.clean);
+}
+
+#[test]
+fn test_resolve_with_config_watch_dev_defaults_from_config() {
+  let config = config_with_entry(
+    "default",
+    ConfigEntry {
+      watch: true,
+      dev: true,
+      ..create_test_config_entry()
+    },
   );
-  assert!(
-    !resolved.diagnostic.verbose,
-    "no_verbose should override config verbose:true"
+
+  let resolved = resolve_with_config(default_args(), &config).unwrap();
+  assert!(resolved.build.watch);
+  assert!(resolved.build.dev);
+  assert!(!resolved.build.no_watch);
+  assert!(!resolved.build.no_dev);
+}
+
+#[test]
+fn test_resolve_with_config_cli_negatives_override_watch_dev_config() {
+  let config = config_with_entry(
+    "default",
+    ConfigEntry {
+      watch: true,
+      dev: true,
+      ..create_test_config_entry()
+    },
   );
-  assert!(
-    !resolved.build.no_build,
-    "build should override config no_build:true"
+
+  let mut args = default_args();
+  args.build.no_watch = true;
+  args.build.no_dev = true;
+
+  let resolved = resolve_with_config(args, &config).unwrap();
+  assert!(!resolved.build.watch);
+  assert!(!resolved.build.dev);
+  assert!(resolved.build.no_watch);
+  assert!(resolved.build.no_dev);
+}
+
+#[test]
+fn test_resolve_with_config_cli_positives_override_no_watch_no_dev_config() {
+  let config = config_with_entry(
+    "default",
+    ConfigEntry {
+      no_watch: true,
+      no_dev: true,
+      ..create_test_config_entry()
+    },
   );
-  assert!(
-    !resolved.build.clean,
-    "no_clean should override config clean:true"
-  );
+
+  let mut args = default_args();
+  args.build.watch = true;
+  args.build.dev = true;
+
+  let resolved = resolve_with_config(args, &config).unwrap();
+  assert!(resolved.build.watch);
+  assert!(resolved.build.dev);
+  assert!(!resolved.build.no_watch);
+  assert!(!resolved.build.no_dev);
 }

@@ -154,7 +154,7 @@ pub fn create_mono_repo_package_json(
     if i == 0 {
       continue;
     }
-    if let Some(json) = read_package_json(repos_path, dir, "skipping override", io, flags) {
+    if let Some(json) = read_package_json(&repos_path.join(dir), "skipping override", io, flags) {
       if let Some(name) = json.get("name").and_then(|n| n.as_str()) {
         overrides.push(format!("    \"{name}\": \"*\""));
       }

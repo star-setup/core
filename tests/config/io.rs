@@ -28,6 +28,10 @@ fn test_save_and_load_roundtrip() {
       dry_run: false,
       cmake_flags: vec![],
       meson_flags: vec![],
+      watch: false,
+      no_watch: false,
+      dev: false,
+      no_dev: false,
     },
   );
 

@@ -29,8 +29,9 @@ star-setup username/repo --repos user/lib1 user/lib2
   - npm (Node.js 22+)
 
 ## Installation
+Download the latest binary from [Releases](https://github.com/star-setup/core/releases), or use one of the methods below.
 
-Download the latest binary from [Releases](https://github.com/star-setup/core/releases), or:
+<details><summary>Show installation methods</summary>
 
 ### Homebrew (macOS/Linux)
 ```bash
@@ -64,6 +65,7 @@ Download the `.msi` from [Releases](https://github.com/star-setup/core/releases)
 ```bash
 cargo install --git https://github.com/star-setup/core
 ```
+</details>
 
 ## Usage
 
@@ -86,7 +88,8 @@ cargo install --git https://github.com/star-setup/core
 | `--meson-arg <ARG>`       | Pass additional argument to Meson                      |
 | `--watch`                 | Generate and open watch scripts (npm mono-repo mode)   |
 | `--no-watch`              | Skip generating watch scripts (npm mono-repo mode)     |
-
+| `--dev`                   | Automatically start the dev server (npm)               |
+| `--no-dev`                | Skip opening the dev server (npm)                      |
 
 #### Mono-Repo
 | Flag                 | Description                                 |
@@ -123,12 +126,12 @@ Interactive mode complete
 ```
 
 ### Single Repository Mode
+Build system is auto-detected from the repository root (`CMakeLists.txt` → CMake, `meson.build` → Meson, `package.json` → npm). Pass `--dev` to launch the project's dev server after setup.
+
 ```bash
 # Clone and build using a single repository
 star-setup username/repo
 ```
-
-Build system is auto-detected from the repository root (`CMakeLists.txt` → CMake, `meson.build` → Meson, `package.json` → npm).
 
 ### Mono-Repo Mode
 Clones multiple repositories into a single workspace and auto-detects the build system.
@@ -141,7 +144,9 @@ star-setup username/repo --repos user/lib1 user/lib2
 star-setup username/repo --profile myprofile
 ```
 
-#### Workspace Structure (CMake)
+#### Workspace Structures
+<details><summary>CMake</summary>
+
 Generates a root `CMakeLists.txt` wiring all repositories as subdirectories
 
 ```
@@ -167,7 +172,10 @@ endif()
 ```
 This allows the same repository to work both standalone (fetching dependencies automatically) and inside a mono-repo workspace (linking locally for full cross-module debugging).
 
-#### Workspace Structure (Meson)
+</details>
+
+<details><summary>Meson</summary>
+
 Generates a root `meson.build` and auto-generates local `.wrap` files bridging canonical dependency names to cloned directories.
 
 ```
@@ -182,7 +190,10 @@ build-mono/
 └── build/          # Build output
 ```
 
-#### Workspace Structure (Npm)
+</details>
+
+<details><summary>Npm</summary>
+
 Generates a workspace root `package.json` that wires all cloned repositories together using npm workspaces and forces local resolution via `overrides` — no changes to individual repository files. Each lib's `package.json` is read after cloning to extract its package name for the overrides map.
 
 ```
@@ -209,11 +220,13 @@ star-setup username/repo --repos user/lib1 user/lib2
 star-setup username/repo --repos user/lib1 user/lib2 --no-watch
 ```
 
-After setup, run the game from its repo directory:
+After setup pass `--dev` to launch it automatically, or run the game from its repo directory:
 ```bash
 cd build-mono/repos/user-my-repo
 npm run dev
 ```
+
+</details>
 
 #### Workspace Mode
 Manage an existing mono-repo workspace.
@@ -239,22 +252,6 @@ Workspace flags:
 | `--mono-dir <DIR>`  | Workspace directory name (default: `build-mono`)      |
 | `--build-dir <DIR>` | Build directory name (default: `build`)               |
 
-### Profile Mode
-Profiles represent a saved ecosystem of libraries commonly used together.
-```bash
-# Add a profile
-star-setup profile add myprofile user/lib1 user/lib2
-
-# List profiles
-star-setup profile list
-
-# Remove a profile
-star-setup profile remove myprofile
-
-# Use a profile
-star-setup username/repo --profile myprofile
-```
-
 ### Config Mode
 Config files are checked in this order:
 - `./.star-setup.json` (current directory)
@@ -275,6 +272,22 @@ star-setup config remove myconfig
 
 # Use a config
 star-setup username/repo --config myconfig
+```
+
+### Profile Mode
+Profiles represent a saved ecosystem of libraries commonly used together.
+```bash
+# Add a profile
+star-setup profile add myprofile user/lib1 user/lib2
+
+# List profiles
+star-setup profile list
+
+# Remove a profile
+star-setup profile remove myprofile
+
+# Use a profile
+star-setup username/repo --profile myprofile
 ```
 
 ### Development

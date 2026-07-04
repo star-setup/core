@@ -1,6 +1,9 @@
 use crate::{
   cli::{detect_build_system, BuildSystem::Npm, ResolvedArgs},
-  commands::{build_project, extract_repo_input, prepare_build_dir, print_mode_header, ModeHeader},
+  commands::{
+    build_project, extract_repo_input, maybe_open_dev_server, prepare_build_dir, print_mode_header,
+    ModeHeader,
+  },
   ctx::RunCtx,
   prompts::confirm,
   repository::{
@@ -87,5 +90,6 @@ pub fn single_repo_mode(
   if ctx.flags.timing {
     writeln!(ctx.io.output, "[timing] Total: {:.2?}", total.elapsed()).ok();
   }
-  Ok(())
+
+  maybe_open_dev_server(args, build_system, &repo_path, ctx)
 }

@@ -1,7 +1,7 @@
 use crate::{
   cli::{detect_mono_build_system, BuildSystem::Npm, ResolvedArgs},
   commands::{
-    build_project, build_repo_list, extract_repo_input,
+    build_project, build_repo_list, extract_repo_input, maybe_open_dev_server,
     mono::{
       display::{resolve_setup_paths, SetupPaths},
       generate_mono_config, generate_watch_scripts, open_watch_scripts, print_setup_complete,
@@ -133,5 +133,6 @@ pub fn mono_repo_mode(
   } else {
     print_setup_complete(&paths, total, &mut ctx.io, ctx.flags);
   }
-  Ok(())
+
+  maybe_open_dev_server(args, build_system, &repo_dirs[0], ctx)
 }

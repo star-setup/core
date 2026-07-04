@@ -23,6 +23,8 @@ fn test_from_flags_defaults() {
     meson_flags: vec![],
     watch: false,
     no_watch: false,
+    dev: false,
+    no_dev: false,
   };
   let mono = MonoRepoFlags {
     mono_repo: false,
@@ -70,6 +72,8 @@ fn test_from_flags_with_values() {
     meson_flags: vec![],
     watch: false,
     no_watch: false,
+    dev: false,
+    no_dev: false,
   };
   let mono = MonoRepoFlags {
     mono_repo: false,

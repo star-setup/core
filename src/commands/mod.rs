@@ -6,8 +6,7 @@ pub mod mono;
 pub use mono::{
   build_repo_list, create_mono_repo_cmakelists, create_mono_repo_mesonbuild,
   create_mono_repo_package_json, generate_mono_config, generate_watch_scripts, hoist_wraps,
-  mono_repo_mode, read_package_json, resolve_repos_for_mono, resolve_setup_paths,
-  resolve_test_repo,
+  mono_repo_mode, resolve_repos_for_mono, resolve_setup_paths, resolve_test_repo,
   wraps::{parse_project_name, parse_provide_pairs},
 };
 pub mod single;
@@ -16,3 +15,7 @@ pub mod setup;
 pub use setup::{extract_repo_input, prepare_build_dir};
 pub mod handlers;
 pub use handlers::{handle_config_cmd, handle_profile_cmd, handle_workspace_cmd};
+pub mod npm;
+pub use npm::read_package_json;
+pub mod dev;
+pub use dev::{maybe_open_dev_server, open_dev_server, resolve_dev_command};

@@ -8,52 +8,17 @@ use std::{
 #[cfg(target_os = "windows")]
 use std::{collections::HashMap, path::PathBuf};
 
-/// Finds vcvars64.bat using vswhere.exe.
-/// Returns None if vswhere is not found or no VS installation exists.
-#[cfg(target_os = "windows")]
-fn find_vcvars() -> Option<PathBuf> {
-  let program_files =
-    var("ProgramFiles(x86)").unwrap_or_else(|_| r"C:\Program Files (x86)".to_string());
-  let vswhere = PathBuf::from(program_files).join(r"Microsoft Visual Studio\Installer\vswhere.exe");
-
-  if !vswhere.exists() {
-    return None;
+/// npm must be invoked via `cmd /c` on Windows; applies that prefix, else returns cmd unchanged.
+#[must_use]
+pub fn resolve_exe_args<'a>(cmd: &[&'a str]) -> Vec<&'a str> {
+  #[cfg(target_os = "windows")]
+  if cmd.first() == Some(&"npm") {
+    return std::iter::once("cmd")
+      .chain(std::iter::once("/c"))
+      .chain(cmd.iter().copied())
+      .collect();
   }
-
-  let output = Command::new(&vswhere)
-    .args(["-latest", "-property", "installationPath"])
-    .output()
-    .ok()?;
-
-  let install_path = String::from_utf8(output.stdout).ok()?;
-  let vcvars = PathBuf::from(install_path.trim()).join(r"VC\Auxiliary\Build\vcvars64.bat");
-
-  vcvars.exists().then_some(vcvars)
-}
-
-/// Runs vcvars64.bat and captures the resulting environment variables.
-/// # Errors
-/// Returns an error if vcvars64.bat cannot be found or run.
-#[cfg(target_os = "windows")]
-fn get_msvc_env() -> Result<HashMap<String, String>, String> {
-  let vcvars = find_vcvars().ok_or("Could not find vcvars64.bat via vswhere")?;
-  let vcvars_str = vcvars.to_str().ok_or("Invalid vcvars path")?;
-
-  let output = Command::new("cmd")
-    .args(["/c", vcvars_str, "&&", "set"])
-    .output()
-    .map_err(|e| format!("Failed to run vcvars64.bat: {e}"))?;
-
-  let stdout = String::from_utf8_lossy(&output.stdout);
-  Ok(
-    stdout
-      .lines()
-      .filter_map(|line| {
-        let (key, val) = line.split_once('=')?;
-        Some((key.to_string(), val.to_string()))
-      })
-      .collect(),
-  )
+  cmd.to_vec()
 }
 
 /// Runs a shell command with optional working directory.
@@ -66,9 +31,9 @@ pub fn run_command(
   verbose: bool,
   output: &mut (impl Write + ?Sized),
 ) -> Result<(), String> {
-  let (exe, args) = match cmd {
+  let exe = match cmd {
     [] => return Err("No command provided".to_string()),
-    [exe, args @ ..] => (exe, args),
+    [exe, ..] => exe,
   };
 
   if verbose {
@@ -78,24 +43,10 @@ pub fn run_command(
     }
   }
 
-  #[cfg(target_os = "windows")]
-  let npm_cmd;
-  #[cfg(target_os = "windows")]
-  let (exe, args) = if cmd[0] == "npm" {
-    use std::iter::once;
-
-    npm_cmd = once("cmd")
-      .chain(once("/c"))
-      .chain(cmd.iter().copied())
-      .collect::<Vec<_>>();
-    (&npm_cmd[0], &npm_cmd[1..])
-  } else {
-    (exe, args)
-  };
-
-  let mut command = Command::new(exe);
+  let resolved = resolve_exe_args(cmd);
+  let mut command = Command::new(resolved[0]);
   command.stdin(Stdio::null());
-  command.args(args);
+  command.args(&resolved[1..]);
 
   if let Some(dir) = cwd {
     command.current_dir(dir);
@@ -151,4 +102,52 @@ pub fn run_command(
   }
 
   Ok(())
+}
+
+/// Finds vcvars64.bat using vswhere.exe.
+/// Returns None if vswhere is not found or no VS installation exists.
+#[cfg(target_os = "windows")]
+fn find_vcvars() -> Option<PathBuf> {
+  let program_files =
+    var("ProgramFiles(x86)").unwrap_or_else(|_| r"C:\Program Files (x86)".to_string());
+  let vswhere = PathBuf::from(program_files).join(r"Microsoft Visual Studio\Installer\vswhere.exe");
+
+  if !vswhere.exists() {
+    return None;
+  }
+
+  let output = Command::new(&vswhere)
+    .args(["-latest", "-property", "installationPath"])
+    .output()
+    .ok()?;
+
+  let install_path = String::from_utf8(output.stdout).ok()?;
+  let vcvars = PathBuf::from(install_path.trim()).join(r"VC\Auxiliary\Build\vcvars64.bat");
+
+  vcvars.exists().then_some(vcvars)
+}
+
+/// Runs vcvars64.bat and captures the resulting environment variables.
+/// # Errors
+/// Returns an error if vcvars64.bat cannot be found or run.
+#[cfg(target_os = "windows")]
+fn get_msvc_env() -> Result<HashMap<String, String>, String> {
+  let vcvars = find_vcvars().ok_or("Could not find vcvars64.bat via vswhere")?;
+  let vcvars_str = vcvars.to_str().ok_or("Invalid vcvars path")?;
+
+  let output = Command::new("cmd")
+    .args(["/c", vcvars_str, "&&", "set"])
+    .output()
+    .map_err(|e| format!("Failed to run vcvars64.bat: {e}"))?;
+
+  let stdout = String::from_utf8_lossy(&output.stdout);
+  Ok(
+    stdout
+      .lines()
+      .filter_map(|line| {
+        let (key, val) = line.split_once('=')?;
+        Some((key.to_string(), val.to_string()))
+      })
+      .collect(),
+  )
 }
