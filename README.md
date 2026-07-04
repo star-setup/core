@@ -128,6 +128,8 @@ Interactive mode complete
 ### Single Repository Mode
 Build system is auto-detected from the repository root (`CMakeLists.txt` → CMake, `meson.build` → Meson, `package.json` → npm). Pass `--dev` to launch the project's dev server after setup.
 
+Endpoint-style npm projects (no `build` script) skip the build step. If there's also no `dev` script, `--dev` falls back to `vercel dev` when the repo looks like a Vercel project (`vercel.json`, an `api/` directory, or `@vercel/node` as a dependency).
+
 ```bash
 # Clone and build using a single repository
 star-setup username/repo
@@ -220,10 +222,11 @@ star-setup username/repo --repos user/lib1 user/lib2
 star-setup username/repo --repos user/lib1 user/lib2 --no-watch
 ```
 
-After setup pass `--dev` to launch it automatically, or run the game from its repo directory:
+After setup pass `--dev` to launch it automatically: falls back to `vercel dev` if the test repo has no `dev` script but looks like a Vercel project. Or, run it manually from its repo directory:
 ```bash
 cd build-mono/repos/user-my-repo
-npm run dev
+# npm run dev
+# vercel dev
 ```
 
 </details>
