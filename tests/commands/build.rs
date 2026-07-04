@@ -3,6 +3,7 @@ use star_setup::{
   cli::BuildSystem,
   commands::{build_project, cmake_build, meson_build, npm_build},
 };
+use std::fs::write;
 
 /* =====     BUILD_PROJECT     ===== */
 #[test]
@@ -99,6 +100,11 @@ fn test_npm_build_install_only() {
 fn test_npm_build_with_build_step() {
   let args = default_resolved_with_no_build(false);
   let runner = with_ctx_runner(MockRunner::new(), |tmp_path, ctx| {
+    write(
+      tmp_path.join("package.json"),
+      r#"{"scripts": {"build": "tsc"}}"#,
+    )
+    .unwrap();
     npm_build(&args, tmp_path, false, ctx).unwrap();
   });
   assert_eq!(runner.calls.len(), 2);
@@ -113,4 +119,27 @@ fn test_npm_build_install_only_prints_header() {
   });
   let out = String::from_utf8(output).unwrap();
   assert!(out.contains("Installing dependencies"));
+}
+
+#[test]
+fn test_npm_build_skips_build_without_script() {
+  let args = default_resolved_with_no_build(false);
+  let runner = with_ctx_runner(MockRunner::new(), |tmp_path, ctx| {
+    write(
+      tmp_path.join("package.json"),
+      r#"{"scripts": {"typecheck": "tsc --noEmit"}}"#,
+    )
+    .unwrap();
+    npm_build(&args, tmp_path, false, ctx).unwrap();
+  });
+  assert_eq!(runner.calls.len(), 1);
+}
+
+#[test]
+fn test_npm_build_skips_build_when_package_json_missing() {
+  let args = default_resolved_with_no_build(false);
+  let runner = with_ctx_runner(MockRunner::new(), |tmp_path, ctx| {
+    npm_build(&args, tmp_path, false, ctx).unwrap();
+  });
+  assert_eq!(runner.calls.len(), 1);
 }
