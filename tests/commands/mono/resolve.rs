@@ -2,7 +2,7 @@ use crate::common::{default_resolved, with_ctx, with_io, MockRunner};
 use star_setup::{
   cli::BuildSystem,
   commands::{generate_mono_config, resolve_repos_for_mono, resolve_test_repo},
-  config::SetupConfig,
+  config::{types::Profile, SetupConfig},
 };
 use std::{
   fs::{create_dir_all, read_to_string, write},
@@ -54,7 +54,13 @@ fn test_resolve_test_repo_errors() {
 #[test]
 fn test_resolve_repos_for_mono_empty_profile_errors() {
   let mut config = SetupConfig::new();
-  config.profiles.insert("emptyprofile".to_string(), vec![]);
+  config.profiles.insert(
+    "emptyprofile".to_string(),
+    Profile {
+      test_repo: None,
+      deps: vec![],
+    },
+  );
   let mut args = default_resolved();
   args.mono.profile = Some("emptyprofile".to_string());
 
@@ -70,7 +76,10 @@ fn test_resolve_repos_for_mono_with_profile() {
   let mut config = SetupConfig::new();
   config.profiles.insert(
     "myprofile".to_string(),
-    vec!["user/lib1".to_string(), "user/lib2".to_string()],
+    Profile {
+      test_repo: None,
+      deps: vec!["user/lib1".to_string(), "user/lib2".to_string()],
+    },
   );
   let mut args = default_resolved();
   args.mono.profile = Some("myprofile".to_string());

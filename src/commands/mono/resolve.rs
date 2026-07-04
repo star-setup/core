@@ -37,10 +37,10 @@ pub fn resolve_repos_for_mono(
       list_profiles(config, io);
       format!("Profile '{profile_name}' not found")
     })?;
-    if profile_repos.is_empty() {
+    if profile_repos.test_repo.is_none() && profile_repos.deps.is_empty() {
       return Err(format!("Profile '{profile_name}' has no repositories"));
     }
-    Ok(profile_repos.clone())
+    Ok(profile_repos.deps.clone())
   } else if let Some(r) = &args.mono.repos {
     Ok(r.clone())
   } else {

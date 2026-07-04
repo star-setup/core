@@ -125,6 +125,12 @@ impl From<&ResolvedArgs> for ConfigEntry {
   }
 }
 
+#[derive(Serialize, Deserialize, Default, Clone)]
+pub struct Profile {
+  pub test_repo: Option<String>,
+  pub deps: Vec<String>,
+}
+
 /// Top-level configuration structure.
 #[derive(Serialize, Deserialize, Default)]
 pub struct SetupConfig {
@@ -133,7 +139,7 @@ pub struct SetupConfig {
   pub configs: HashMap<String, ConfigEntry>,
   /// Named profile entries mapping profile names to repository lists.
   #[serde(default)]
-  pub profiles: HashMap<String, Vec<String>>,
+  pub profiles: HashMap<String, Profile>,
   /// Path to the config file this was loaded from, if any.
   #[serde(skip)]
   pub path: Option<PathBuf>,

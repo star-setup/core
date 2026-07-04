@@ -1,13 +1,19 @@
 use crate::{
-  config::{persist_or_dry_run, SetupConfig},
+  config::{persist_or_dry_run, types::Profile, SetupConfig},
   ctx::{IoCtx, RunFlags},
   profile::print_profile_details,
   prompts::confirm_abort,
 };
 
 /// Inserts or overwrites a named profile.
-pub fn insert_profile(config: &mut SetupConfig, name: &str, repos: Vec<String>) {
-  config.profiles.insert(name.to_string(), repos);
+pub fn insert_profile(config: &mut SetupConfig, name: &str, deps: Vec<String>) {
+  config.profiles.insert(
+    name.to_string(),
+    Profile {
+      test_repo: None,
+      deps,
+    },
+  );
 }
 
 /// Removes a named profile. Returns `true` if it existed.
@@ -60,7 +66,15 @@ pub fn add_profile(
       writeln!(io.output, "  Configuration saved to: {}", path.display()).ok();
     },
   )?;
-  print_profile_details(io.output, "Profile details:", "Repositories", &repos);
+  print_profile_details(
+    io.output,
+    "Profile details:",
+    "Repositories",
+    &Profile {
+      test_repo: None,
+      deps: repos.clone(),
+    },
+  );
   writeln!(
     io.output,
     "  Usage: star-setup username/test-repo --profile {name}"
@@ -79,7 +93,7 @@ pub fn remove_profile(
   io: &mut IoCtx<'_>,
   flags: RunFlags,
 ) -> Result<(), String> {
-  let repos = match config.profiles.get(name) {
+  let profile = match config.profiles.get(name) {
     None => {
       writeln!(io.output, "  Warning: Profile '{name}' not found.").ok();
       return Ok(());
@@ -91,7 +105,7 @@ pub fn remove_profile(
     io.output,
     &format!("Profile '{name}'"),
     "Repositories",
-    &repos,
+    &profile,
   );
 
   if !confirm_abort(

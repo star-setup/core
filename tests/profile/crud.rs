@@ -45,7 +45,7 @@ fn test_save_and_load_profile_roundtrip() {
     let loaded = load_config(&[path], false, false, &mut io.output);
     assert!(loaded.profiles.contains_key("myprofile"));
     assert_eq!(
-      loaded.profiles["myprofile"],
+      loaded.profiles["myprofile"].deps,
       vec!["user/repo1", "user/repo2"]
     );
   });
@@ -103,7 +103,7 @@ fn test_add_profile_overwrites_existing() {
 
     let args = vec!["myprofile".to_string(), "new/repo".to_string()];
     add_profile(&mut config, &args, true, io, make_flags()).unwrap();
-    assert_eq!(config.profiles["myprofile"], vec!["new/repo"]);
+    assert_eq!(config.profiles["myprofile"].deps, vec!["new/repo"]);
   });
 }
 
@@ -120,7 +120,7 @@ fn test_add_profile_multiple_repos() {
       "user/repo3".to_string(),
     ];
     add_profile(&mut config, &args, true, io, make_flags()).unwrap();
-    assert_eq!(config.profiles["myprofile"].len(), 3);
+    assert_eq!(config.profiles["myprofile"].deps.len(), 3);
   });
 }
 
@@ -134,7 +134,7 @@ fn test_add_profile_aborts_when_exists_and_not_confirmed() {
 
     let args = vec!["myprofile".to_string(), "new/repo".to_string()];
     add_profile(&mut config, &args, false, io, make_flags()).unwrap();
-    assert_eq!(config.profiles["myprofile"], vec!["old/repo"]);
+    assert_eq!(config.profiles["myprofile"].deps, vec!["old/repo"]);
   });
 }
 
