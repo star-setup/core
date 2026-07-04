@@ -22,6 +22,19 @@ pub fn resolve_bool(positive: bool, negative: bool, config: Option<bool>, defaul
   }
 }
 
+/// Resolves a positive/negative flag pair, each using the other as its negation.
+fn resolve_flag_pair(
+  pos: bool,
+  neg: bool,
+  cfg_pos: Option<bool>,
+  cfg_neg: Option<bool>,
+) -> (bool, bool) {
+  (
+    resolve_bool(pos, neg, cfg_pos, false),
+    resolve_bool(neg, pos, cfg_neg, false),
+  )
+}
+
 /// Resolves raw `Args` into `ResolvedArgs` by applying config defaults and CLI overrides.
 /// # Errors
 /// Returns an error if the named config does not exist in the provided `SetupConfig`.
@@ -69,29 +82,13 @@ pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<Resol
     default.map(|e| e.clean),
     false,
   );
-  let watch = resolve_bool(
-    args.build.watch,
-    args.build.no_watch,
-    default.map(|e| e.watch),
-    false,
+  let (watch, no_watch) = resolve_flag_pair(
+    args.build.watch, args.build.no_watch,
+    default.map(|e| e.watch), default.map(|e| e.no_watch),
   );
-  let no_watch = resolve_bool(
-    args.build.no_watch,
-    args.build.watch,
-    default.map(|e| e.no_watch),
-    false,
-  );
-  let dev = resolve_bool(
-    args.build.dev,
-    args.build.no_dev,
-    default.map(|e| e.dev),
-    false,
-  );
-  let no_dev = resolve_bool(
-    args.build.no_dev,
-    args.build.dev,
-    default.map(|e| e.no_dev),
-    false,
+  let (dev, no_dev) = resolve_flag_pair(
+    args.build.dev, args.build.no_dev,
+    default.map(|e| e.dev), default.map(|e| e.no_dev),
   );
 
   let cmake_flags = Some(args.build.cmake_flags)
