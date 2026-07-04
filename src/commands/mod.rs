@@ -18,3 +18,4 @@ pub use handlers::{handle_config_cmd, handle_profile_cmd, handle_workspace_cmd};
 pub mod npm;
 pub use npm::read_package_json;
 pub mod dev;
+pub use dev::{maybe_open_dev_server, open_dev_server, resolve_dev_command};

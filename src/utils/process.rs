@@ -9,6 +9,7 @@ use std::{
 use std::{collections::HashMap, path::PathBuf};
 
 /// npm must be invoked via `cmd /c` on Windows; applies that prefix, else returns cmd unchanged.
+#[must_use]
 pub fn resolve_exe_args<'a>(cmd: &[&'a str]) -> Vec<&'a str> {
   #[cfg(target_os = "windows")]
   if cmd.first() == Some(&"npm") {
