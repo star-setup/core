@@ -89,7 +89,6 @@ cargo install --git https://github.com/star-setup/core
 | `--dev`                   | Automatically start the dev server (npm)               |
 | `--no-dev`                | Skip opening the dev server (npm)                      |
 
-
 #### Mono-Repo
 | Flag                 | Description                                 |
 |------                |-------------                                |

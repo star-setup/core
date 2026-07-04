@@ -20,6 +20,8 @@ pub struct ResolvedBuildFlags {
   pub meson_flags: Vec<String>,
   pub watch: bool,
   pub no_watch: bool,
+  pub dev: bool,
+  pub no_dev: bool,
 }
 
 /// Resolved mono-repo flags after applying config and CLI overrides.

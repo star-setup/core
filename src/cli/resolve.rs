@@ -108,6 +108,8 @@ pub fn resolve_with_config(mut args: Args, config: &SetupConfig) -> Result<Resol
       meson_flags,
       watch: args.build.watch,
       no_watch: args.build.no_watch,
+      dev: args.build.dev,
+      no_dev: args.build.no_dev,
     },
     mono: ResolvedMonoFlags {
       mono_repo,
