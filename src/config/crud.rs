@@ -1,6 +1,6 @@
 use crate::{
   cli::BuildType::Debug,
-  config::{format_entry, save_config, ConfigEntry, SetupConfig},
+  config::{format_entry, persist_or_dry_run, save_config, ConfigEntry, SetupConfig},
   ctx::{IoCtx, RunFlags},
   prompts::confirm_abort,
 };
@@ -110,26 +110,24 @@ pub fn add_config(
     return Ok(());
   }
 
-  if flags.dry_run {
-    writeln!(
-      io.output,
-      "  Would save configuration '{name}' to config file"
-    )
-    .ok();
-  } else {
-    insert_config(config, name, entry);
-    let path: PathBuf = save_config(config, flags.timing, &mut io.output)?;
-    writeln!(
-      io.output,
-      "  Configuration '{name}' added successfully to {}",
-      path.display()
-    )
-    .ok();
-    let e: &ConfigEntry = &config.configs[name];
-    writeln!(io.output, "  Configuration details:").ok();
-    write!(io.output, "  {}", format_entry(e)).ok();
-  }
-  Ok(())
+  persist_or_dry_run(
+    config,
+    flags,
+    io,
+    &format!("Would save configuration '{name}' to config file"),
+    |config| insert_config(config, name, entry),
+    |config, path, io| {
+      writeln!(
+        io.output,
+        "  Configuration '{name}' added successfully to {}",
+        path.display()
+      )
+      .ok();
+      let e: &ConfigEntry = &config.configs[name];
+      writeln!(io.output, "  Configuration details:").ok();
+      write!(io.output, "  {}", format_entry(e)).ok();
+    },
+  )
 }
 
 /// Removes a named configuration entry.
@@ -155,17 +153,17 @@ pub fn remove_config(
     return Ok(());
   }
 
-  if flags.dry_run {
-    writeln!(
-      io.output,
-      "  Would remove configuration '{name}' from config file"
-    )
-    .ok();
-  } else {
-    remove_config_entry(config, name);
-    let path = save_config(config, flags.timing, &mut io.output)?;
-    writeln!(io.output, "  Config '{name}' was successfully removed").ok();
-    writeln!(io.output, "  Configuration saved to: {}", path.display()).ok();
-  }
-  Ok(())
+  persist_or_dry_run(
+    config,
+    flags,
+    io,
+    &format!("Would remove configuration '{name}' from config file"),
+    |config| {
+      remove_config_entry(config, name);
+    },
+    |_config, path, io| {
+      writeln!(io.output, "  Config '{name}' was successfully removed").ok();
+      writeln!(io.output, "  Configuration saved to: {}", path.display()).ok();
+    },
+  )
 }
