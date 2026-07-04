@@ -2,7 +2,8 @@ use crate::common::{default_resolved, with_ctx, with_io, MockRunner};
 use star_setup::{
   cli::BuildSystem,
   commands::{generate_mono_config, resolve_repos_for_mono, resolve_test_repo},
-  config::{types::Profile, Config},
+  config::Config,
+  profile::Profile,
 };
 use std::{
   fs::{create_dir_all, read_to_string, write},

@@ -1,7 +1,4 @@
-use crate::{
-  config::types::{Config, Profile},
-  ctx::IoCtx,
-};
+use crate::{config::Config, ctx::IoCtx, profile::Profile};
 use std::io::Write;
 
 pub fn print_profile_details(

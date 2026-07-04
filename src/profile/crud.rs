@@ -1,7 +1,7 @@
 use crate::{
-  config::{persist_or_dry_run, types::Profile, Config},
+  config::{persist_or_dry_run, Config},
   ctx::{IoCtx, RunFlags},
-  profile::print_profile_details,
+  profile::{print_profile_details, Profile},
   prompts::confirm_abort,
 };
 

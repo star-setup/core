@@ -1,5 +1,6 @@
-use crate::cli::{
-  BuildFlags, BuildType, ConnectionFlags, DiagnosticFlags, MonoRepoFlags, ResolvedArgs,
+use crate::{
+  cli::{BuildFlags, BuildType, ConnectionFlags, DiagnosticFlags, MonoRepoFlags, ResolvedArgs},
+  profile::Profile,
 };
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf};
@@ -145,10 +146,4 @@ impl From<&ResolvedArgs> for ConfigEntry {
       meson_flags: args.build.meson_flags.clone(),
     }
   }
-}
-
-#[derive(Serialize, Deserialize, Default, Clone)]
-pub struct Profile {
-  pub test_repo: Option<String>,
-  pub deps: Vec<String>,
 }
