@@ -1,8 +1,8 @@
 use crate::{
   build::BuildType,
-  cli::ResolvedArgs,
   ctx::IoCtx,
   prompts::{ask, ask_bool_if, ask_default, ask_required},
+  resolve::ResolvedArgs,
 };
 
 /// Interactive CLI mode — prompts for any unset arguments.

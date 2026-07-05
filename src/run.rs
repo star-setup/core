@@ -1,7 +1,7 @@
 use crate::{
   cli::{
     args::Command::{Config, Profile, Workspace},
-    resolve_with_config, Args,
+    Args,
   },
   commands::{
     handle_config_cmd, handle_profile_cmd, handle_workspace_cmd, mono_repo_mode, single_repo_mode,
@@ -9,6 +9,7 @@ use crate::{
   config::{config_locations, load_config},
   ctx::{with_runner, IoCtx},
   interactive::interactive_mode,
+  resolve::resolve_with_config,
   utils::check_prerequisites,
 };
 use clap::Parser;

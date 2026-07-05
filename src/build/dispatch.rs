@@ -4,9 +4,9 @@ use crate::{
     create_mono_repo_package_json, hoist_wraps, meson_build, npm_build, BuildSystem,
     BuildSystem::Cmake, BuildSystem::Meson, BuildSystem::Npm,
   },
-  cli::ResolvedArgs,
   ctx::RunCtx,
   repository::repo_dir_name,
+  resolve::ResolvedArgs,
 };
 use std::{
   collections::HashMap,

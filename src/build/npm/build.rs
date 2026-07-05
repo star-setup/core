@@ -1,7 +1,7 @@
 use crate::{
   build::{common::run_timed, read_package_json},
-  cli::ResolvedArgs,
   ctx::RunCtx,
+  resolve::ResolvedArgs,
 };
 use std::path::Path;
 

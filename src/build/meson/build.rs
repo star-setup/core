@@ -1,4 +1,4 @@
-use crate::{build::common::run_timed, cli::ResolvedArgs, ctx::RunCtx};
+use crate::{build::common::run_timed, ctx::RunCtx, resolve::ResolvedArgs};
 use std::path::Path;
 
 fn to_str(path: &Path) -> Result<&str, String> {

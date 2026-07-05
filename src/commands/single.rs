@@ -1,6 +1,5 @@
 use crate::{
   build::{build_project, detect_build_system, maybe_open_dev_server, BuildSystem::Npm},
-  cli::ResolvedArgs,
   commands::{extract_repo_input, prepare_build_dir, print_mode_header, ModeHeader},
   ctx::RunCtx,
   prompts::confirm,
@@ -8,6 +7,7 @@ use crate::{
     clone_repo, repo_dir_name,
     ExistsAction::{Skip, Update},
   },
+  resolve::ResolvedArgs,
   utils::detect_or_dry_run,
 };
 use std::{path::Path, time::Instant};

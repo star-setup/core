@@ -5,8 +5,8 @@ use crate::{
     read_package_json,
     BuildSystem::{self, Npm},
   },
-  cli::ResolvedArgs,
   ctx::{IoCtx, RunCtx, RunFlags},
+  resolve::ResolvedArgs,
 };
 use serde_json::Value;
 use std::{

@@ -1,11 +1,9 @@
 #![allow(dead_code)]
 
 use star_setup::{
-  cli::{
-    resolve_with_config, Args, BuildFlags, ConnectionFlags, DiagnosticFlags, MonoRepoFlags,
-    ResolvedArgs,
-  },
+  cli::{Args, BuildFlags, ConnectionFlags, DiagnosticFlags, MonoRepoFlags},
   config::Config,
+  resolve::{resolve_with_config, ResolvedArgs},
 };
 
 pub fn default_args() -> Args {

@@ -1,4 +1,4 @@
-use crate::{build::common::run_timed, cli::ResolvedArgs, ctx::RunCtx};
+use crate::{build::common::run_timed, ctx::RunCtx, resolve::ResolvedArgs};
 use std::path::Path;
 
 /// Runs `CMake` configuration and optionally builds the project in `build_path`.

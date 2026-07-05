@@ -1,5 +1,4 @@
 #[path = "common/mod.rs"]
 mod common;
-
-#[path = "cli/resolve.rs"]
+#[path = "resolve/resolve.rs"]
 mod resolve;

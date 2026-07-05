@@ -1,4 +1,4 @@
-use crate::{cli::ResolvedArgs, config::Config, profile::Profile};
+use crate::{config::Config, profile::Profile, resolve::ResolvedArgs};
 
 /// Normalizes a repository input to `username/repo` format.
 /// # Errors

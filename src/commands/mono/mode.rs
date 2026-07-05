@@ -3,7 +3,6 @@ use crate::{
     build_project, detect_mono_build_system, generate_mono_config, generate_watch_scripts,
     maybe_open_dev_server, open_watch_scripts, BuildSystem::Npm,
   },
-  cli::ResolvedArgs,
   commands::{
     build_repo_list,
     mono::{
@@ -16,6 +15,7 @@ use crate::{
   config::Config,
   ctx::RunCtx,
   repository::{clone_repos, repo_dir_name},
+  resolve::ResolvedArgs,
   utils::{detect_or_dry_run, dry_run_or_do},
 };
 use std::{

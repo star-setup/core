@@ -1,4 +1,4 @@
-use crate::{cli::ResolvedArgs, ctx::RunCtx, utils::dry_run_or_do};
+use crate::{ctx::RunCtx, resolve::ResolvedArgs, utils::dry_run_or_do};
 use std::{
   fs::{create_dir_all, remove_dir_all},
   path::Path,

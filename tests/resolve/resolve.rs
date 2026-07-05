@@ -1,8 +1,8 @@
 use crate::common::default_args;
 use star_setup::{
   build::BuildType,
-  cli::{resolve_bool, resolve_with_config},
   config::{Config, ConfigEntry},
+  resolve::{resolve_bool, resolve_with_config},
 };
 
 /// Helper to quickly build a `SetupConfig` with a populated profile entry.

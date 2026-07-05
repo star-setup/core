@@ -9,6 +9,7 @@ pub mod interactive;
 pub mod profile;
 pub mod prompts;
 pub mod repository;
+pub mod resolve;
 pub mod run;
 pub mod utils;
 pub mod workspace;
