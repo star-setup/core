@@ -34,8 +34,8 @@ pub fn mono_repo_mode(
   ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
   let total = Instant::now();
-  let profile = resolve_profile(args, config, &mut ctx.io)?;
-  let test_repo = resolve_test_repo_for_mono(args, profile)?;
+  let profile = resolve_profile(args, config);
+  let test_repo = resolve_test_repo_for_mono(args)?;
   let deps = resolve_repos_for_mono(args, profile);
   let repos = build_repo_list(&test_repo, &deps);
 

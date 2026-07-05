@@ -59,7 +59,15 @@ pub fn run(config_path: PathBuf) -> Result<(), Box<dyn Error>> {
     return Ok(());
   }
 
-  if args.repo.is_none() {
+  let has_repo = args.repo.is_some()
+    || args.mono.profile.as_deref().is_some_and(|p| {
+      config
+        .profiles
+        .get(p)
+        .is_some_and(|p| p.test_repo.is_some())
+    });
+
+  if !has_repo {
     if is_terminal {
       interactive_mode(&mut args, &mut io)?;
       flags = args.diagnostic;

@@ -1,9 +1,4 @@
-use crate::{
-  cli::ResolvedArgs,
-  config::Config,
-  ctx::IoCtx,
-  profile::{list_profiles, Profile},
-};
+use crate::{cli::ResolvedArgs, config::Config, profile::Profile};
 
 /// Normalizes a repository input to `username/repo` format.
 /// # Errors
@@ -30,34 +25,22 @@ pub fn resolve_test_repo(repo_input: &str) -> Result<String, String> {
 }
 
 /// Resolves the named profile for mono-repo mode, if one was requested.
-/// # Errors
-/// Returns an error if `--profile` names a profile that doesn't exist.
-pub fn resolve_profile<'a>(
-  args: &ResolvedArgs,
-  config: &'a Config,
-  io: &mut IoCtx<'_>,
-) -> Result<Option<&'a Profile>, String> {
-  match &args.mono.profile {
-    Some(name) => config.profiles.get(name).map(Some).ok_or_else(|| {
-      list_profiles(config, io);
-      format!("Profile '{name}' not found")
-    }),
-    None => Ok(None),
-  }
+#[must_use]
+pub fn resolve_profile<'a>(args: &ResolvedArgs, config: &'a Config) -> Option<&'a Profile> {
+  args
+    .mono
+    .profile
+    .as_deref()
+    .and_then(|name| config.profiles.get(name))
 }
 
-/// Resolves the test repo for mono-repo mode: CLI positional wins, else the profile's.
+/// Resolves the test repo for mono-repo mode from the already-resolved repo.
 /// # Errors
-/// Returns an error if neither a positional repo nor a profile test repo is available.
-pub fn resolve_test_repo_for_mono(
-  args: &ResolvedArgs,
-  profile: Option<&Profile>,
-) -> Result<String, String> {
+/// Returns an error if no repository is available.
+pub fn resolve_test_repo_for_mono(args: &ResolvedArgs) -> Result<String, String> {
   match args.repo.as_deref() {
     Some(r) => resolve_test_repo(r.trim_end_matches('/')),
-    None => profile
-      .and_then(|p| p.test_repo.clone())
-      .ok_or_else(|| "No repository specified".to_string()),
+    None => Err("No repository specified".to_string()),
   }
 }
 

@@ -4,11 +4,13 @@ use crate::{
 };
 
 /// Resolved connection flags after applying config and CLI overrides.
+#[derive(Debug)]
 pub struct ResolvedConnectionFlags {
   pub ssh: bool,
 }
 
 /// Resolved build flags after applying config and CLI overrides.
+#[derive(Debug)]
 #[allow(clippy::struct_excessive_bools)]
 pub struct ResolvedBuildFlags {
   pub build_type: BuildType,
@@ -25,6 +27,7 @@ pub struct ResolvedBuildFlags {
 }
 
 /// Resolved mono-repo flags after applying config and CLI overrides.
+#[derive(Debug)]
 pub struct ResolvedMonoFlags {
   pub mono_repo: bool,
   pub mono_dir: String,
@@ -33,6 +36,7 @@ pub struct ResolvedMonoFlags {
 }
 
 /// Fully resolved arguments ready for command execution.
+#[derive(Debug)]
 pub struct ResolvedArgs {
   pub repo: Option<String>,
   pub yes: bool,

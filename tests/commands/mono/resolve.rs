@@ -1,10 +1,7 @@
-use crate::common::{default_resolved, with_ctx, with_io, MockRunner};
+use crate::common::{default_resolved, with_ctx, MockRunner};
 use star_setup::{
   build::{generate_mono_config, BuildSystem},
-  commands::{
-    mono::{resolve_profile, resolve_test_repo_for_mono},
-    resolve_repos_for_mono, resolve_test_repo,
-  },
+  commands::{mono::resolve_test_repo_for_mono, resolve_repos_for_mono, resolve_test_repo},
   config::Config,
   profile::Profile,
 };
@@ -63,11 +60,7 @@ fn test_resolve_test_repo_for_mono_errors_when_profile_empty() {
     .insert("emptyprofile".to_string(), Profile::default());
   let mut args = default_resolved();
   args.repo = None;
-  args.mono.profile = Some("emptyprofile".to_string());
-  with_io(|io| {
-    let profile = resolve_profile(&args, &config, io).unwrap();
-    assert!(resolve_test_repo_for_mono(&args, profile).is_err());
-  });
+  assert!(resolve_test_repo_for_mono(&args).is_err());
 }
 
 #[test]
@@ -80,36 +73,11 @@ fn test_resolve_test_repo_for_mono_prefers_positional_over_profile() {
       deps: vec![],
     },
   );
-  let args = default_resolved(); // args.repo already Some("user/repo")
-  with_io(|io| {
-    let profile = resolve_profile(&args, &config, io).unwrap();
-    assert_eq!(
-      resolve_test_repo_for_mono(&args, profile),
-      Ok("user/repo".to_string())
-    );
-  });
-}
-
-#[test]
-fn test_resolve_test_repo_for_mono_falls_back_to_profile() {
-  let mut config = Config::new();
-  config.profiles.insert(
-    "myprofile".to_string(),
-    Profile {
-      test_repo: Some("user/app".to_string()),
-      deps: vec![],
-    },
+  let args = default_resolved();
+  assert_eq!(
+    resolve_test_repo_for_mono(&args),
+    Ok("user/repo".to_string())
   );
-  let mut args = default_resolved();
-  args.repo = None;
-  args.mono.profile = Some("myprofile".to_string());
-  with_io(|io| {
-    let profile = resolve_profile(&args, &config, io).unwrap();
-    assert_eq!(
-      resolve_test_repo_for_mono(&args, profile),
-      Ok("user/app".to_string())
-    );
-  });
 }
 
 #[test]
@@ -133,19 +101,6 @@ fn test_resolve_repos_for_mono_with_explicit_repos() {
     resolve_repos_for_mono(&args, None),
     vec!["user/lib1", "user/lib2"]
   );
-}
-
-#[test]
-fn test_resolve_profile_not_found_errors() {
-  let config = Config::new();
-  let mut args = default_resolved();
-  args.mono.profile = Some("nonexistent".to_string());
-
-  with_io(|io| {
-    let result = resolve_profile(&args, &config, io);
-    assert!(result.is_err());
-    assert!(result.unwrap_err().contains("not found"));
-  });
 }
 
 /* =====     GENERATE_MONO_CONFIG     ===== */

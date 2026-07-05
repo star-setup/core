@@ -113,6 +113,29 @@ fn resolve_mono_flags(mono: MonoRepoFlags, default: Option<&ConfigEntry>) -> Res
   }
 }
 
+/// Fills the repo from the named profile's `test_repo` when no positional repo
+/// was given, so all downstream code sees one resolved repo value.
+/// # Errors
+/// Returns an error if `profile` names a profile that does not exist.
+fn resolve_repo(
+  repo: Option<String>,
+  profile: Option<&str>,
+  config: &Config,
+) -> Result<Option<String>, String> {
+  let prof = match profile {
+    Some(name) => Some(config.profiles.get(name).ok_or_else(|| {
+      let mut names: Vec<&str> = config.profiles.keys().map(String::as_str).collect();
+      names.sort_unstable();
+      format!(
+        "Profile '{name}' not found. Available: {}",
+        names.join(", ")
+      )
+    })?),
+    None => None,
+  };
+  Ok(repo.or_else(|| prof.and_then(|p| p.test_repo.clone())))
+}
+
 /// Resolves raw `Args` into `ResolvedArgs` by applying config defaults and CLI overrides.
 /// # Errors
 /// Returns an error if the named config does not exist in the provided `SetupConfig`.
@@ -125,7 +148,7 @@ pub fn resolve_with_config(args: Args, config: &Config) -> Result<ResolvedArgs, 
   }
 
   Ok(ResolvedArgs {
-    repo: args.repo,
+    repo: resolve_repo(args.repo, args.mono.profile.as_deref(), config)?,
     yes: args.yes,
     connection: resolve_connection_flags(&args.connection, default),
     diagnostic: resolve_run_flags(&args.diagnostic, default),
