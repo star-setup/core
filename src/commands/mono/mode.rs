@@ -1,12 +1,13 @@
 use crate::{
   cli::{detect_mono_build_system, BuildSystem::Npm, ResolvedArgs},
   commands::{
-    build_project, build_repo_list, extract_repo_input, maybe_open_dev_server,
+    build_project, build_repo_list, maybe_open_dev_server,
     mono::{
       display::{resolve_setup_paths, SetupPaths},
       generate_mono_config, generate_watch_scripts, open_watch_scripts, print_setup_complete,
+      resolve::{resolve_profile, resolve_test_repo_for_mono},
     },
-    prepare_build_dir, print_mode_header, resolve_repos_for_mono, resolve_test_repo, ModeHeader,
+    prepare_build_dir, print_mode_header, resolve_repos_for_mono, ModeHeader,
   },
   config::Config,
   ctx::RunCtx,
@@ -29,9 +30,9 @@ pub fn mono_repo_mode(
   ctx: &mut RunCtx<'_, '_>,
 ) -> Result<(), String> {
   let total = Instant::now();
-  let repo_input = extract_repo_input(args)?;
-  let test_repo = resolve_test_repo(repo_input)?;
-  let deps = resolve_repos_for_mono(args, config, &mut ctx.io)?;
+  let profile = resolve_profile(args, config, &mut ctx.io)?;
+  let test_repo = resolve_test_repo_for_mono(args, profile)?;
+  let deps = resolve_repos_for_mono(args, profile);
   let repos = build_repo_list(&test_repo, &deps);
 
   print_mode_header(
