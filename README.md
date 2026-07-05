@@ -142,7 +142,10 @@ Clones multiple repositories into a single workspace and auto-detects the build 
 # Clone and build a test repo and a manual repo list
 star-setup username/repo --repos user/lib1 user/lib2
 
-# Clone and build a test repo and a saved profile
+# Clone and build a saved profile
+star-setup --profile myprofile
+
+# Override a profile's test repo
 star-setup username/repo --profile myprofile
 ```
 
@@ -280,7 +283,10 @@ star-setup username/repo --config myconfig
 ### Profile Mode
 Profiles represent a saved ecosystem of libraries commonly used together.
 ```bash
-# Add a profile
+# Add a profile with a test repo and dependencies
+star-setup profile add myprofile --test-repo user/app user/lib1 user/lib2
+
+# Add a dependency-only profile
 star-setup profile add myprofile user/lib1 user/lib2
 
 # List profiles
@@ -290,7 +296,7 @@ star-setup profile list
 star-setup profile remove myprofile
 
 # Use a profile
-star-setup username/repo --profile myprofile
+star-setup --profile myprofile
 ```
 
 ### Development

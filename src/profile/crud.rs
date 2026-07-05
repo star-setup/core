@@ -54,11 +54,7 @@ pub fn add_profile(
     },
   )?;
   print_profile_details(io.output, "Profile details:", "Repositories", profile);
-  writeln!(
-    io.output,
-    "  Usage: star-setup username/test-repo --profile {name}"
-  )
-  .ok();
+  writeln!(io.output, "  Usage: star-setup --profile {name}").ok();
   Ok(())
 }
 
