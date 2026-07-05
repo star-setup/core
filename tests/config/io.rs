@@ -1,7 +1,7 @@
 use crate::common::with_io_output;
 use star_setup::{
   cli::BuildType,
-  config::{insert_config, load_config, save_config, ConfigEntry, SetupConfig},
+  config::{insert_config, load_config, save_config, Config, ConfigEntry},
 };
 use std::{fs::write, path::PathBuf};
 use tempfile::TempDir;
@@ -12,7 +12,7 @@ fn test_save_and_load_roundtrip() {
   let tmp = TempDir::new().unwrap();
   let path = tmp.path().join(".star-setup.json");
 
-  let mut config = SetupConfig::new();
+  let mut config = Config::new();
   config.path = Some(path.clone());
   config.configs.insert(
     "default".to_string(),
@@ -76,8 +76,8 @@ fn test_load_config_first_valid_wins() {
   let path1 = tmp1.path().join(".star-setup.json");
   let path2 = tmp2.path().join(".star-setup.json");
 
-  let mut config1 = SetupConfig::new();
-  let mut config2 = SetupConfig::new();
+  let mut config1 = Config::new();
+  let mut config2 = Config::new();
 
   with_io_output(|io| {
     config1.path = Some(path1.clone());
@@ -103,7 +103,7 @@ fn test_load_config_falls_through_invalid_to_valid() {
 
   write(&path1, "{invalid json").unwrap();
 
-  let mut config2 = SetupConfig::new();
+  let mut config2 = Config::new();
   config2.path = Some(path2.clone());
   insert_config(&mut config2, "second", ConfigEntry::default());
 

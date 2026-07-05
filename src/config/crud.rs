@@ -1,5 +1,5 @@
 use crate::{
-  config::{format_entry, persist_or_dry_run, save_config, ConfigEntry, SetupConfig},
+  config::{format_entry, persist_or_dry_run, save_config, Config, ConfigEntry},
   ctx::{IoCtx, RunFlags},
   prompts::confirm_abort,
 };
@@ -7,18 +7,18 @@ use dunce::canonicalize;
 use std::path::PathBuf;
 
 /// Inserts or overwrites a named configuration entry.
-pub fn insert_config(config: &mut SetupConfig, name: &str, entry: ConfigEntry) {
+pub fn insert_config(config: &mut Config, name: &str, entry: ConfigEntry) {
   config.configs.insert(name.to_string(), entry);
 }
 
 /// Removes a named configuration entry. Returns `true` if it existed.
-pub fn remove_config_entry(config: &mut SetupConfig, name: &str) -> bool {
+pub fn remove_config_entry(config: &mut Config, name: &str) -> bool {
   config.configs.remove(name).is_some()
 }
 
 /// Returns `true` if a configuration with the given name exists.
 #[must_use]
-pub fn has_config(config: &SetupConfig, name: &str) -> bool {
+pub fn has_config(config: &Config, name: &str) -> bool {
   config.configs.contains_key(name)
 }
 
@@ -51,7 +51,7 @@ pub fn create_default_config(
     )
     .ok();
   } else {
-    let mut config = SetupConfig::new();
+    let mut config = Config::new();
     config.path = Some(path.clone());
     config
       .configs
@@ -79,7 +79,7 @@ pub fn create_default_config(
 /// # Errors
 /// Returns an error if saving the config file fails.
 pub fn add_config(
-  config: &mut SetupConfig,
+  config: &mut Config,
   name: &str,
   entry: ConfigEntry,
   yes: bool,
@@ -120,7 +120,7 @@ pub fn add_config(
 /// # Errors
 /// Returns an error if saving the config file fails.
 pub fn remove_config(
-  config: &mut SetupConfig,
+  config: &mut Config,
   name: &str,
   yes: bool,
   io: &mut IoCtx<'_>,

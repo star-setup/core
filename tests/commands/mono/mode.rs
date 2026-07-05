@@ -1,7 +1,5 @@
 use crate::common::{default_resolved_mono, with_ctx, with_ctx_runner, MockRunner};
-use star_setup::{
-  cli::BuildSystem, commands::mono_repo_mode, config::SetupConfig, ctx::DryRunRunner,
-};
+use star_setup::{cli::BuildSystem, commands::mono_repo_mode, config::Config, ctx::DryRunRunner};
 use std::{
   fs::{create_dir_all, read_dir, write},
   path::Path,
@@ -23,7 +21,7 @@ fn test_mono_repo_mode_clones_and_configures() {
     make_cmake_repo(&repos_path, "user-lib1");
     make_cmake_repo(&repos_path, "user-test-repo");
 
-    mono_repo_mode(&args, &SetupConfig::new(), tmp_path, ctx).unwrap();
+    mono_repo_mode(&args, &Config::new(), tmp_path, ctx).unwrap();
   });
 
   let out = String::from_utf8(output).unwrap();
@@ -39,7 +37,7 @@ fn test_mono_repo_mode_dry_run_makes_no_fs_changes() {
   with_ctx(DryRunRunner, |tmp_path, ctx| {
     ctx.flags.dry_run = true;
 
-    mono_repo_mode(&args, &SetupConfig::new(), tmp_path, ctx).unwrap();
+    mono_repo_mode(&args, &Config::new(), tmp_path, ctx).unwrap();
 
     assert!(read_dir(tmp_path).unwrap().next().is_none());
   });
@@ -56,7 +54,7 @@ fn test_mono_repo_mode_dry_run_with_build_system_makes_no_fs_changes() {
     with_ctx(DryRunRunner, |tmp_path, ctx| {
       ctx.flags.dry_run = true;
 
-      mono_repo_mode(&args, &SetupConfig::new(), tmp_path, ctx).unwrap();
+      mono_repo_mode(&args, &Config::new(), tmp_path, ctx).unwrap();
 
       assert!(
         read_dir(tmp_path).unwrap().next().is_none(),
@@ -77,7 +75,7 @@ fn test_mono_repo_mode_with_build_system_flag() {
     make_cmake_repo(&repos_path, "user-lib1");
     make_cmake_repo(&repos_path, "user-test-repo");
 
-    mono_repo_mode(&args, &SetupConfig::new(), tmp_path, ctx).unwrap();
+    mono_repo_mode(&args, &Config::new(), tmp_path, ctx).unwrap();
   });
 
   assert!(runner.calls.iter().any(|(cmd, _)| cmd[0] == "cmake"));

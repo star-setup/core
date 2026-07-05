@@ -5,3 +5,5 @@ mod common;
 mod crud;
 #[path = "profile/display.rs"]
 mod display;
+#[path = "profile/types.rs"]
+mod types;

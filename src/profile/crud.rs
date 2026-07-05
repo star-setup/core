@@ -1,45 +1,38 @@
 use crate::{
-  config::{persist_or_dry_run, SetupConfig},
+  config::{persist_or_dry_run, Config},
   ctx::{IoCtx, RunFlags},
-  profile::print_profile_details,
+  profile::{print_profile_details, Profile},
   prompts::confirm_abort,
 };
 
 /// Inserts or overwrites a named profile.
-pub fn insert_profile(config: &mut SetupConfig, name: &str, repos: Vec<String>) {
-  config.profiles.insert(name.to_string(), repos);
+pub fn insert_profile(config: &mut Config, name: &str, profile: Profile) {
+  config.profiles.insert(name.to_string(), profile);
 }
 
 /// Removes a named profile. Returns `true` if it existed.
-pub fn remove_profile_entry(config: &mut SetupConfig, name: &str) -> bool {
+pub fn remove_profile_entry(config: &mut Config, name: &str) -> bool {
   config.profiles.remove(name).is_some()
 }
 
 /// Returns `true` if a profile with the given name exists.
 #[must_use]
-pub fn has_profile(config: &SetupConfig, name: &str) -> bool {
+pub fn has_profile(config: &Config, name: &str) -> bool {
   config.profiles.contains_key(name)
 }
 
 /// Adds a new profile to the configuration.
-/// args: [name, repo1, repo2, ...]
 /// # Errors
-/// Returns an error if fewer than two arguments are provided or if saving fails.
+/// Returns an error if saving fails.
 pub fn add_profile(
-  config: &mut SetupConfig,
-  args: &[String],
+  config: &mut Config,
+  name: &str,
+  profile: &Profile,
   yes: bool,
   io: &mut IoCtx<'_>,
   flags: RunFlags,
 ) -> Result<(), String> {
-  if args.len() < 2 {
-    return Err("profile add requires NAME REPO1 [REPO2 ...]".to_string());
-  }
-
-  let name = args[0].clone();
-  let repos = args[1..].to_vec();
-
-  if has_profile(config, &name)
+  if has_profile(config, name)
     && !confirm_abort(
       &format!("  Warning: Profile '{name}' already exists. Overwrite?"),
       yes,
@@ -54,18 +47,14 @@ pub fn add_profile(
     flags,
     io,
     &format!("Would save profile '{name}' to config file"),
-    |config| insert_profile(config, &name, repos.clone()),
+    |config| insert_profile(config, name, profile.clone()),
     |_config, path, io| {
       writeln!(io.output, "  Profile '{name}' added successfully").ok();
       writeln!(io.output, "  Configuration saved to: {}", path.display()).ok();
     },
   )?;
-  print_profile_details(io.output, "Profile details:", "Repositories", &repos);
-  writeln!(
-    io.output,
-    "  Usage: star-setup username/test-repo --profile {name}"
-  )
-  .ok();
+  print_profile_details(io.output, "Profile details:", "Repositories", profile);
+  writeln!(io.output, "  Usage: star-setup --profile {name}").ok();
   Ok(())
 }
 
@@ -73,13 +62,13 @@ pub fn add_profile(
 /// # Errors
 /// Returns an error if saving the config file fails.
 pub fn remove_profile(
-  config: &mut SetupConfig,
+  config: &mut Config,
   name: &str,
   yes: bool,
   io: &mut IoCtx<'_>,
   flags: RunFlags,
 ) -> Result<(), String> {
-  let repos = match config.profiles.get(name) {
+  let profile = match config.profiles.get(name) {
     None => {
       writeln!(io.output, "  Warning: Profile '{name}' not found.").ok();
       return Ok(());
@@ -91,7 +80,7 @@ pub fn remove_profile(
     io.output,
     &format!("Profile '{name}'"),
     "Repositories",
-    &repos,
+    &profile,
   );
 
   if !confirm_abort(

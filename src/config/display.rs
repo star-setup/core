@@ -1,5 +1,5 @@
 use crate::{
-  config::{ConfigEntry, SetupConfig},
+  config::{Config, ConfigEntry},
   ctx::IoCtx,
 };
 use std::fmt::Write as FmtWrite;
@@ -44,7 +44,7 @@ pub fn format_entry(e: &ConfigEntry) -> String {
 }
 
 /// Lists all saved configuration entries.
-pub fn list_configs(config: &SetupConfig, io: &mut IoCtx<'_>) {
+pub fn list_configs(config: &Config, io: &mut IoCtx<'_>) {
   if config.configs.is_empty() {
     writeln!(io.output, "  No configurations created.").ok();
     writeln!(

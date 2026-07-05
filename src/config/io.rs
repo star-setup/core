@@ -1,5 +1,5 @@
 use crate::{
-  config::SetupConfig,
+  config::Config,
   ctx::{IoCtx, RunFlags},
 };
 use serde_json::{from_str, to_string_pretty};
@@ -37,7 +37,7 @@ pub fn load_config(
   verbose: bool,
   timing: bool,
   output: &mut impl Write,
-) -> SetupConfig {
+) -> Config {
   if verbose {
     writeln!(output, "Loading config").ok();
   }
@@ -53,7 +53,7 @@ pub fn load_config(
     }
     let result = crate::time!(timing, output, "Read config", {
       match read_to_string(path) {
-        Ok(contents) => match from_str::<SetupConfig>(&contents) {
+        Ok(contents) => match from_str::<Config>(&contents) {
           Ok(mut config) => {
             config.path = Some(path.clone());
             if verbose {
@@ -93,14 +93,14 @@ pub fn load_config(
   if verbose || timing {
     writeln!(output).ok();
   }
-  SetupConfig::new()
+  Config::new()
 }
 
 /// Serializes the configuration and writes it to the path stored in `config.path`.
 /// # Errors
 /// Returns an error if serialization fails or if the file cannot be written.
 pub fn save_config(
-  config: &mut SetupConfig,
+  config: &mut Config,
   timing: bool,
   output: &mut impl Write,
 ) -> Result<PathBuf, String> {
@@ -128,12 +128,12 @@ pub fn save_config(
 /// # Errors
 /// Returns an error if saving the config file fails.
 pub fn persist_or_dry_run(
-  config: &mut SetupConfig,
+  config: &mut Config,
   flags: RunFlags,
   io: &mut IoCtx<'_>,
   would_msg: &str,
-  mutate: impl FnOnce(&mut SetupConfig),
-  on_saved: impl FnOnce(&SetupConfig, &Path, &mut IoCtx<'_>),
+  mutate: impl FnOnce(&mut Config),
+  on_saved: impl FnOnce(&Config, &Path, &mut IoCtx<'_>),
 ) -> Result<(), String> {
   if flags.dry_run {
     writeln!(io.output, "  {would_msg}").ok();

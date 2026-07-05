@@ -1,8 +1,13 @@
 use crate::common::{default_resolved, with_ctx, with_io, MockRunner};
 use star_setup::{
   cli::BuildSystem,
-  commands::{generate_mono_config, resolve_repos_for_mono, resolve_test_repo},
-  config::SetupConfig,
+  commands::{
+    generate_mono_config,
+    mono::{resolve_profile, resolve_test_repo_for_mono},
+    resolve_repos_for_mono, resolve_test_repo,
+  },
+  config::Config,
+  profile::Profile,
 };
 use std::{
   fs::{create_dir_all, read_to_string, write},
@@ -52,71 +57,93 @@ fn test_resolve_test_repo_errors() {
 
 /* =====     RESOLVE_REPOS_FOR_MONO     ===== */
 #[test]
-fn test_resolve_repos_for_mono_empty_profile_errors() {
-  let mut config = SetupConfig::new();
-  config.profiles.insert("emptyprofile".to_string(), vec![]);
+fn test_resolve_test_repo_for_mono_errors_when_profile_empty() {
+  let mut config = Config::new();
+  config
+    .profiles
+    .insert("emptyprofile".to_string(), Profile::default());
   let mut args = default_resolved();
+  args.repo = None;
   args.mono.profile = Some("emptyprofile".to_string());
-
   with_io(|io| {
-    let result = resolve_repos_for_mono(&args, &config, io);
-    assert!(result.is_err());
-    assert!(result.unwrap_err().contains("has no repositories"));
+    let profile = resolve_profile(&args, &config, io).unwrap();
+    assert!(resolve_test_repo_for_mono(&args, profile).is_err());
+  });
+}
+
+#[test]
+fn test_resolve_test_repo_for_mono_prefers_positional_over_profile() {
+  let mut config = Config::new();
+  config.profiles.insert(
+    "myprofile".to_string(),
+    Profile {
+      test_repo: Some("user/other".to_string()),
+      deps: vec![],
+    },
+  );
+  let args = default_resolved(); // args.repo already Some("user/repo")
+  with_io(|io| {
+    let profile = resolve_profile(&args, &config, io).unwrap();
+    assert_eq!(
+      resolve_test_repo_for_mono(&args, profile),
+      Ok("user/repo".to_string())
+    );
+  });
+}
+
+#[test]
+fn test_resolve_test_repo_for_mono_falls_back_to_profile() {
+  let mut config = Config::new();
+  config.profiles.insert(
+    "myprofile".to_string(),
+    Profile {
+      test_repo: Some("user/app".to_string()),
+      deps: vec![],
+    },
+  );
+  let mut args = default_resolved();
+  args.repo = None;
+  args.mono.profile = Some("myprofile".to_string());
+  with_io(|io| {
+    let profile = resolve_profile(&args, &config, io).unwrap();
+    assert_eq!(
+      resolve_test_repo_for_mono(&args, profile),
+      Ok("user/app".to_string())
+    );
   });
 }
 
 #[test]
 fn test_resolve_repos_for_mono_with_profile() {
-  let mut config = SetupConfig::new();
-  config.profiles.insert(
-    "myprofile".to_string(),
-    vec!["user/lib1".to_string(), "user/lib2".to_string()],
+  let profile = Profile {
+    test_repo: None,
+    deps: vec!["user/lib1".to_string(), "user/lib2".to_string()],
+  };
+  let args = default_resolved();
+  assert_eq!(
+    resolve_repos_for_mono(&args, Some(&profile)),
+    vec!["user/lib1", "user/lib2"]
   );
-  let mut args = default_resolved();
-  args.mono.profile = Some("myprofile".to_string());
-
-  with_io(|io| {
-    let result = resolve_repos_for_mono(&args, &config, io);
-    assert!(result.is_ok());
-    assert_eq!(result.unwrap(), vec!["user/lib1", "user/lib2"]);
-  });
 }
 
 #[test]
 fn test_resolve_repos_for_mono_with_explicit_repos() {
-  let config = SetupConfig::new();
   let mut args = default_resolved();
   args.mono.repos = Some(vec!["user/lib1".to_string(), "user/lib2".to_string()]);
-
-  with_io(|io| {
-    let result = resolve_repos_for_mono(&args, &config, io);
-    assert!(result.is_ok());
-    assert_eq!(result.unwrap(), vec!["user/lib1", "user/lib2"]);
-  });
+  assert_eq!(
+    resolve_repos_for_mono(&args, None),
+    vec!["user/lib1", "user/lib2"]
+  );
 }
 
 #[test]
-fn test_resolve_repos_for_mono_no_repos_or_profile_errors() {
-  let config = SetupConfig::new();
-  let args = default_resolved();
-
-  with_io(|io| {
-    let result = resolve_repos_for_mono(&args, &config, io);
-    assert!(result.is_err());
-    assert!(result
-      .unwrap_err()
-      .contains("No repos or profile specified"));
-  });
-}
-
-#[test]
-fn test_resolve_repos_for_mono_profile_not_found_errors() {
-  let config = SetupConfig::new();
+fn test_resolve_profile_not_found_errors() {
+  let config = Config::new();
   let mut args = default_resolved();
   args.mono.profile = Some("nonexistent".to_string());
 
   with_io(|io| {
-    let result = resolve_repos_for_mono(&args, &config, io);
+    let result = resolve_profile(&args, &config, io);
     assert!(result.is_err());
     assert!(result.unwrap_err().contains("not found"));
   });

@@ -3,7 +3,7 @@ use crate::{
     resolve_with_config, BuildFlags, ConfigCommand, ConnectionFlags, DiagnosticFlags,
     MonoRepoFlags, ProfileCommand, ResolvedArgs, WorkspaceCommand,
   },
-  config::SetupConfig,
+  config::Config,
 };
 use clap::{Parser, Subcommand};
 
@@ -57,7 +57,7 @@ impl Args {
   /// Parses CLI arguments and resolves them against the provided `SetupConfig`.
   /// # Errors
   /// Returns an error if the named config does not exist in the loaded `SetupConfig`.
-  pub fn parse_with_config(config: &SetupConfig) -> Result<ResolvedArgs, String> {
+  pub fn parse_with_config(config: &Config) -> Result<ResolvedArgs, String> {
     resolve_with_config(Args::parse(), config)
   }
 }

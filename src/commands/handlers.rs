@@ -1,23 +1,21 @@
 use crate::{
   cli::{
-    ConfigAction, ProfileAction, WorkspaceAction,
-    WorkspaceAction::{Clean, Status, Update},
+    ConfigAction, ProfileAction,
+    WorkspaceAction::{self, Clean, Status, Update},
   },
-  config::{
-    add_config, create_default_config, list_configs, remove_config, ConfigEntry, SetupConfig,
-  },
+  config::{add_config, create_default_config, list_configs, remove_config, Config, ConfigEntry},
   ctx::{with_runner, IoCtx, RunFlags},
-  profile::{add_profile, list_profiles, remove_profile},
+  profile::{add_profile, list_profiles, remove_profile, Profile},
   workspace::resolve_workspace,
 };
-use std::{error::Error, iter::once, path::PathBuf};
+use std::{error::Error, path::PathBuf};
 
 /// Handles configuration-related subcommands.
 /// # Errors
 /// Returns an error if configuration initializing, addition, or removal fails.
 pub fn handle_config_cmd(
   action: ConfigAction,
-  config: &mut SetupConfig,
+  config: &mut Config,
   config_path: PathBuf,
   yes: bool,
   io: &mut IoCtx,
@@ -46,7 +44,7 @@ pub fn handle_config_cmd(
 /// Returns an error if adding or removing profiles encounters an I/O or validation failure.
 pub fn handle_profile_cmd(
   action: ProfileAction,
-  config: &mut SetupConfig,
+  config: &mut Config,
   yes: bool,
   io: &mut IoCtx,
   flags: RunFlags,
@@ -54,9 +52,13 @@ pub fn handle_profile_cmd(
   match action {
     ProfileAction::List => list_profiles(config, io),
     ProfileAction::Remove { name } => remove_profile(config, &name, yes, io, flags)?,
-    ProfileAction::Add { name, repos } => {
-      let vals = once(name).chain(repos).collect::<Vec<_>>();
-      add_profile(config, &vals, yes, io, flags)?;
+    ProfileAction::Add {
+      name,
+      test_repo,
+      repos,
+    } => {
+      let profile = Profile::from_args(test_repo, repos)?;
+      add_profile(config, &name, &profile, yes, io, flags)?;
     }
   }
   Ok(())
