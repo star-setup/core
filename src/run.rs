@@ -1,15 +1,12 @@
 use crate::{
-  cli::{
-    args::Command::{Config, Profile, Workspace},
-    Args,
-  },
+  cli::{args::Command, Args},
   commands::{
     handle_config_cmd, handle_profile_cmd, handle_workspace_cmd, mono_repo_mode, single_repo_mode,
   },
-  config::{config_locations, load_config},
+  config::{config_locations, load_config, Config},
   ctx::{with_runner, IoCtx},
   interactive::interactive_mode,
-  resolve::resolve_with_config,
+  resolve::{resolve_with_config, ResolvedArgs},
   utils::check_prerequisites,
 };
 use clap::Parser;
@@ -32,30 +29,48 @@ pub fn run(config_path: PathBuf) -> Result<(), Box<dyn Error>> {
   let mut raw = Args::parse();
   let yes = raw.yes;
   let command = raw.command.take();
-  let mut config = load_config(
+  let config = load_config(
     &config_locations(config_path.as_path()),
     raw.diagnostic.verbose,
     raw.diagnostic.timing,
     &mut stdout,
   );
 
-  let mut args = resolve_with_config(raw, &config).map_err(Box::<dyn Error>::from)?;
-  let mut flags = args.diagnostic;
+  let args = resolve_with_config(raw, &config).map_err(Box::<dyn Error>::from)?;
 
-  let mut io = IoCtx {
+  let io = IoCtx {
     input: &mut stdin,
     output: &mut stdout,
   };
 
+  execute(args, config, command, yes, config_path, io, is_terminal)
+}
+
+/// Dispatches to a management subcommand, or runs the clone/build flow.
+/// # Errors
+/// Returns an error if arguments can't be resolved,
+///                  a required tool is missing,
+///                  or the selected mode fails.
+fn execute(
+  mut args: ResolvedArgs,
+  mut config: Config,
+  command: Option<Command>,
+  yes: bool,
+  config_path: PathBuf,
+  mut io: IoCtx<'_>,
+  is_terminal: bool,
+) -> Result<(), Box<dyn Error>> {
+  let mut flags = args.diagnostic;
+
   if let Some(cmd) = command {
     match cmd {
-      Config(c) => {
+      Command::Config(c) => {
         handle_config_cmd(c.action, &mut config, config_path, yes, &mut io, flags)?;
       }
-      Profile(p) => {
+      Command::Profile(p) => {
         handle_profile_cmd(p.action, &mut config, yes, &mut io, flags)?;
       }
-      Workspace(w) => handle_workspace_cmd(&w.action, io, flags)?,
+      Command::Workspace(w) => handle_workspace_cmd(&w.action, io, flags)?,
     }
     return Ok(());
   }
