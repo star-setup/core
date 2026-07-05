@@ -1,4 +1,4 @@
-use star_setup::cli::{BuildSystem, BuildType};
+use star_setup::build::{BuildSystem, BuildType};
 use std::str::FromStr;
 
 #[test]

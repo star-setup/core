@@ -1,6 +1,8 @@
 use crate::{
-  cli::{BuildFlags, BuildType, ConnectionFlags, DiagnosticFlags, MonoRepoFlags, ResolvedArgs},
+  build::BuildType,
+  cli::{BuildFlags, ConnectionFlags, DiagnosticFlags, MonoRepoFlags},
   profile::Profile,
+  resolve::ResolvedArgs,
 };
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf};

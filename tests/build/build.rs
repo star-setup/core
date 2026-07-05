@@ -1,8 +1,5 @@
 use crate::common::{default_resolved_with_no_build, with_ctx, with_ctx_runner, MockRunner};
-use star_setup::{
-  cli::BuildSystem,
-  commands::{build_project, cmake_build, meson_build, npm_build},
-};
+use star_setup::build::{build_project, cmake_build, meson_build, npm_build, BuildSystem};
 use std::fs::write;
 
 /* =====     BUILD_PROJECT     ===== */

@@ -1,4 +1,4 @@
-use crate::cli::BuildSystem;
+use crate::build::BuildSystem;
 use clap::{ArgAction::Append, Args as ClapArgs};
 
 #[allow(clippy::struct_excessive_bools)]

@@ -1,5 +1,5 @@
 use star_setup::{
-  cli::BuildType,
+  build::BuildType,
   config::{format_entry, ConfigEntry},
 };
 

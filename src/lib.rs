@@ -1,5 +1,6 @@
 #![warn(clippy::all, clippy::pedantic)]
 
+pub mod build;
 pub mod cli;
 pub mod commands;
 pub mod config;
@@ -8,6 +9,7 @@ pub mod interactive;
 pub mod profile;
 pub mod prompts;
 pub mod repository;
+pub mod resolve;
 pub mod run;
 pub mod utils;
 pub mod workspace;

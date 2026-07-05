@@ -1,6 +1,6 @@
 use crate::common::with_io_output;
 use star_setup::{
-  cli::BuildType,
+  build::BuildType,
   config::{insert_config, load_config, save_config, Config, ConfigEntry},
 };
 use std::{fs::write, path::PathBuf};

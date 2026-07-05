@@ -1,6 +1,6 @@
 use crate::common::with_ctx_input;
 use star_setup::{
-  cli::{detect_build_system, detect_mono_build_system, BuildSystem},
+  build::{detect_build_system, detect_mono_build_system, BuildSystem},
   ctx::ProcessRunner,
 };
 use std::{fs::write, path::Path};

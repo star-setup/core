@@ -1,10 +1,6 @@
 #[path = "common/mod.rs"]
 mod common;
 
-#[path = "commands/build.rs"]
-mod build;
-#[path = "commands/dev.rs"]
-mod dev;
 #[path = "commands/display.rs"]
 mod display;
 #[path = "commands/header.rs"]

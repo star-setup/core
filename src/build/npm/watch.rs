@@ -1,5 +1,5 @@
 use crate::{
-  commands::read_package_json,
+  build::read_package_json,
   ctx::{IoCtx, RunFlags},
   repository::repo_dir_name,
   utils::{dry_run_or_do, report_summary},

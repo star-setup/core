@@ -1,12 +1,12 @@
 #[cfg(not(target_os = "windows"))]
 use crate::utils::process::resolve_exe_args;
 use crate::{
-  cli::{
+  build::{
+    read_package_json,
     BuildSystem::{self, Npm},
-    ResolvedArgs,
   },
-  commands::read_package_json,
   ctx::{IoCtx, RunCtx, RunFlags},
+  resolve::ResolvedArgs,
 };
 use serde_json::Value;
 use std::{

@@ -1,5 +1,5 @@
 use crate::common::with_io_output;
-use star_setup::{commands::read_package_json, ctx::RunFlags};
+use star_setup::{build::read_package_json, ctx::RunFlags};
 use std::fs::{create_dir_all, write};
 use tempfile::TempDir;
 

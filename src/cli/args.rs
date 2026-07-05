@@ -1,9 +1,10 @@
 use crate::{
   cli::{
-    resolve_with_config, BuildFlags, ConfigCommand, ConnectionFlags, DiagnosticFlags,
-    MonoRepoFlags, ProfileCommand, ResolvedArgs, WorkspaceCommand,
+    BuildFlags, ConfigCommand, ConnectionFlags, DiagnosticFlags, MonoRepoFlags, ProfileCommand,
+    WorkspaceCommand,
   },
   config::Config,
+  resolve::{resolve_with_config, ResolvedArgs},
 };
 use clap::{Parser, Subcommand};
 

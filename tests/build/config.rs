@@ -1,5 +1,5 @@
 use crate::common::{make_flags, with_io_dir};
-use star_setup::commands::{
+use star_setup::build::{
   create_mono_repo_cmakelists, create_mono_repo_mesonbuild, create_mono_repo_package_json,
 };
 use std::fs::{create_dir_all, read_to_string, write};

@@ -1,7 +1,8 @@
 use crate::common::default_args;
 use star_setup::{
-  cli::{resolve_bool, resolve_with_config, BuildType},
+  build::BuildType,
   config::{Config, ConfigEntry},
+  resolve::{resolve_bool, resolve_with_config},
 };
 
 /// Helper to quickly build a `SetupConfig` with a populated profile entry.
@@ -149,7 +150,11 @@ fn test_resolve_with_config_mono_repo_from_repos() {
 
 #[test]
 fn test_resolve_with_config_mono_repo_from_profile() {
-  let config = Config::new();
+  let mut config = Config::new();
+  config.profiles.insert(
+    "myprofile".to_string(),
+    star_setup::profile::Profile::default(),
+  );
   let mut args = default_args();
   args.mono.profile = Some("myprofile".to_string());
 
@@ -283,4 +288,47 @@ fn test_resolve_with_config_cli_positives_override_no_watch_no_dev_config() {
   assert!(resolved.build.dev);
   assert!(!resolved.build.no_watch);
   assert!(!resolved.build.no_dev);
+}
+
+#[test]
+fn test_resolve_fills_repo_from_profile_test_repo() {
+  let mut config = Config::new();
+  config.profiles.insert(
+    "p".to_string(),
+    star_setup::profile::Profile {
+      test_repo: Some("user/app".to_string()),
+      deps: vec![],
+    },
+  );
+  let mut args = default_args();
+  args.mono.profile = Some("p".to_string());
+  let resolved = resolve_with_config(args, &config).unwrap();
+  assert_eq!(resolved.repo, Some("user/app".to_string()));
+}
+
+#[test]
+fn test_resolve_positional_beats_profile_test_repo() {
+  let mut config = Config::new();
+  config.profiles.insert(
+    "p".to_string(),
+    star_setup::profile::Profile {
+      test_repo: Some("user/other".to_string()),
+      deps: vec![],
+    },
+  );
+  let mut args = default_args();
+  args.repo = Some("user/repo".to_string());
+  args.mono.profile = Some("p".to_string());
+  assert_eq!(
+    resolve_with_config(args, &config).unwrap().repo,
+    Some("user/repo".to_string())
+  );
+}
+
+#[test]
+fn test_resolve_unknown_profile_errors() {
+  let mut args = default_args();
+  args.mono.profile = Some("nope".to_string());
+  let err = resolve_with_config(args, &Config::new()).unwrap_err();
+  assert!(err.contains("not found"));
 }
