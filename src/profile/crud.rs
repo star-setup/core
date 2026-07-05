@@ -6,14 +6,8 @@ use crate::{
 };
 
 /// Inserts or overwrites a named profile.
-pub fn insert_profile(config: &mut Config, name: &str, deps: Vec<String>) {
-  config.profiles.insert(
-    name.to_string(),
-    Profile {
-      test_repo: None,
-      deps,
-    },
-  );
+pub fn insert_profile(config: &mut Config, name: &str, profile: Profile) {
+  config.profiles.insert(name.to_string(), profile);
 }
 
 /// Removes a named profile. Returns `true` if it existed.
@@ -28,24 +22,17 @@ pub fn has_profile(config: &Config, name: &str) -> bool {
 }
 
 /// Adds a new profile to the configuration.
-/// args: [name, repo1, repo2, ...]
 /// # Errors
-/// Returns an error if fewer than two arguments are provided or if saving fails.
+/// Returns an error if saving fails.
 pub fn add_profile(
   config: &mut Config,
-  args: &[String],
+  name: &str,
+  profile: &Profile,
   yes: bool,
   io: &mut IoCtx<'_>,
   flags: RunFlags,
 ) -> Result<(), String> {
-  if args.len() < 2 {
-    return Err("profile add requires NAME REPO1 [REPO2 ...]".to_string());
-  }
-
-  let name = args[0].clone();
-  let repos = args[1..].to_vec();
-
-  if has_profile(config, &name)
+  if has_profile(config, name)
     && !confirm_abort(
       &format!("  Warning: Profile '{name}' already exists. Overwrite?"),
       yes,
@@ -60,21 +47,13 @@ pub fn add_profile(
     flags,
     io,
     &format!("Would save profile '{name}' to config file"),
-    |config| insert_profile(config, &name, repos.clone()),
+    |config| insert_profile(config, name, profile.clone()),
     |_config, path, io| {
       writeln!(io.output, "  Profile '{name}' added successfully").ok();
       writeln!(io.output, "  Configuration saved to: {}", path.display()).ok();
     },
   )?;
-  print_profile_details(
-    io.output,
-    "Profile details:",
-    "Repositories",
-    &Profile {
-      test_repo: None,
-      deps: repos.clone(),
-    },
-  );
+  print_profile_details(io.output, "Profile details:", "Repositories", profile);
   writeln!(
     io.output,
     "  Usage: star-setup username/test-repo --profile {name}"
