@@ -1,5 +1,5 @@
 use crate::common::{make_flags, with_io_dir, with_io_output};
-use star_setup::{commands::generate_watch_scripts, ctx::RunFlags};
+use star_setup::{build::generate_watch_scripts, ctx::RunFlags};
 use std::{
   fs::{create_dir_all, read_to_string, write},
   path::Path,

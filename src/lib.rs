@@ -1,5 +1,6 @@
 #![warn(clippy::all, clippy::pedantic)]
 
+pub mod build;
 pub mod cli;
 pub mod commands;
 pub mod config;

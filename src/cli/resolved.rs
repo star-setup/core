@@ -1,5 +1,5 @@
 use crate::{
-  cli::{BuildSystem, BuildType},
+  build::{BuildSystem, BuildType},
   ctx::RunFlags,
 };
 

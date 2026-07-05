@@ -1,7 +1,3 @@
-pub mod config;
-pub use config::{
-  create_mono_repo_cmakelists, create_mono_repo_mesonbuild, create_mono_repo_package_json,
-};
 pub mod display;
 pub use display::{print_setup_complete, resolve_setup_paths};
 pub mod mode;
@@ -10,9 +6,5 @@ pub mod resolve;
 pub use resolve::{
   resolve_profile, resolve_repos_for_mono, resolve_test_repo, resolve_test_repo_for_mono,
 };
-pub mod wraps;
-pub use wraps::hoist_wraps;
 pub mod setup;
-pub use setup::{build_repo_list, generate_mono_config};
-pub mod watch;
-pub use watch::{generate_watch_scripts, open_watch_scripts};
+pub use setup::build_repo_list;

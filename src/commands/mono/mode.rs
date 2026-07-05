@@ -1,10 +1,14 @@
 use crate::{
-  cli::{detect_mono_build_system, BuildSystem::Npm, ResolvedArgs},
+  build::{
+    build_project, detect_mono_build_system, generate_mono_config, generate_watch_scripts,
+    maybe_open_dev_server, open_watch_scripts, BuildSystem::Npm,
+  },
+  cli::ResolvedArgs,
   commands::{
-    build_project, build_repo_list, maybe_open_dev_server,
+    build_repo_list,
     mono::{
       display::{resolve_setup_paths, SetupPaths},
-      generate_mono_config, generate_watch_scripts, open_watch_scripts, print_setup_complete,
+      print_setup_complete,
       resolve::{resolve_profile, resolve_test_repo_for_mono},
     },
     prepare_build_dir, print_mode_header, resolve_repos_for_mono, ModeHeader,

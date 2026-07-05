@@ -1,5 +1,5 @@
 use crate::common::{default_resolved_mono, with_ctx, with_ctx_runner, MockRunner};
-use star_setup::{cli::BuildSystem, commands::mono_repo_mode, config::Config, ctx::DryRunRunner};
+use star_setup::{build::BuildSystem, commands::mono_repo_mode, config::Config, ctx::DryRunRunner};
 use std::{
   fs::{create_dir_all, read_dir, write},
   path::Path,

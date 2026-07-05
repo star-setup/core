@@ -1,5 +1,5 @@
 use crate::{
-  cli::{BuildSystem, BuildSystem::Npm},
+  build::{BuildSystem, BuildSystem::Npm},
   ctx::{IoCtx, RunFlags},
   repository::repo_dir_name,
 };

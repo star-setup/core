@@ -1,5 +1,5 @@
 use crate::common::{default_resolved, with_ctx_input, MockRunner};
-use star_setup::{cli::BuildSystem, commands::single_repo_mode, ctx::DryRunRunner};
+use star_setup::{build::BuildSystem, commands::single_repo_mode, ctx::DryRunRunner};
 use std::fs::{create_dir_all, read_dir, write};
 
 fn make_repo_fixture(base: &std::path::Path) {

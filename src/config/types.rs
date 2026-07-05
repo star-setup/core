@@ -1,5 +1,6 @@
 use crate::{
-  cli::{BuildFlags, BuildType, ConnectionFlags, DiagnosticFlags, MonoRepoFlags, ResolvedArgs},
+  build::BuildType,
+  cli::{BuildFlags, ConnectionFlags, DiagnosticFlags, MonoRepoFlags, ResolvedArgs},
   profile::Profile,
 };
 use serde::{Deserialize, Serialize};

@@ -1,8 +1,7 @@
 use crate::common::{default_resolved, with_ctx, with_io, MockRunner};
 use star_setup::{
-  cli::BuildSystem,
+  build::{generate_mono_config, BuildSystem},
   commands::{
-    generate_mono_config,
     mono::{resolve_profile, resolve_test_repo_for_mono},
     resolve_repos_for_mono, resolve_test_repo,
   },

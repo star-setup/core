@@ -1,5 +1,6 @@
 use crate::{
-  cli::{BuildType, ResolvedArgs},
+  build::BuildType,
+  cli::ResolvedArgs,
   ctx::IoCtx,
   prompts::{ask, ask_bool_if, ask_default, ask_required},
 };

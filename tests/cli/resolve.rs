@@ -1,6 +1,7 @@
 use crate::common::default_args;
 use star_setup::{
-  cli::{resolve_bool, resolve_with_config, BuildType},
+  build::BuildType,
+  cli::{resolve_bool, resolve_with_config},
   config::{Config, ConfigEntry},
 };
 

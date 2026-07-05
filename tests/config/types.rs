@@ -1,6 +1,7 @@
 use crate::common::default_resolved;
 use star_setup::{
-  cli::{BuildFlags, BuildType, ConnectionFlags, DiagnosticFlags, MonoRepoFlags},
+  build::BuildType,
+  cli::{BuildFlags, ConnectionFlags, DiagnosticFlags, MonoRepoFlags},
   config::ConfigEntry,
 };
 

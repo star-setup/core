@@ -1,9 +1,7 @@
 use crate::{
-  cli::{detect_build_system, BuildSystem::Npm, ResolvedArgs},
-  commands::{
-    build_project, extract_repo_input, maybe_open_dev_server, prepare_build_dir, print_mode_header,
-    ModeHeader,
-  },
+  build::{build_project, detect_build_system, maybe_open_dev_server, BuildSystem::Npm},
+  cli::ResolvedArgs,
+  commands::{extract_repo_input, prepare_build_dir, print_mode_header, ModeHeader},
   ctx::RunCtx,
   prompts::confirm,
   repository::{

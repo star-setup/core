@@ -1,6 +1,7 @@
 use crate::{
+  build::BuildType,
   cli::{
-    Args, BuildFlags, BuildType, ConnectionFlags, DiagnosticFlags, MonoRepoFlags, ResolvedArgs,
+    Args, BuildFlags, ConnectionFlags, DiagnosticFlags, MonoRepoFlags, ResolvedArgs,
     ResolvedBuildFlags, ResolvedConnectionFlags, ResolvedMonoFlags,
   },
   config::{Config, ConfigEntry},
