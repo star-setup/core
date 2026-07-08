@@ -1,6 +1,6 @@
 [package]
 name = "star-setup"
-version = "0.4.9"
+version = "0.5.0"
 edition = "2021"
 repository = "https://github.com/star-setup/core"
 description = "Lightweight CLI to clone, configure, and wire single or multi-repo ecosystems"

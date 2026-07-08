@@ -20,7 +20,7 @@ fn get_watch_command(
   if scripts.get("watch").is_some() {
     Some(format!("npm --workspace=repos/{dir} run watch"))
   } else if scripts.get("build").is_some() {
-    Some(format!("npm --workspace=repos/{dir} run build -- --watch"))
+    Some(format!("npm --workspace=repos/{dir} run build ''--'' --watch"))
   } else {
     if flags.verbose {
       writeln!(
