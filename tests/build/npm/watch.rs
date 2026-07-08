@@ -52,7 +52,7 @@ fn test_generate_watch_scripts_falls_back_to_build() {
     let repos = vec!["user/game".to_string(), "user/lib1".to_string()];
     generate_watch_scripts(tmp_path, &repos_path, &repos, io, make_flags()).unwrap();
     let ps1 = read_to_string(tmp_path.join("watch.ps1")).unwrap();
-    assert!(ps1.contains("run build -- --watch"));
+    assert!(ps1.contains("run build ''--'' --watch"));
   });
 }
 
