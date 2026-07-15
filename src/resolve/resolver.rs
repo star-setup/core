@@ -131,7 +131,14 @@ fn resolve_repo(
     })?),
     None => None,
   };
-  Ok(repo.or_else(|| prof.and_then(|p| p.test_repo.clone())))
+  Ok(repo.or_else(|| {
+    prof.and_then(|p| {
+      p.test_repos
+        .get("default")
+        .or_else(|| p.test_repos.values().next())
+        .cloned()
+    })
+  }))
 }
 
 /// Resolves raw `Args` into `ResolvedArgs` by applying config defaults and CLI overrides.

@@ -48,7 +48,7 @@ pub fn resolve_test_repo_for_mono(args: &ResolvedArgs) -> Result<String, String>
 #[must_use]
 pub fn resolve_repos_for_mono(args: &ResolvedArgs, profile: Option<&Profile>) -> Vec<String> {
   profile
-    .map(|p| p.deps.clone())
+    .map(|p| p.deps.values().flatten().cloned().collect())
     .or_else(|| args.mono.repos.clone())
     .unwrap_or_default()
 }

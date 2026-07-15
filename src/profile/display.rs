@@ -7,15 +7,17 @@ pub fn print_profile_details(
   label: &str,
   profile: &Profile,
 ) {
-  let Profile { test_repo, deps } = profile;
+  let Profile { test_repos, deps } = profile;
   writeln!(output, "  {title}").ok();
-  if let Some(t) = test_repo {
-    writeln!(output, "  {t}").ok();
+  for (key, repo) in test_repos {
+    writeln!(output, "    {key}: {repo}").ok();
   }
   if !deps.is_empty() {
-    writeln!(output, "    {label}: {}", deps.len()).ok();
-    for d in deps {
-      writeln!(output, "      - {d}").ok();
+    writeln!(output, "    {label}: {}", deps.values().map(Vec::len).sum::<usize>()).ok();
+    for (key, repos) in deps {
+      for d in repos {
+        writeln!(output, "      - [{key}] {d}").ok();
+      }
     }
   }
 }

@@ -80,7 +80,7 @@ fn execute(
       config
         .profiles
         .get(p)
-        .is_some_and(|p| p.test_repo.is_some())
+        .is_some_and(|p| !p.test_repos.is_empty())
     });
 
   if !has_repo {

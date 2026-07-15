@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::common::default_args;
 use star_setup::{
   build::BuildType,
@@ -296,8 +298,8 @@ fn test_resolve_fills_repo_from_profile_test_repo() {
   config.profiles.insert(
     "p".to_string(),
     star_setup::profile::Profile {
-      test_repo: Some("user/app".to_string()),
-      deps: vec![],
+      test_repos: HashMap::from([("default".to_string(), "user/app".to_string())]),
+      deps: HashMap::new(),
     },
   );
   let mut args = default_args();
@@ -312,8 +314,8 @@ fn test_resolve_positional_beats_profile_test_repo() {
   config.profiles.insert(
     "p".to_string(),
     star_setup::profile::Profile {
-      test_repo: Some("user/other".to_string()),
-      deps: vec![],
+      test_repos: HashMap::from([("default".to_string(), "user/other".to_string())]),
+      deps: HashMap::new(),
     },
   );
   let mut args = default_args();

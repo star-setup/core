@@ -6,8 +6,7 @@ use star_setup::{
   profile::Profile,
 };
 use std::{
-  fs::{create_dir_all, read_to_string, write},
-  slice::from_ref,
+  collections::HashMap, fs::{create_dir_all, read_to_string, write}, slice::from_ref,
 };
 
 /* =====     RESOLVE_TEST_REPO     ===== */
@@ -69,8 +68,8 @@ fn test_resolve_test_repo_for_mono_prefers_positional_over_profile() {
   config.profiles.insert(
     "myprofile".to_string(),
     Profile {
-      test_repo: Some("user/other".to_string()),
-      deps: vec![],
+     test_repos: HashMap::from([("default".to_string(), "user/other".to_string())]),
+      deps: HashMap::from([("default".to_string(), vec![])])
     },
   );
   let args = default_resolved();
@@ -83,8 +82,11 @@ fn test_resolve_test_repo_for_mono_prefers_positional_over_profile() {
 #[test]
 fn test_resolve_repos_for_mono_with_profile() {
   let profile = Profile {
-    test_repo: None,
-    deps: vec!["user/lib1".to_string(), "user/lib2".to_string()],
+    test_repos: HashMap::new(),
+    deps: HashMap::from([(
+      "default".to_string(),
+      vec!["user/lib1".to_string(), "user/lib2".to_string()],
+    )]),
   };
   let args = default_resolved();
   assert_eq!(
