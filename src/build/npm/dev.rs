@@ -41,9 +41,9 @@ fn is_vercel_project(repo_path: &Path, json: &Value) -> bool {
       .any(|k| json.get(k).and_then(|d| d.get("@vercel/node")).is_some())
 }
 
-/// Runs the dev server in the foreground, blocking until it exits (Ctrl-C).
+/// Opens the dev server in a new terminal.
 /// # Errors
-/// Returns an error only if the process fails to spawn.
+/// Returns an error if the terminal cannot be opened.
 pub fn open_dev_server(
   repo_path: &Path,
   cmd: &str,
@@ -56,8 +56,7 @@ pub fn open_dev_server(
   }
 
   writeln!(io.output, "Starting dev server: {cmd}").ok();
-  writeln!(
-    io.output,
+  writeln!(io.output,
     "  in {}  (press Ctrl-C to stop)",
     repo_path.display()
   )
@@ -65,8 +64,19 @@ pub fn open_dev_server(
 
   #[cfg(target_os = "windows")]
   let mut command = {
+    let cmd_esc = cmd.replace('\'', "''");
+    let dir_esc = repo_path.display().to_string().replace('\'', "''");
     let mut c = Command::new("powershell");
-    c.args(["-NoProfile", "-Command", cmd]);
+    c.args([
+      "-NoProfile",
+      "-Command",
+      "Start-Process",
+      "powershell",
+      "-ArgumentList",
+      &format!("'-NoExit','-Command','{cmd_esc}'"),
+      "-WorkingDirectory",
+      &format!("'{dir_esc}'"),
+    ]);
     c
   };
   #[cfg(not(target_os = "windows"))]
@@ -75,22 +85,19 @@ pub fn open_dev_server(
     let resolved = resolve_exe_args(&parts);
     let mut c = Command::new(resolved[0]);
     c.args(&resolved[1..]);
+    c.current_dir(repo_path);
     c
   };
 
   command
-    .current_dir(repo_path)
-    .stdin(Stdio::inherit())
-    .stdout(Stdio::inherit())
-    .stderr(Stdio::inherit());
+    .stdin(Stdio::null())
+    .stdout(Stdio::null())
+    .stderr(Stdio::null());
 
-  match command.spawn() {
-    Err(e) => Err(format!("Failed to start dev server: {e}")),
-    Ok(mut child) => {
-      child.wait().ok();
-      Ok(())
-    }
-  }
+  command
+    .spawn()
+    .map(|_| ())
+    .map_err(|e| format!("Failed to start dev server: {e}"))
 }
 
 /// Opens the project's dev server if `--dev` was passed and the build system is npm.
