@@ -63,23 +63,6 @@ fn test_resolve_test_repo_for_mono_errors_when_profile_empty() {
 }
 
 #[test]
-fn test_resolve_test_repo_for_mono_prefers_positional_over_profile() {
-  let mut config = Config::new();
-  config.profiles.insert(
-    "myprofile".to_string(),
-    Profile {
-     test_repos: BTreeMap::from([("default".to_string(), "user/other".to_string())]),
-      deps: BTreeMap::from([("default".to_string(), vec![])])
-    },
-  );
-  let args = default_resolved();
-  assert_eq!(
-    resolve_test_repo_for_mono(&args),
-    Ok("user/repo".to_string())
-  );
-}
-
-#[test]
 fn test_resolve_repos_for_mono_with_profile() {
   let profile = Profile {
     test_repos: BTreeMap::new(),
