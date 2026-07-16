@@ -13,7 +13,7 @@ fn test_print_setup_complete_no_map() {
         None::<&HashMap<String, String>>,
         tmp_path,
         &tmp_path.join("build"),
-        "user/repo",
+        &["user/repo".to_string()],
         None,
       );
       print_setup_complete(&paths, Instant::now(), io, make_flags());
@@ -35,7 +35,7 @@ fn test_print_setup_complete_with_map() {
         Some(&map),
         tmp_path,
         &tmp_path.join("build"),
-        "user/repo",
+        &["user/repo".to_string()],
         None,
       );
       print_setup_complete(&paths, Instant::now(), io, make_flags());
@@ -43,7 +43,7 @@ fn test_print_setup_complete_with_map() {
   });
 
   assert!(out.contains("Setup complete"));
-  assert!(out.contains("Executable:"));
+  assert!(out.contains("Executables:"));
 }
 
 #[test]
@@ -54,7 +54,7 @@ fn test_print_setup_complete_timing() {
         None::<&HashMap<String, String>>,
         tmp_path,
         &tmp_path.join("build"),
-        "user/repo",
+        &["user/repo".to_string()],
         None,
       );
       print_setup_complete(

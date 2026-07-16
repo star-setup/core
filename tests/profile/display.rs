@@ -1,9 +1,9 @@
-use std::collections::BTreeMap;
 use crate::common::with_io_output;
 use star_setup::{
   config::Config,
   profile::{insert_profile, list_profiles, Profile},
 };
+use std::collections::BTreeMap;
 
 #[test]
 fn test_list_profiles_empty() {

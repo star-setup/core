@@ -1,12 +1,13 @@
 use crate::common::{default_resolved, with_ctx, MockRunner};
 use star_setup::{
   build::{generate_mono_config, BuildSystem},
-  commands::{mono::resolve_test_repo_for_mono, resolve_repos_for_mono, resolve_test_repo},
-  config::Config,
+  commands::{resolve_dep_repos_for_mono, resolve_test_repo, resolve_test_repos_for_mono},
   profile::Profile,
 };
 use std::{
-  collections::BTreeMap, fs::{create_dir_all, read_to_string, write}, slice::from_ref,
+  collections::BTreeMap,
+  fs::{create_dir_all, read_to_string, write},
+  slice::from_ref,
 };
 
 /* =====     RESOLVE_TEST_REPO     ===== */
@@ -52,29 +53,25 @@ fn test_resolve_test_repo_errors() {
 
 /* =====     RESOLVE_REPOS_FOR_MONO     ===== */
 #[test]
-fn test_resolve_test_repo_for_mono_errors_when_profile_empty() {
-  let mut config = Config::new();
-  config
-    .profiles
-    .insert("emptyprofile".to_string(), Profile::default());
+fn test_resolve_test_repos_for_mono_errors_when_no_repo() {
   let mut args = default_resolved();
   args.repo = None;
-  assert!(resolve_test_repo_for_mono(&args).is_err());
+  assert!(resolve_test_repos_for_mono(&args, None).is_err());
 }
 
 #[test]
-fn test_resolve_repos_for_mono_with_profile() {
+fn test_resolve_test_repos_for_mono_from_profile() {
   let profile = Profile {
-    test_repos: BTreeMap::new(),
-    deps: BTreeMap::from([(
-      "default".to_string(),
-      vec!["user/lib1".to_string(), "user/lib2".to_string()],
-    )]),
+    test_repos: BTreeMap::from([
+      ("game1".to_string(), "user/game1".to_string()),
+      ("game2".to_string(), "user/game2".to_string()),
+    ]),
+    deps: BTreeMap::new(),
   };
   let args = default_resolved();
   assert_eq!(
-    resolve_repos_for_mono(&args, Some(&profile)),
-    vec!["user/lib1", "user/lib2"]
+    resolve_test_repos_for_mono(&args, Some(&profile)),
+    Ok(vec!["user/game1".to_string(), "user/game2".to_string()])
   );
 }
 
@@ -83,7 +80,7 @@ fn test_resolve_repos_for_mono_with_explicit_repos() {
   let mut args = default_resolved();
   args.mono.repos = Some(vec!["user/lib1".to_string(), "user/lib2".to_string()]);
   assert_eq!(
-    resolve_repos_for_mono(&args, None),
+    resolve_dep_repos_for_mono(&args, None),
     vec!["user/lib1", "user/lib2"]
   );
 }

@@ -56,7 +56,8 @@ pub fn open_dev_server(
   }
 
   writeln!(io.output, "Starting dev server: {cmd}").ok();
-  writeln!(io.output,
+  writeln!(
+    io.output,
     "  in {}  (press Ctrl-C to stop)",
     repo_path.display()
   )

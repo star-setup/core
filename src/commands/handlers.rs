@@ -52,7 +52,11 @@ pub fn handle_profile_cmd(
   match action {
     ProfileAction::List => list_profiles(config, io),
     ProfileAction::Remove { name } => remove_profile(config, &name, yes, io, flags)?,
-    ProfileAction::Add { name, test_repo, repos } => {
+    ProfileAction::Add {
+      name,
+      test_repo,
+      repos,
+    } => {
       let test_repos = test_repo
         .map(|r| BTreeMap::from([("default".to_string(), r)]))
         .unwrap_or_default();

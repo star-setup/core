@@ -6,11 +6,10 @@ use crate::{
   commands::{
     build_repo_list,
     mono::{
-      display::{resolve_setup_paths, SetupPaths},
-      print_setup_complete,
-      resolve::{resolve_profile, resolve_test_repo_for_mono},
+      print_setup_complete, resolve_profile, resolve_setup_paths, resolve_test_repos_for_mono,
+      SetupPaths,
     },
-    prepare_build_dir, print_mode_header, resolve_repos_for_mono, ModeHeader,
+    prepare_build_dir, print_mode_header, resolve_dep_repos_for_mono, ModeHeader,
   },
   config::Config,
   ctx::RunCtx,
@@ -35,9 +34,9 @@ pub fn mono_repo_mode(
 ) -> Result<(), String> {
   let total = Instant::now();
   let profile = resolve_profile(args, config);
-  let test_repo = resolve_test_repo_for_mono(args)?;
-  let deps = resolve_repos_for_mono(args, profile);
-  let repos = build_repo_list(&test_repo, &deps);
+  let test_repos = resolve_test_repos_for_mono(args, profile)?;
+  let deps = resolve_dep_repos_for_mono(args, profile);
+  let repos = build_repo_list(&test_repos, &deps);
 
   print_mode_header(
     &ModeHeader {
@@ -46,13 +45,14 @@ pub fn mono_repo_mode(
       } else {
         "Mono-repository"
       },
-      test_repo: Some(&test_repo),
+      test_repos: &test_repos,
       repo_name: None,
       use_ssh: args.connection.ssh,
       mono_dir: Some(&args.mono.mono_dir),
       profile: args.mono.profile.as_deref(),
       lib_count: Some(deps.len()),
       repo_count: Some(repos.len()),
+      verbose: ctx.flags.verbose,
     },
     &mut ctx.io,
   );
@@ -102,7 +102,7 @@ pub fn mono_repo_mode(
 
   if build_system == Some(Npm)
     && !args.build.no_watch
-    && generate_watch_scripts(&mono_repo_path, &repos_path, &repos, &mut ctx.io, ctx.flags)?
+    && generate_watch_scripts(&mono_repo_path, &repos_path, &deps, &mut ctx.io, ctx.flags)?
     && args.build.watch
   {
     open_watch_scripts(&mono_repo_path, &mut ctx.io, ctx.flags)?;
@@ -111,7 +111,7 @@ pub fn mono_repo_mode(
   let paths = if ctx.flags.dry_run {
     SetupPaths {
       mono_repo_disp: mono_repo_path.clone(),
-      exe_path: None,
+      exe_paths: Vec::new(),
       build_disp: if build_system == Some(Npm) {
         None
       } else {
@@ -123,7 +123,7 @@ pub fn mono_repo_mode(
       canonical_map.as_ref(),
       &mono_repo_path,
       &build_path,
-      &test_repo,
+      &test_repos,
       build_system,
     )
   };
@@ -139,5 +139,13 @@ pub fn mono_repo_mode(
     print_setup_complete(&paths, total, &mut ctx.io, ctx.flags);
   }
 
-  maybe_open_dev_server(args, build_system, &repo_dirs[0], ctx)
+  let test_repo_dirs: Vec<PathBuf> = test_repos
+    .iter()
+    .map(|r| repos_path.join(repo_dir_name(r)))
+    .collect();
+
+  for dir in &test_repo_dirs {
+    maybe_open_dev_server(args, build_system, dir, ctx)?;
+  }
+  Ok(())
 }

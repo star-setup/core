@@ -13,7 +13,12 @@ pub fn print_profile_details(
     writeln!(output, "    {key}: {repo}").ok();
   }
   if !deps.is_empty() {
-    writeln!(output, "    {label}: {}", deps.values().map(Vec::len).sum::<usize>()).ok();
+    writeln!(
+      output,
+      "    {label}: {}",
+      deps.values().map(Vec::len).sum::<usize>()
+    )
+    .ok();
     for (key, repos) in deps {
       for d in repos {
         writeln!(output, "      - [{key}] {d}").ok();

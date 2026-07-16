@@ -1,10 +1,10 @@
-use std::collections::BTreeMap;
 use crate::common::default_args;
 use star_setup::{
   build::BuildType,
   config::{Config, ConfigEntry},
   resolve::{resolve_bool, resolve_with_config},
 };
+use std::collections::BTreeMap;
 
 /// Helper to quickly build a `SetupConfig` with a populated profile entry.
 fn config_with_entry(name: &str, entry: ConfigEntry) -> Config {

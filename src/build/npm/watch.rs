@@ -20,7 +20,9 @@ fn get_watch_command(
   if scripts.get("watch").is_some() {
     Some(format!("npm --workspace=repos/{dir} run watch"))
   } else if scripts.get("build").is_some() {
-    Some(format!("npm --workspace=repos/{dir} run build ''--'' --watch"))
+    Some(format!(
+      "npm --workspace=repos/{dir} run build ''--'' --watch"
+    ))
   } else {
     if flags.verbose {
       writeln!(
@@ -39,11 +41,11 @@ fn get_watch_command(
 pub fn generate_watch_scripts(
   mono_dir: &Path,
   repos_path: &Path,
-  repos: &[String],
+  deps: &[String],
   io: &mut IoCtx<'_>,
   flags: RunFlags,
 ) -> Result<bool, String> {
-  let lib_dirs: Vec<String> = repos.iter().skip(1).map(|r| repo_dir_name(r)).collect();
+  let lib_dirs: Vec<String> = deps.iter().map(|r| repo_dir_name(r)).collect();
 
   if lib_dirs.is_empty() {
     return Ok(false);

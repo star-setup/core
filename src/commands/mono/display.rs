@@ -1,25 +1,11 @@
 use crate::{
   build::{BuildSystem, BuildSystem::Npm},
+  commands::mono::SetupPaths,
   ctx::{IoCtx, RunFlags},
   repository::repo_dir_name,
 };
 use dunce::canonicalize;
-use std::{
-  collections::HashMap,
-  hash::BuildHasher,
-  path::{Path, PathBuf},
-  time::Instant,
-};
-
-/// Resolved display paths for the setup completion summary.
-pub struct SetupPaths {
-  /// Canonicalized path to the mono-repo root directory.
-  pub mono_repo_disp: PathBuf,
-  /// Canonicalized path to the test repository executable, if found.
-  pub exe_path: Option<PathBuf>,
-  /// Canonicalized path to the build output directory, if no canonical map was provided.
-  pub build_disp: Option<PathBuf>,
-}
+use std::{collections::HashMap, hash::BuildHasher, path::Path, time::Instant};
 
 /// Resolves display paths for setup completion summary.
 #[must_use]
@@ -27,42 +13,47 @@ pub fn resolve_setup_paths<S: BuildHasher>(
   canonical_map: Option<&HashMap<String, String, S>>,
   mono_repo_path: &Path,
   build_path: &Path,
-  test_repo: &str,
+  test_repos: &[String],
   build_system: Option<BuildSystem>,
 ) -> SetupPaths {
   let mono_repo_disp =
     canonicalize(mono_repo_path).unwrap_or_else(|_| mono_repo_path.to_path_buf());
 
-  let (exe_path, build_disp) = if let Some(map) = canonical_map {
-    let test_repo_name = repo_dir_name(test_repo);
-    let exe_path = map
+  let (exe_paths, build_disp) = if let Some(map) = canonical_map {
+    let exe_paths = test_repos
       .iter()
-      .find(|(_, v)| *v == &test_repo_name)
-      .map(|(canonical, _)| {
-        let exe_name = if cfg!(windows) {
-          format!("{canonical}.exe")
-        } else {
-          canonical.clone()
-        };
-        let p = build_path
-          .join("repos")
-          .join(&test_repo_name)
-          .join(&exe_name);
-        canonicalize(&p).unwrap_or(p)
-      });
-    (exe_path, None)
+      .filter_map(|test_repo| {
+        let test_repo_name = repo_dir_name(test_repo);
+        map
+          .iter()
+          .find(|(_, v)| *v == &test_repo_name)
+          .map(|(canonical, _)| {
+            let exe_name = if cfg!(windows) {
+              format!("{canonical}.exe")
+            } else {
+              canonical.clone()
+            };
+            let p = build_path
+              .join("repos")
+              .join(&test_repo_name)
+              .join(&exe_name);
+            (test_repo_name.clone(), canonicalize(&p).unwrap_or(p))
+          })
+      })
+      .collect();
+    (exe_paths, None)
   } else {
     let build_disp = if build_system == Some(Npm) {
       None
     } else {
       Some(canonicalize(build_path).unwrap_or_else(|_| build_path.to_path_buf()))
     };
-    (None, build_disp)
+    (Vec::new(), build_disp)
   };
 
   SetupPaths {
     mono_repo_disp,
-    exe_path,
+    exe_paths,
     build_disp,
   }
 }
@@ -81,8 +72,14 @@ pub fn print_setup_complete(
     paths.mono_repo_disp.display()
   )
   .ok();
-  if let Some(exe) = &paths.exe_path {
-    writeln!(io.output, "  Executable: {}", exe.display()).ok();
+  if !paths.exe_paths.is_empty() {
+    if flags.verbose {
+      for (name, exe) in &paths.exe_paths {
+        writeln!(io.output, "  Executable [{name}]: {}", exe.display()).ok();
+      }
+    } else {
+      writeln!(io.output, "  Executables: {}", paths.exe_paths.len()).ok();
+    }
   }
   if let Some(build) = &paths.build_disp {
     writeln!(io.output, "  Build output in: {}", build.display()).ok();
