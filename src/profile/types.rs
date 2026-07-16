@@ -3,7 +3,9 @@ use std::collections::BTreeMap;
 
 #[derive(Serialize, Deserialize, Default, Clone, Debug)]
 pub struct Profile {
+  #[serde(default)]
   pub test_repos: BTreeMap<String, String>,
+  #[serde(default)]
   pub deps: BTreeMap<String, Vec<String>>,
 }
 
