@@ -1,7 +1,7 @@
 use crate::{
   build::{
-    build_project, detect_mono_build_system, generate_mono_config, generate_watch_scripts,
-    maybe_open_dev_server, open_watch_scripts, BuildSystem::Npm,
+    build_project, detect_mono_build_system, generate_dev_scripts, generate_mono_config,
+    generate_watch_scripts, open_scripts, BuildSystem::Npm,
   },
   commands::{
     build_repo_list,
@@ -105,7 +105,21 @@ pub fn mono_repo_mode(
     && generate_watch_scripts(&mono_repo_path, &repos_path, &deps, &mut ctx.io, ctx.flags)?
     && args.build.watch
   {
-    open_watch_scripts(&mono_repo_path, &mut ctx.io, ctx.flags)?;
+    open_scripts("watch", &mono_repo_path, &mut ctx.io, ctx.flags)?;
+  }
+
+  if build_system == Some(Npm)
+    && !args.build.no_dev
+    && generate_dev_scripts(
+      &mono_repo_path,
+      &repos_path,
+      &test_repos,
+      &mut ctx.io,
+      ctx.flags,
+    )?
+    && args.build.dev
+  {
+    open_scripts("dev", &mono_repo_path, &mut ctx.io, ctx.flags)?;
   }
 
   let paths = if ctx.flags.dry_run {
@@ -137,15 +151,6 @@ pub fn mono_repo_mode(
     .ok();
   } else {
     print_setup_complete(&paths, total, &mut ctx.io, ctx.flags);
-  }
-
-  let test_repo_dirs: Vec<PathBuf> = test_repos
-    .iter()
-    .map(|r| repos_path.join(repo_dir_name(r)))
-    .collect();
-
-  for dir in &test_repo_dirs {
-    maybe_open_dev_server(args, build_system, dir, ctx)?;
   }
   Ok(())
 }

@@ -2,15 +2,16 @@
 use crate::utils::process::resolve_exe_args;
 use crate::{
   build::{
-    read_package_json,
+    generate_terminal_scripts, read_package_json,
     BuildSystem::{self, Npm},
   },
   ctx::{IoCtx, RunCtx, RunFlags},
+  repository::repo_dir_name,
   resolve::ResolvedArgs,
 };
 use serde_json::Value;
 use std::{
-  path::Path,
+  path::{Path, PathBuf},
   process::{Command, Stdio},
 };
 
@@ -122,4 +123,38 @@ pub fn maybe_open_dev_server(
     open_dev_server(repo_path, &cmd, &mut ctx.io, ctx.flags)?;
   }
   Ok(())
+}
+
+/// Generates `dev.ps1` / `dev.sh` launching each test repo's dev server in its
+/// own terminal, so the whole set can be reopened by rerunning the script.
+/// # Errors
+/// Returns an error if the scripts cannot be written.
+pub fn generate_dev_scripts(
+  mono_dir: &Path,
+  repos_path: &Path,
+  test_repos: &[String],
+  io: &mut IoCtx<'_>,
+  flags: RunFlags,
+) -> Result<bool, String> {
+  if test_repos.is_empty() {
+    return Ok(false);
+  }
+  let entries: Vec<(PathBuf, String)> = test_repos
+    .iter()
+    .filter_map(|r| {
+      let dir = repo_dir_name(r);
+      resolve_dev_command(&repos_path.join(&dir), io, flags)
+        .map(|cmd| (mono_dir.join("repos").join(&dir), cmd))
+    })
+    .collect();
+
+  generate_terminal_scripts(
+    "dev",
+    "Run all test repositories",
+    mono_dir,
+    &entries,
+    io,
+    flags,
+  )?;
+  Ok(true)
 }

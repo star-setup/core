@@ -1,6 +1,6 @@
+use serde_json::from_str;
 use star_setup::profile::Profile;
 use std::collections::BTreeMap;
-use serde_json::from_str;
 
 #[test]
 fn test_profile_from_args_errors_when_empty() {
