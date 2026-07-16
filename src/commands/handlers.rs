@@ -8,7 +8,7 @@ use crate::{
   profile::{add_profile, list_profiles, remove_profile, Profile},
   workspace::resolve_workspace,
 };
-use std::{collections::HashMap, error::Error, path::PathBuf};
+use std::{collections::BTreeMap, error::Error, path::PathBuf};
 
 /// Handles configuration-related subcommands.
 /// # Errors
@@ -54,12 +54,12 @@ pub fn handle_profile_cmd(
     ProfileAction::Remove { name } => remove_profile(config, &name, yes, io, flags)?,
     ProfileAction::Add { name, test_repo, repos } => {
       let test_repos = test_repo
-        .map(|r| HashMap::from([("default".to_string(), r)]))
+        .map(|r| BTreeMap::from([("default".to_string(), r)]))
         .unwrap_or_default();
       let deps = if repos.is_empty() {
-        HashMap::new()
+        BTreeMap::new()
       } else {
-        HashMap::from([("default".to_string(), repos)])
+        BTreeMap::from([("default".to_string(), repos)])
       };
       let profile = Profile::from_args(test_repos, deps)?;
       add_profile(config, &name, &profile, yes, io, flags)?;

@@ -1,5 +1,4 @@
-use std::collections::HashMap;
-
+use std::collections::BTreeMap;
 use crate::common::{make_flags, with_io_dir, with_io_input_output, with_io_output};
 use star_setup::{
   config::{load_config, save_config, Config},
@@ -27,8 +26,8 @@ fn test_add_profile_inserts_and_saves() {
       &mut config,
       "myprofile",
       &Profile {
-        test_repos: HashMap::new(),
-        deps: HashMap::from([("default".to_string(), vec!["user/repo1".to_string()])]),
+        test_repos: BTreeMap::new(),
+        deps: BTreeMap::from([("default".to_string(), vec!["user/repo1".to_string()])]),
       },
       true,
       io,
@@ -53,8 +52,8 @@ fn test_save_and_load_profile_roundtrip() {
     &mut config,
     "myprofile",
     Profile {
-      test_repos: HashMap::new(),
-      deps: HashMap::from([("default".to_string(), vec!["user/repo1".to_string(), "user/repo2".to_string()])]),
+      test_repos: BTreeMap::new(),
+      deps: BTreeMap::from([("default".to_string(), vec!["user/repo1".to_string(), "user/repo2".to_string()])]),
     },
   );
 
@@ -78,8 +77,8 @@ fn test_insert_profile() {
     &mut config,
     "myprofile",
     Profile {
-      test_repos: HashMap::new(),
-       deps: HashMap::from([("default".to_string(), vec!["user/repo1".to_string()])]),
+      test_repos: BTreeMap::new(),
+       deps: BTreeMap::from([("default".to_string(), vec!["user/repo1".to_string()])]),
     },
   );
 
@@ -114,16 +113,16 @@ fn test_add_profile_overwrites_existing() {
       &mut config,
       "myprofile",
       Profile {
-        test_repos: HashMap::new(),
-        deps: HashMap::from([("default".to_string(), vec!["old/repo".to_string()])]),
+        test_repos: BTreeMap::new(),
+        deps: BTreeMap::from([("default".to_string(), vec!["old/repo".to_string()])]),
       },
     );
     add_profile(
       &mut config,
       "myprofile",
       &Profile {
-        test_repos: HashMap::new(),
-        deps: HashMap::from([("default".to_string(), vec!["new/repo".to_string()])]),
+        test_repos: BTreeMap::new(),
+        deps: BTreeMap::from([("default".to_string(), vec!["new/repo".to_string()])]),
       },
       true,
       io,
@@ -144,8 +143,8 @@ fn test_add_profile_multiple_repos() {
       &mut config,
       "myprofile",
       &Profile {
-        test_repos: HashMap::new(),
-         deps: HashMap::from([("default".to_string(), vec![
+        test_repos: BTreeMap::new(),
+         deps: BTreeMap::from([("default".to_string(), vec![
           "user/repo1".to_string(),
           "user/repo2".to_string(),
           "user/repo3".to_string(),
@@ -172,16 +171,16 @@ fn test_add_profile_aborts_when_exists_and_not_confirmed() {
       &mut config,
       "myprofile",
       Profile {
-        test_repos: HashMap::new(),
-         deps: HashMap::from([("default".to_string(), vec!["old/repo".to_string()])]),
+        test_repos: BTreeMap::new(),
+         deps: BTreeMap::from([("default".to_string(), vec!["old/repo".to_string()])]),
       },
     );
     add_profile(
       &mut config,
       "myprofile",
       &Profile {
-        test_repos: HashMap::new(),
-         deps: HashMap::from([("default".to_string(), vec!["new/repo".to_string()])]),
+        test_repos: BTreeMap::new(),
+         deps: BTreeMap::from([("default".to_string(), vec!["new/repo".to_string()])]),
       },
       false,
       io,
@@ -211,8 +210,8 @@ fn test_remove_profile_removes_and_saves() {
       &mut config,
       "myprofile",
       &Profile {
-        test_repos: HashMap::new(),
-        deps: HashMap::from([("default".to_string(), vec!["user/repo1".to_string()])]),
+        test_repos: BTreeMap::new(),
+        deps: BTreeMap::from([("default".to_string(), vec!["user/repo1".to_string()])]),
       },
       true,
       io,
@@ -245,8 +244,8 @@ fn test_remove_profile_aborts_when_not_confirmed() {
       &mut config,
       "myprofile",
       &Profile {
-        test_repos: HashMap::new(),
-        deps: HashMap::from([("default".to_string(), vec!["user/repo1".to_string()])]),
+        test_repos: BTreeMap::new(),
+        deps: BTreeMap::from([("default".to_string(), vec!["user/repo1".to_string()])]),
       },
       true,
       io,

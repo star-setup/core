@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use crate::common::with_io_output;
 use star_setup::{
   config::Config,
@@ -22,8 +22,8 @@ fn test_list_profiles_with_entries() {
       &mut config,
       "myprofile",
       Profile {
-        test_repos: HashMap::new(),
-        deps: HashMap::from([("default".to_string(), vec!["user/repo1".to_string()])]),
+        test_repos: BTreeMap::new(),
+        deps: BTreeMap::from([("default".to_string(), vec!["user/repo1".to_string()])]),
       },
     );
     list_profiles(&config, io);
