@@ -1,7 +1,7 @@
 use crate::{
   build::{
     build_project, detect_mono_build_system, generate_dev_scripts, generate_mono_config,
-    generate_watch_scripts, open_scripts, BuildSystem::Npm,
+    generate_watch_scripts, open_scripts, BuildSystem::{self, Npm},
   },
   commands::{
     build_repo_list,
@@ -100,27 +100,15 @@ pub fn mono_repo_mode(
     None
   };
 
-  if build_system == Some(Npm)
-    && !args.build.no_watch
-    && generate_watch_scripts(&mono_repo_path, &repos_path, &deps, &mut ctx.io, ctx.flags)?
-    && args.build.watch
-  {
-    open_scripts("watch", &mono_repo_path, &mut ctx.io, ctx.flags)?;
-  }
-
-  if build_system == Some(Npm)
-    && !args.build.no_dev
-    && generate_dev_scripts(
-      &mono_repo_path,
-      &repos_path,
-      &test_repos,
-      &mut ctx.io,
-      ctx.flags,
-    )?
-    && args.build.dev
-  {
-    open_scripts("dev", &mono_repo_path, &mut ctx.io, ctx.flags)?;
-  }
+  generate_npm_scripts(
+    args,
+    &mono_repo_path,
+    &repos_path,
+    &deps,
+    &test_repos,
+    build_system,
+    ctx,
+  )?;
 
   let paths = if ctx.flags.dry_run {
     SetupPaths {
@@ -151,6 +139,37 @@ pub fn mono_repo_mode(
     .ok();
   } else {
     print_setup_complete(&paths, total, &mut ctx.io, ctx.flags);
+  }
+  Ok(())
+}
+
+/// Generates (and optionally opens) the npm watch/dev terminal scripts for a
+/// mono workspace. No-op unless the build system is npm.
+/// # Errors
+/// Returns an error if a script cannot be written or a terminal cannot be opened.
+fn generate_npm_scripts(
+  args: &ResolvedArgs,
+  mono_repo_path: &Path,
+  repos_path: &Path,
+  deps: &[String],
+  test_repos: &[String],
+  build_system: Option<BuildSystem>,
+  ctx: &mut RunCtx<'_, '_>,
+) -> Result<(), String> {
+  if build_system != Some(Npm) {
+    return Ok(());
+  }
+  if !args.build.no_watch
+    && generate_watch_scripts(mono_repo_path, repos_path, deps, &mut ctx.io, ctx.flags)?
+    && args.build.watch
+  {
+    open_scripts("watch", mono_repo_path, &mut ctx.io, ctx.flags)?;
+  }
+  if !args.build.no_dev
+    && generate_dev_scripts(mono_repo_path, repos_path, test_repos, &mut ctx.io, ctx.flags)?
+    && args.build.dev
+  {
+    open_scripts("dev", mono_repo_path, &mut ctx.io, ctx.flags)?;
   }
   Ok(())
 }

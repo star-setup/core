@@ -8,7 +8,7 @@ pub fn build_repo_list(test_repos: &[String], deps: &[String]) -> Vec<String> {
   test_repos
     .iter()
     .chain(deps)
+    .filter(|&r| seen.insert(repo_dir_name(r)))
     .cloned()
-    .filter(|r| seen.insert(repo_dir_name(r)))
     .collect()
 }
