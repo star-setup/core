@@ -283,11 +283,14 @@ star-setup username/repo --config myconfig
 ### Profile Mode
 Profiles represent a saved ecosystem of libraries commonly used together.
 ```bash
-# Add a profile with a test repo and dependencies
-star-setup profile add myprofile --test-repo user/app user/lib1 user/lib2
+# Add a single-game profile
+star-setup profile add myprofile --test-repos user/app --deps user/lib1 user/lib2
+
+# Add a profile with test repos and shared dependencies
+star-setup profile add myprofile --test-repos user/game1 user/game2 --deps user/lib1 user/lib2
 
 # Add a dependency-only profile
-star-setup profile add myprofile user/lib1 user/lib2
+star-setup profile add myprofile --deps user/lib1 user/lib2
 
 # List profiles
 star-setup profile list

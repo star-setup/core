@@ -2,11 +2,7 @@ use crate::{
   cli::{
     ConfigAction, ProfileAction,
     WorkspaceAction::{self, Clean, Status, Update},
-  },
-  config::{add_config, create_default_config, list_configs, remove_config, Config, ConfigEntry},
-  ctx::{with_runner, IoCtx, RunFlags},
-  profile::{add_profile, list_profiles, remove_profile, Profile},
-  workspace::resolve_workspace,
+  }, config::{Config, ConfigEntry, add_config, create_default_config, list_configs, remove_config}, ctx::{IoCtx, RunFlags, with_runner}, profile::{Profile, add_profile, list_profiles, remove_profile}, repository::repo_dir_name, workspace::resolve_workspace,
 };
 use std::{collections::BTreeMap, error::Error, path::PathBuf};
 
@@ -54,16 +50,17 @@ pub fn handle_profile_cmd(
     ProfileAction::Remove { name } => remove_profile(config, &name, yes, io, flags)?,
     ProfileAction::Add {
       name,
-      test_repo,
-      repos,
+      test_repos,
+      deps,
     } => {
-      let test_repos = test_repo
-        .map(|r| BTreeMap::from([("default".to_string(), r)]))
-        .unwrap_or_default();
-      let deps = if repos.is_empty() {
+      let test_repos: BTreeMap<String, String> = test_repos
+        .into_iter()
+        .map(|r| (repo_dir_name(&r), r))
+        .collect();
+      let deps = if deps.is_empty() {
         BTreeMap::new()
       } else {
-        BTreeMap::from([("default".to_string(), repos)])
+        BTreeMap::from([("default".to_string(), deps)])
       };
       let profile = Profile::from_args(test_repos, deps)?;
       add_profile(config, &name, &profile, yes, io, flags)?;
