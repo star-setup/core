@@ -5,6 +5,7 @@ use star_setup::{
     add_profile, has_profile, insert_profile, remove_profile, remove_profile_entry, Profile,
   },
 };
+use std::collections::BTreeMap;
 use tempfile::TempDir;
 
 /* =====     HAS_PROFILE     ===== */
@@ -25,8 +26,8 @@ fn test_add_profile_inserts_and_saves() {
       &mut config,
       "myprofile",
       &Profile {
-        test_repo: None,
-        deps: vec!["user/repo1".to_string()],
+        test_repos: BTreeMap::new(),
+        deps: BTreeMap::from([("default".to_string(), vec!["user/repo1".to_string()])]),
       },
       true,
       io,
@@ -51,8 +52,11 @@ fn test_save_and_load_profile_roundtrip() {
     &mut config,
     "myprofile",
     Profile {
-      test_repo: None,
-      deps: vec!["user/repo1".to_string(), "user/repo2".to_string()],
+      test_repos: BTreeMap::new(),
+      deps: BTreeMap::from([(
+        "default".to_string(),
+        vec!["user/repo1".to_string(), "user/repo2".to_string()],
+      )]),
     },
   );
 
@@ -61,7 +65,7 @@ fn test_save_and_load_profile_roundtrip() {
     let loaded = load_config(&[path], false, false, &mut io.output);
     assert!(loaded.profiles.contains_key("myprofile"));
     assert_eq!(
-      loaded.profiles["myprofile"].deps,
+      loaded.profiles["myprofile"].deps["default"],
       vec!["user/repo1", "user/repo2"]
     );
   });
@@ -76,8 +80,8 @@ fn test_insert_profile() {
     &mut config,
     "myprofile",
     Profile {
-      test_repo: None,
-      deps: vec!["user/repo1".to_string()],
+      test_repos: BTreeMap::new(),
+      deps: BTreeMap::from([("default".to_string(), vec!["user/repo1".to_string()])]),
     },
   );
 
@@ -97,9 +101,7 @@ fn test_remove_profile_entry_exists() {
 #[test]
 fn test_has_profile_true() {
   let mut config = Config::new();
-
   insert_profile(&mut config, "myprofile", Profile::default());
-
   assert!(has_profile(&config, "myprofile"));
 }
 
@@ -114,23 +116,26 @@ fn test_add_profile_overwrites_existing() {
       &mut config,
       "myprofile",
       Profile {
-        test_repo: None,
-        deps: vec!["old/repo".to_string()],
+        test_repos: BTreeMap::new(),
+        deps: BTreeMap::from([("default".to_string(), vec!["old/repo".to_string()])]),
       },
     );
     add_profile(
       &mut config,
       "myprofile",
       &Profile {
-        test_repo: None,
-        deps: vec!["new/repo".to_string()],
+        test_repos: BTreeMap::new(),
+        deps: BTreeMap::from([("default".to_string(), vec!["new/repo".to_string()])]),
       },
       true,
       io,
       make_flags(),
     )
     .unwrap();
-    assert_eq!(config.profiles["myprofile"].deps, vec!["new/repo"]);
+    assert_eq!(
+      config.profiles["myprofile"].deps["default"],
+      vec!["new/repo"]
+    );
   });
 }
 
@@ -144,12 +149,15 @@ fn test_add_profile_multiple_repos() {
       &mut config,
       "myprofile",
       &Profile {
-        test_repo: None,
-        deps: vec![
-          "user/repo1".to_string(),
-          "user/repo2".to_string(),
-          "user/repo3".to_string(),
-        ],
+        test_repos: BTreeMap::new(),
+        deps: BTreeMap::from([(
+          "default".to_string(),
+          vec![
+            "user/repo1".to_string(),
+            "user/repo2".to_string(),
+            "user/repo3".to_string(),
+          ],
+        )]),
       },
       true,
       io,
@@ -157,7 +165,7 @@ fn test_add_profile_multiple_repos() {
     )
     .unwrap();
 
-    assert_eq!(config.profiles["myprofile"].deps.len(), 3);
+    assert_eq!(config.profiles["myprofile"].deps["default"].len(), 3);
   });
 }
 
@@ -172,23 +180,26 @@ fn test_add_profile_aborts_when_exists_and_not_confirmed() {
       &mut config,
       "myprofile",
       Profile {
-        test_repo: None,
-        deps: vec!["old/repo".to_string()],
+        test_repos: BTreeMap::new(),
+        deps: BTreeMap::from([("default".to_string(), vec!["old/repo".to_string()])]),
       },
     );
     add_profile(
       &mut config,
       "myprofile",
       &Profile {
-        test_repo: None,
-        deps: vec!["new/repo".to_string()],
+        test_repos: BTreeMap::new(),
+        deps: BTreeMap::from([("default".to_string(), vec!["new/repo".to_string()])]),
       },
       false,
       io,
       make_flags(),
     )
     .unwrap();
-    assert_eq!(config.profiles["myprofile"].deps, vec!["old/repo"]);
+    assert_eq!(
+      config.profiles["myprofile"].deps["default"],
+      vec!["old/repo"]
+    );
   });
 }
 
@@ -211,8 +222,8 @@ fn test_remove_profile_removes_and_saves() {
       &mut config,
       "myprofile",
       &Profile {
-        test_repo: None,
-        deps: vec!["user/repo1".to_string()],
+        test_repos: BTreeMap::new(),
+        deps: BTreeMap::from([("default".to_string(), vec!["user/repo1".to_string()])]),
       },
       true,
       io,
@@ -245,8 +256,8 @@ fn test_remove_profile_aborts_when_not_confirmed() {
       &mut config,
       "myprofile",
       &Profile {
-        test_repo: None,
-        deps: vec!["user/repo1".to_string()],
+        test_repos: BTreeMap::new(),
+        deps: BTreeMap::from([("default".to_string(), vec!["user/repo1".to_string()])]),
       },
       true,
       io,

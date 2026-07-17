@@ -14,6 +14,7 @@ pub use meson::{
 };
 pub mod npm;
 pub use npm::{
-  create_mono_repo_package_json, generate_watch_scripts, maybe_open_dev_server, npm_build,
-  open_dev_server, open_watch_scripts, read_package_json, resolve_dev_command,
+  create_mono_repo_package_json, generate_dev_scripts, generate_terminal_scripts,
+  generate_watch_scripts, maybe_open_dev_server, npm_build, open_dev_server, open_scripts,
+  read_package_json, resolve_dev_command,
 };

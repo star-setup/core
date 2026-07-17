@@ -28,6 +28,7 @@ pub enum Command {
 )]
 pub struct Args {
   /// Repository name (username/repo) or full GitHub URL
+  #[arg(conflicts_with = "profile")]
   pub repo: Option<String>,
 
   /// Select a named configuration to use

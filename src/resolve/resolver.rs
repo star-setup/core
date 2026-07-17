@@ -120,18 +120,17 @@ fn resolve_repo(
   profile: Option<&str>,
   config: &Config,
 ) -> Result<Option<String>, String> {
-  let prof = match profile {
-    Some(name) => Some(config.profiles.get(name).ok_or_else(|| {
+  if let Some(name) = profile {
+    if !config.profiles.contains_key(name) {
       let mut names: Vec<&str> = config.profiles.keys().map(String::as_str).collect();
       names.sort_unstable();
-      format!(
+      return Err(format!(
         "Profile '{name}' not found. Available: {}",
         names.join(", ")
-      )
-    })?),
-    None => None,
-  };
-  Ok(repo.or_else(|| prof.and_then(|p| p.test_repo.clone())))
+      ));
+    }
+  }
+  Ok(repo)
 }
 
 /// Resolves raw `Args` into `ResolvedArgs` by applying config defaults and CLI overrides.

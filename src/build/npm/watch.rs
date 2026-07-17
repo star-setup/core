@@ -1,12 +1,10 @@
 use crate::{
-  build::read_package_json,
+  build::{generate_terminal_scripts, read_package_json},
   ctx::{IoCtx, RunFlags},
   repository::repo_dir_name,
-  utils::{dry_run_or_do, report_summary},
 };
 use dunce::canonicalize;
-use std::process::Command;
-use std::{fs::write, path::Path};
+use std::path::{Path, PathBuf};
 
 /// Reads a lib's package.json and returns the appropriate watch command.
 fn get_watch_command(
@@ -20,7 +18,9 @@ fn get_watch_command(
   if scripts.get("watch").is_some() {
     Some(format!("npm --workspace=repos/{dir} run watch"))
   } else if scripts.get("build").is_some() {
-    Some(format!("npm --workspace=repos/{dir} run build ''--'' --watch"))
+    Some(format!(
+      "npm --workspace=repos/{dir} run build ''--'' --watch"
+    ))
   } else {
     if flags.verbose {
       writeln!(
@@ -39,64 +39,30 @@ fn get_watch_command(
 pub fn generate_watch_scripts(
   mono_dir: &Path,
   repos_path: &Path,
-  repos: &[String],
+  deps: &[String],
   io: &mut IoCtx<'_>,
   flags: RunFlags,
 ) -> Result<bool, String> {
-  let lib_dirs: Vec<String> = repos.iter().skip(1).map(|r| repo_dir_name(r)).collect();
-
+  let lib_dirs: Vec<String> = deps.iter().map(|r| repo_dir_name(r)).collect();
   if lib_dirs.is_empty() {
     return Ok(false);
   }
 
-  let watch_cmds: Vec<String> = lib_dirs
+  let entries: Vec<(PathBuf, String)> = lib_dirs
     .iter()
-    .filter_map(|d| get_watch_command(repos_path, d, io, flags))
-    .collect();
-
-  let ps1_lines: Vec<String> = watch_cmds
-    .iter()
-    .map(|cmd| {
-      format!(
-        "Start-Process powershell -ArgumentList '-NoExit', '-Command', 'cd \"{}\"; {cmd}'",
-        mono_dir.display()
-      )
+    .filter_map(|d| {
+      get_watch_command(repos_path, d, io, flags).map(|cmd| (mono_dir.to_path_buf(), cmd))
     })
     .collect();
 
-  let sh_lines: Vec<String> = watch_cmds
-    .iter()
-    .map(|cmd| format!("cd \"{}\" && {cmd} &", mono_dir.display()))
-    .collect();
-
-  let ps1_content = format!("# Watch all lib repositories\n{}\n", ps1_lines.join("\n"));
-  let sh_content = format!(
-    "#!/bin/bash\ntrap 'kill $(jobs -p)' EXIT\n# Watch all lib repositories\n{}\nwait\n",
-    sh_lines.join("\n")
-  );
-
-  dry_run_or_do(
-    "write watch scripts",
-    "Writing",
+  generate_terminal_scripts(
+    "watch",
+    "Watch all lib repositories",
     mono_dir,
+    &entries,
     io,
     flags,
-    "Write scripts",
-    || {
-      write(mono_dir.join("watch.ps1"), ps1_content)
-        .map_err(|e| format!("Failed to write watch.ps1: {e}"))?;
-      write(mono_dir.join("watch.sh"), sh_content)
-        .map_err(|e| format!("Failed to write watch.sh: {e}"))?;
-      Ok(())
-    },
   )?;
-
-  report_summary(
-    io,
-    flags,
-    &format!("generate watch scripts at {}", mono_dir.display()),
-    &format!("Generated watch scripts at {}", mono_dir.display()),
-  );
 
   if flags.verbose {
     writeln!(io.output, "  Watching {} libraries:", lib_dirs.len()).ok();
@@ -107,48 +73,4 @@ pub fn generate_watch_scripts(
   }
 
   Ok(true)
-}
-
-/// Opens watch scripts in new terminals.
-/// # Errors
-/// Returns an error if the terminal cannot be opened.
-pub fn open_watch_scripts(
-  mono_dir: &Path,
-  io: &mut IoCtx<'_>,
-  flags: RunFlags,
-) -> Result<(), String> {
-  if flags.dry_run {
-    if flags.verbose {
-      writeln!(io.output, "  Would open watch scripts").ok();
-    }
-    return Ok(());
-  }
-
-  crate::time!(flags.timing, io.output, "Open", {
-    #[cfg(target_os = "windows")]
-    {
-      let ps1_path = mono_dir.join("watch.ps1");
-      Command::new("powershell")
-        .args([
-          "-ExecutionPolicy",
-          "Bypass",
-          "-File",
-          ps1_path.to_str().ok_or("Invalid path")?,
-        ])
-        .spawn()
-        .map_err(|e| format!("Failed to open watch.ps1: {e}"))?;
-    }
-
-    #[cfg(not(target_os = "windows"))]
-    {
-      let sh_path = mono_dir.join("watch.sh");
-      Command::new("bash")
-        .arg(sh_path.to_str().ok_or("Invalid path")?)
-        .spawn()
-        .map_err(|e| format!("Failed to open watch.sh: {e}"))?;
-    }
-    Ok::<(), String>(())
-  })?;
-  writeln!(io.output, "  Opening watch scripts").ok();
-  Ok(())
 }

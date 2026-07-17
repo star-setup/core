@@ -28,13 +28,14 @@ pub fn single_repo_mode(
   print_mode_header(
     &ModeHeader {
       mode: "Single Repository Mode",
-      test_repo: None,
+      test_repos: &[],
       repo_name: Some(&dir_name),
-      use_ssh: args.connection.ssh,
       mono_dir: None,
       profile: None,
       lib_count: None,
       repo_count: None,
+      use_ssh: args.connection.ssh,
+      verbose: ctx.flags.verbose,
     },
     &mut ctx.io,
   );

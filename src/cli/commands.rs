@@ -51,11 +51,12 @@ pub enum ProfileAction {
   Add {
     /// Name of the profile.
     name: String,
-    /// Test repository (user/repo).
-    #[arg(long)]
-    test_repo: Option<String>,
-    /// Repository list (user/lib1 user/lib2).
-    repos: Vec<String>,
+    /// Test repositories (user/game1 user/game2).
+    #[arg(long, num_args = 1..)]
+    test_repos: Vec<String>,
+    /// Dependency repositories (user/lib1 user/lib2).
+    #[arg(long, num_args = 1..)]
+    deps: Vec<String>,
   },
   /// Remove a named profile.
   Remove {

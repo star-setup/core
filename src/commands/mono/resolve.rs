@@ -34,21 +34,31 @@ pub fn resolve_profile<'a>(args: &ResolvedArgs, config: &'a Config) -> Option<&'
     .and_then(|name| config.profiles.get(name))
 }
 
-/// Resolves the test repo for mono-repo mode from the already-resolved repo.
+/// Resolves all test repositories for mono-repo mode on a profile.
 /// # Errors
 /// Returns an error if no repository is available.
-pub fn resolve_test_repo_for_mono(args: &ResolvedArgs) -> Result<String, String> {
+pub fn resolve_test_repos_for_mono(
+  args: &ResolvedArgs,
+  profile: Option<&Profile>,
+) -> Result<Vec<String>, String> {
+  if let Some(p) = profile {
+    return p
+      .test_repos
+      .values()
+      .map(|r| resolve_test_repo(r.trim_end_matches('/')))
+      .collect();
+  }
   match args.repo.as_deref() {
-    Some(r) => resolve_test_repo(r.trim_end_matches('/')),
+    Some(r) => resolve_test_repo(r.trim_end_matches('/')).map(|r| vec![r]),
     None => Err("No repository specified".to_string()),
   }
 }
 
 /// Resolves the dependency repositories for mono-repo mode from a profile or explicit list.
 #[must_use]
-pub fn resolve_repos_for_mono(args: &ResolvedArgs, profile: Option<&Profile>) -> Vec<String> {
+pub fn resolve_dep_repos_for_mono(args: &ResolvedArgs, profile: Option<&Profile>) -> Vec<String> {
   profile
-    .map(|p| p.deps.clone())
+    .map(|p| p.deps.values().flatten().cloned().collect())
     .or_else(|| args.mono.repos.clone())
     .unwrap_or_default()
 }

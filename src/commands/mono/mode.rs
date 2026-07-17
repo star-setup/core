@@ -1,16 +1,15 @@
 use crate::{
   build::{
-    build_project, detect_mono_build_system, generate_mono_config, generate_watch_scripts,
-    maybe_open_dev_server, open_watch_scripts, BuildSystem::Npm,
+    build_project, detect_mono_build_system, generate_dev_scripts, generate_mono_config,
+    generate_watch_scripts, open_scripts, BuildSystem::{self, Npm},
   },
   commands::{
     build_repo_list,
     mono::{
-      display::{resolve_setup_paths, SetupPaths},
-      print_setup_complete,
-      resolve::{resolve_profile, resolve_test_repo_for_mono},
+      print_setup_complete, resolve_profile, resolve_setup_paths, resolve_test_repos_for_mono,
+      SetupPaths,
     },
-    prepare_build_dir, print_mode_header, resolve_repos_for_mono, ModeHeader,
+    prepare_build_dir, print_mode_header, resolve_dep_repos_for_mono, ModeHeader,
   },
   config::Config,
   ctx::RunCtx,
@@ -35,9 +34,9 @@ pub fn mono_repo_mode(
 ) -> Result<(), String> {
   let total = Instant::now();
   let profile = resolve_profile(args, config);
-  let test_repo = resolve_test_repo_for_mono(args)?;
-  let deps = resolve_repos_for_mono(args, profile);
-  let repos = build_repo_list(&test_repo, &deps);
+  let test_repos = resolve_test_repos_for_mono(args, profile)?;
+  let deps = resolve_dep_repos_for_mono(args, profile);
+  let repos = build_repo_list(&test_repos, &deps);
 
   print_mode_header(
     &ModeHeader {
@@ -46,13 +45,14 @@ pub fn mono_repo_mode(
       } else {
         "Mono-repository"
       },
-      test_repo: Some(&test_repo),
+      test_repos: &test_repos,
       repo_name: None,
       use_ssh: args.connection.ssh,
       mono_dir: Some(&args.mono.mono_dir),
       profile: args.mono.profile.as_deref(),
       lib_count: Some(deps.len()),
       repo_count: Some(repos.len()),
+      verbose: ctx.flags.verbose,
     },
     &mut ctx.io,
   );
@@ -100,18 +100,20 @@ pub fn mono_repo_mode(
     None
   };
 
-  if build_system == Some(Npm)
-    && !args.build.no_watch
-    && generate_watch_scripts(&mono_repo_path, &repos_path, &repos, &mut ctx.io, ctx.flags)?
-    && args.build.watch
-  {
-    open_watch_scripts(&mono_repo_path, &mut ctx.io, ctx.flags)?;
-  }
+  generate_npm_scripts(
+    args,
+    &mono_repo_path,
+    &repos_path,
+    &deps,
+    &test_repos,
+    build_system,
+    ctx,
+  )?;
 
   let paths = if ctx.flags.dry_run {
     SetupPaths {
       mono_repo_disp: mono_repo_path.clone(),
-      exe_path: None,
+      exe_paths: Vec::new(),
       build_disp: if build_system == Some(Npm) {
         None
       } else {
@@ -123,7 +125,7 @@ pub fn mono_repo_mode(
       canonical_map.as_ref(),
       &mono_repo_path,
       &build_path,
-      &test_repo,
+      &test_repos,
       build_system,
     )
   };
@@ -138,6 +140,36 @@ pub fn mono_repo_mode(
   } else {
     print_setup_complete(&paths, total, &mut ctx.io, ctx.flags);
   }
+  Ok(())
+}
 
-  maybe_open_dev_server(args, build_system, &repo_dirs[0], ctx)
+/// Generates (and optionally opens) the npm watch/dev terminal scripts for a
+/// mono workspace. No-op unless the build system is npm.
+/// # Errors
+/// Returns an error if a script cannot be written or a terminal cannot be opened.
+fn generate_npm_scripts(
+  args: &ResolvedArgs,
+  mono_repo_path: &Path,
+  repos_path: &Path,
+  deps: &[String],
+  test_repos: &[String],
+  build_system: Option<BuildSystem>,
+  ctx: &mut RunCtx<'_, '_>,
+) -> Result<(), String> {
+  if build_system != Some(Npm) {
+    return Ok(());
+  }
+  if !args.build.no_watch
+    && generate_watch_scripts(mono_repo_path, repos_path, deps, &mut ctx.io, ctx.flags)?
+    && args.build.watch
+  {
+    open_scripts("watch", mono_repo_path, &mut ctx.io, ctx.flags)?;
+  }
+  if !args.build.no_dev
+    && generate_dev_scripts(mono_repo_path, repos_path, test_repos, &mut ctx.io, ctx.flags)?
+    && args.build.dev
+  {
+    open_scripts("dev", mono_repo_path, &mut ctx.io, ctx.flags)?;
+  }
+  Ok(())
 }

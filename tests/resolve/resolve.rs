@@ -291,41 +291,6 @@ fn test_resolve_with_config_cli_positives_override_no_watch_no_dev_config() {
 }
 
 #[test]
-fn test_resolve_fills_repo_from_profile_test_repo() {
-  let mut config = Config::new();
-  config.profiles.insert(
-    "p".to_string(),
-    star_setup::profile::Profile {
-      test_repo: Some("user/app".to_string()),
-      deps: vec![],
-    },
-  );
-  let mut args = default_args();
-  args.mono.profile = Some("p".to_string());
-  let resolved = resolve_with_config(args, &config).unwrap();
-  assert_eq!(resolved.repo, Some("user/app".to_string()));
-}
-
-#[test]
-fn test_resolve_positional_beats_profile_test_repo() {
-  let mut config = Config::new();
-  config.profiles.insert(
-    "p".to_string(),
-    star_setup::profile::Profile {
-      test_repo: Some("user/other".to_string()),
-      deps: vec![],
-    },
-  );
-  let mut args = default_args();
-  args.repo = Some("user/repo".to_string());
-  args.mono.profile = Some("p".to_string());
-  assert_eq!(
-    resolve_with_config(args, &config).unwrap().repo,
-    Some("user/repo".to_string())
-  );
-}
-
-#[test]
 fn test_resolve_unknown_profile_errors() {
   let mut args = default_args();
   args.mono.profile = Some("nope".to_string());

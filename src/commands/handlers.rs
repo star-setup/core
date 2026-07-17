@@ -6,9 +6,10 @@ use crate::{
   config::{add_config, create_default_config, list_configs, remove_config, Config, ConfigEntry},
   ctx::{with_runner, IoCtx, RunFlags},
   profile::{add_profile, list_profiles, remove_profile, Profile},
+  repository::repo_dir_name,
   workspace::resolve_workspace,
 };
-use std::{error::Error, path::PathBuf};
+use std::{collections::BTreeMap, error::Error, path::PathBuf};
 
 /// Handles configuration-related subcommands.
 /// # Errors
@@ -54,10 +55,19 @@ pub fn handle_profile_cmd(
     ProfileAction::Remove { name } => remove_profile(config, &name, yes, io, flags)?,
     ProfileAction::Add {
       name,
-      test_repo,
-      repos,
+      test_repos,
+      deps,
     } => {
-      let profile = Profile::from_args(test_repo, repos)?;
+      let test_repos: BTreeMap<String, String> = test_repos
+        .into_iter()
+        .map(|r| (repo_dir_name(&r), r))
+        .collect();
+      let deps = if deps.is_empty() {
+        BTreeMap::new()
+      } else {
+        BTreeMap::from([("default".to_string(), deps)])
+      };
+      let profile = Profile::from_args(test_repos, deps)?;
       add_profile(config, &name, &profile, yes, io, flags)?;
     }
   }

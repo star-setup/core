@@ -2,15 +2,16 @@
 use crate::utils::process::resolve_exe_args;
 use crate::{
   build::{
-    read_package_json,
+    generate_terminal_scripts, read_package_json,
     BuildSystem::{self, Npm},
   },
   ctx::{IoCtx, RunCtx, RunFlags},
+  repository::repo_dir_name,
   resolve::ResolvedArgs,
 };
 use serde_json::Value;
 use std::{
-  path::Path,
+  path::{Path, PathBuf},
   process::{Command, Stdio},
 };
 
@@ -41,9 +42,9 @@ fn is_vercel_project(repo_path: &Path, json: &Value) -> bool {
       .any(|k| json.get(k).and_then(|d| d.get("@vercel/node")).is_some())
 }
 
-/// Runs the dev server in the foreground, blocking until it exits (Ctrl-C).
+/// Opens the dev server in a new terminal.
 /// # Errors
-/// Returns an error only if the process fails to spawn.
+/// Returns an error if the terminal cannot be opened.
 pub fn open_dev_server(
   repo_path: &Path,
   cmd: &str,
@@ -65,8 +66,19 @@ pub fn open_dev_server(
 
   #[cfg(target_os = "windows")]
   let mut command = {
+    let cmd_esc = cmd.replace('\'', "''");
+    let dir_esc = repo_path.display().to_string().replace('\'', "''");
     let mut c = Command::new("powershell");
-    c.args(["-NoProfile", "-Command", cmd]);
+    c.args([
+      "-NoProfile",
+      "-Command",
+      "Start-Process",
+      "powershell",
+      "-ArgumentList",
+      &format!("'-NoExit','-Command','{cmd_esc}'"),
+      "-WorkingDirectory",
+      &format!("'{dir_esc}'"),
+    ]);
     c
   };
   #[cfg(not(target_os = "windows"))]
@@ -75,22 +87,19 @@ pub fn open_dev_server(
     let resolved = resolve_exe_args(&parts);
     let mut c = Command::new(resolved[0]);
     c.args(&resolved[1..]);
+    c.current_dir(repo_path);
     c
   };
 
   command
-    .current_dir(repo_path)
-    .stdin(Stdio::inherit())
-    .stdout(Stdio::inherit())
-    .stderr(Stdio::inherit());
+    .stdin(Stdio::null())
+    .stdout(Stdio::null())
+    .stderr(Stdio::null());
 
-  match command.spawn() {
-    Err(e) => Err(format!("Failed to start dev server: {e}")),
-    Ok(mut child) => {
-      child.wait().ok();
-      Ok(())
-    }
-  }
+  command
+    .spawn()
+    .map(|_| ())
+    .map_err(|e| format!("Failed to start dev server: {e}"))
 }
 
 /// Opens the project's dev server if `--dev` was passed and the build system is npm.
@@ -114,4 +123,38 @@ pub fn maybe_open_dev_server(
     open_dev_server(repo_path, &cmd, &mut ctx.io, ctx.flags)?;
   }
   Ok(())
+}
+
+/// Generates `dev.ps1` / `dev.sh` launching each test repo's dev server in its
+/// own terminal, so the whole set can be reopened by rerunning the script.
+/// # Errors
+/// Returns an error if the scripts cannot be written.
+pub fn generate_dev_scripts(
+  mono_dir: &Path,
+  repos_path: &Path,
+  test_repos: &[String],
+  io: &mut IoCtx<'_>,
+  flags: RunFlags,
+) -> Result<bool, String> {
+  if test_repos.is_empty() {
+    return Ok(false);
+  }
+  let entries: Vec<(PathBuf, String)> = test_repos
+    .iter()
+    .filter_map(|r| {
+      let dir = repo_dir_name(r);
+      resolve_dev_command(&repos_path.join(&dir), io, flags)
+        .map(|cmd| (mono_dir.join("repos").join(&dir), cmd))
+    })
+    .collect();
+
+  generate_terminal_scripts(
+    "dev",
+    "Run all test repositories",
+    mono_dir,
+    &entries,
+    io,
+    flags,
+  )?;
+  Ok(true)
 }
