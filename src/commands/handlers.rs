@@ -2,7 +2,12 @@ use crate::{
   cli::{
     ConfigAction, ProfileAction,
     WorkspaceAction::{self, Clean, Status, Update},
-  }, config::{Config, ConfigEntry, add_config, create_default_config, list_configs, remove_config}, ctx::{IoCtx, RunFlags, with_runner}, profile::{Profile, add_profile, list_profiles, remove_profile}, repository::repo_dir_name, workspace::resolve_workspace,
+  },
+  config::{add_config, create_default_config, list_configs, remove_config, Config, ConfigEntry},
+  ctx::{with_runner, IoCtx, RunFlags},
+  profile::{add_profile, list_profiles, remove_profile, Profile},
+  repository::repo_dir_name,
+  workspace::resolve_workspace,
 };
 use std::{collections::BTreeMap, error::Error, path::PathBuf};
 
