@@ -76,6 +76,31 @@ fn test_resolve_test_repos_for_mono_from_profile() {
 }
 
 #[test]
+fn test_resolve_dep_repos_for_mono_dedups_shared_deps() {
+  let profile = Profile {
+    test_repos: BTreeMap::from([
+      ("game1".to_string(), "user/game1".to_string()),
+      ("game2".to_string(), "user/game2".to_string()),
+    ]),
+    deps: BTreeMap::from([
+      (
+        "game1".to_string(),
+        vec!["user/engine".to_string(), "user/audio".to_string()],
+      ),
+      (
+        "game2".to_string(),
+        vec!["user/engine".to_string(), "user/ui".to_string()],
+      ),
+    ]),
+  };
+  let args = default_resolved();
+  assert_eq!(
+    resolve_dep_repos_for_mono(&args, Some(&profile)),
+    vec!["user/engine", "user/audio", "user/ui"]
+  );
+}
+
+#[test]
 fn test_resolve_repos_for_mono_with_explicit_repos() {
   let mut args = default_resolved();
   args.mono.repos = Some(vec!["user/lib1".to_string(), "user/lib2".to_string()]);

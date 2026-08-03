@@ -1,4 +1,5 @@
-use crate::{config::Config, profile::Profile, resolve::ResolvedArgs};
+use crate::{config::Config, profile::Profile, repository::repo_dir_name, resolve::ResolvedArgs};
+use std::collections::HashSet;
 
 /// Normalizes a repository input to `username/repo` format.
 /// # Errors
@@ -54,11 +55,15 @@ pub fn resolve_test_repos_for_mono(
   }
 }
 
-/// Resolves the dependency repositories for mono-repo mode from a profile or explicit list.
+/// Resolves the dependency repositories for mono-repo mode from a profile or explicit list, deduplicating deps shared across test repos.
 #[must_use]
 pub fn resolve_dep_repos_for_mono(args: &ResolvedArgs, profile: Option<&Profile>) -> Vec<String> {
+  let mut seen = HashSet::new();
   profile
     .map(|p| p.deps.values().flatten().cloned().collect())
     .or_else(|| args.mono.repos.clone())
     .unwrap_or_default()
+    .into_iter()
+    .filter(|r| seen.insert(repo_dir_name(r)))
+    .collect()
 }
