@@ -1,10 +1,5 @@
+use crate::{config::Config, profile::Profile, repository::repo_dir_name, resolve::ResolvedArgs};
 use std::collections::HashSet;
-use crate::{
-  config::Config,
-  profile::Profile,
-  repository::repo_dir_name,
-  resolve::ResolvedArgs
-};
 
 /// Normalizes a repository input to `username/repo` format.
 /// # Errors

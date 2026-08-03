@@ -1,7 +1,8 @@
 use crate::{
   build::{
     build_project, detect_mono_build_system, generate_dev_scripts, generate_mono_config,
-    generate_watch_scripts, open_scripts, BuildSystem::{self, Npm},
+    generate_watch_scripts, open_scripts,
+    BuildSystem::{self, Npm},
   },
   commands::{
     build_repo_list,
@@ -166,7 +167,13 @@ fn generate_npm_scripts(
     open_scripts("watch", mono_repo_path, &mut ctx.io, ctx.flags)?;
   }
   if !args.build.no_dev
-    && generate_dev_scripts(mono_repo_path, repos_path, test_repos, &mut ctx.io, ctx.flags)?
+    && generate_dev_scripts(
+      mono_repo_path,
+      repos_path,
+      test_repos,
+      &mut ctx.io,
+      ctx.flags,
+    )?
     && args.build.dev
   {
     open_scripts("dev", mono_repo_path, &mut ctx.io, ctx.flags)?;
