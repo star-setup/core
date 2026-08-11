@@ -61,7 +61,7 @@ pub fn resolve_dep_repos_for_mono(args: &ResolvedArgs, profile: Option<&Profile>
   let mut seen = HashSet::new();
   profile
     .map(|p| p.deps.values().flatten().cloned().collect())
-    .or_else(|| args.mono.repos.clone())
+    .or_else(|| args.mono.deps.clone())
     .unwrap_or_default()
     .into_iter()
     .filter(|r| seen.insert(repo_dir_name(r)))

@@ -97,16 +97,16 @@ fn resolve_build_flags(
 }
 
 fn resolve_mono_flags(mono: MonoRepoFlags, default: Option<&ConfigEntry>) -> ResolvedMonoFlags {
-  let repos = mono.repos;
+  let deps = mono.deps;
   let profile = mono.profile;
-  let mono_repo = mono.mono_repo || repos.is_some() || profile.is_some();
+  let mono_repo = mono.mono_repo || deps.is_some() || profile.is_some();
   ResolvedMonoFlags {
     mono_repo,
     mono_dir: mono
       .mono_dir
       .or_else(|| default.map(|e| e.mono_dir.clone()))
       .unwrap_or_else(|| "build-mono".to_string()),
-    repos,
+    deps,
     profile,
   }
 }

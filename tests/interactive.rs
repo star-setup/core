@@ -48,7 +48,7 @@ fn test_interactive_mode_mono_repo_with_profile() {
 }
 
 #[test]
-fn test_interactive_mode_mono_repo_with_manual_repos() {
+fn test_interactive_mode_mono_repo_with_manual_deps() {
   let input = input_with_suffix(b"user/repo\nn\nn\nn\nn\n2\n2\nuser/lib1 user/lib2");
   let (args, _) = with_io_input_output(&input, |io| {
     let mut args = default_resolved();
@@ -58,7 +58,7 @@ fn test_interactive_mode_mono_repo_with_manual_repos() {
 
   assert!(args.mono.mono_repo);
   assert_eq!(
-    args.mono.repos,
+    args.mono.deps,
     Some(vec!["user/lib1".to_string(), "user/lib2".to_string()])
   );
 }

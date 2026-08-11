@@ -42,7 +42,7 @@ pub fn default_args() -> Args {
     mono: MonoRepoFlags {
       mono_repo: false,
       mono_dir: None,
-      repos: None,
+      deps: None,
       profile: None,
     },
   }
@@ -66,12 +66,12 @@ pub fn default_resolved_interactive() -> ResolvedArgs {
   resolve_with_config(default_args(), &Config::new()).unwrap()
 }
 
-pub fn default_resolved_mono(repos: Vec<String>) -> ResolvedArgs {
+pub fn default_resolved_mono(deps: Vec<String>) -> ResolvedArgs {
   let mut args = default_args();
   args.repo = Some("user/test-repo".to_string());
   args.yes = true;
   args.build.no_build = true;
   args.mono.mono_repo = true;
-  args.mono.repos = Some(repos);
+  args.mono.deps = Some(deps);
   resolve_with_config(args, &Config::new()).unwrap()
 }

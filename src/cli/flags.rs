@@ -77,12 +77,12 @@ pub struct MonoRepoFlags {
   #[arg(long)]
   pub mono_dir: Option<String>,
 
-  /// List of library repositories to clone in mono-repo mode
+  /// List of library dependencies to clone in mono-repo mode
   #[arg(long, num_args = 1.., conflicts_with = "profile")]
-  pub repos: Option<Vec<String>>,
+  pub deps: Option<Vec<String>>,
 
-  /// Use saved profile for library repositories
-  #[arg(short = 'p', long, conflicts_with = "repos")]
+  /// Use saved profile
+  #[arg(short = 'p', long, conflicts_with = "deps")]
   pub profile: Option<String>,
 }
 

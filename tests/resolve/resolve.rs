@@ -139,10 +139,10 @@ fn test_resolve_with_config_errors_on_missing_config_name() {
 }
 
 #[test]
-fn test_resolve_with_config_mono_repo_from_repos() {
+fn test_resolve_with_config_mono_repo_from_deps() {
   let config = Config::new();
   let mut args = default_args();
-  args.mono.repos = Some(vec!["user/lib1".to_string()]);
+  args.mono.deps = Some(vec!["user/lib1".to_string()]);
 
   let resolved = resolve_with_config(args, &config).unwrap();
   assert!(resolved.mono.mono_repo);
