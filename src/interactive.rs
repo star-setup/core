@@ -33,7 +33,7 @@ pub fn interactive_mode(args: &mut ResolvedArgs, io: &mut IoCtx<'_>) -> Result<(
     }
   }
 
-  if args.mono.mono_repo && args.mono.profile.is_none() && args.mono.repos.is_none() {
+  if args.mono.mono_repo && args.mono.profile.is_none() && args.mono.deps.is_none() {
     loop {
       match ask("    Mono-repo: (1) Use profile (2) Manual repo list", io)?.as_str() {
         "1" => {
@@ -42,10 +42,10 @@ pub fn interactive_mode(args: &mut ResolvedArgs, io: &mut IoCtx<'_>) -> Result<(
         }
         "2" => {
           let repo_list = ask_required(
-            "    Enter repos (space separated 'username/lib1 username/lib2')",
+            "    Enter dependencies (space separated 'username/lib1 username/lib2')",
             io,
           )?;
-          args.mono.repos = Some(repo_list.split_whitespace().map(String::from).collect());
+          args.mono.deps = Some(repo_list.split_whitespace().map(String::from).collect());
           break;
         }
         _ => {}

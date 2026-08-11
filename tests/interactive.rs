@@ -58,7 +58,7 @@ fn test_interactive_mode_mono_repo_with_manual_repos() {
 
   assert!(args.mono.mono_repo);
   assert_eq!(
-    args.mono.repos,
+    args.mono.deps,
     Some(vec!["user/lib1".to_string(), "user/lib2".to_string()])
   );
 }

@@ -31,7 +31,7 @@ pub struct ResolvedBuildFlags {
 pub struct ResolvedMonoFlags {
   pub mono_repo: bool,
   pub mono_dir: String,
-  pub repos: Option<Vec<String>>,
+  pub deps: Option<Vec<String>>,
   pub profile: Option<String>,
 }
 

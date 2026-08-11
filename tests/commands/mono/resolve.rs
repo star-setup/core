@@ -103,7 +103,7 @@ fn test_resolve_dep_repos_for_mono_dedups_shared_deps() {
 #[test]
 fn test_resolve_repos_for_mono_with_explicit_repos() {
   let mut args = default_resolved();
-  args.mono.repos = Some(vec!["user/lib1".to_string(), "user/lib2".to_string()]);
+  args.mono.deps = Some(vec!["user/lib1".to_string(), "user/lib2".to_string()]);
   assert_eq!(
     resolve_dep_repos_for_mono(&args, None),
     vec!["user/lib1", "user/lib2"]
