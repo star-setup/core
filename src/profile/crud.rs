@@ -53,7 +53,7 @@ pub fn add_profile(
       writeln!(io.output, "  Configuration saved to: {}", path.display()).ok();
     },
   )?;
-  print_profile_details(io.output, "Profile details:", "Repositories", profile);
+  print_profile_details(io.output, "Profile details:", profile);
   writeln!(io.output, "  Usage: star-setup --profile {name}").ok();
   Ok(())
 }
@@ -76,12 +76,7 @@ pub fn remove_profile(
     Some(r) => r.clone(),
   };
 
-  print_profile_details(
-    io.output,
-    &format!("Profile '{name}'"),
-    "Repositories",
-    &profile,
-  );
+  print_profile_details(io.output, &format!("Profile '{name}'"), &profile);
 
   if !confirm_abort(
     &format!("  Are you sure you want to remove profile '{name}'?"),

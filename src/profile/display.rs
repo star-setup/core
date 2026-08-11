@@ -4,7 +4,6 @@ use std::io::Write;
 pub fn print_profile_details(
   output: &mut (impl Write + ?Sized),
   title: &str,
-  label: &str,
   profile: &Profile,
 ) {
   let Profile { test_repos, deps } = profile;
@@ -15,7 +14,7 @@ pub fn print_profile_details(
   if !deps.is_empty() {
     writeln!(
       output,
-      "    {label}: {}",
+      "    Dependencies: {}",
       deps.values().map(Vec::len).sum::<usize>()
     )
     .ok();
@@ -39,7 +38,7 @@ pub fn list_profiles(config: &Config, io: &mut IoCtx<'_>) {
   }
   writeln!(io.output, "Configured profiles:\n").ok();
   for (name, profile) in &config.profiles {
-    print_profile_details(io.output, name, "Repositories", profile);
+    print_profile_details(io.output, name, profile);
     writeln!(io.output).ok();
   }
 }
