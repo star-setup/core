@@ -42,6 +42,14 @@ pub fn resolve_test_repos_for_mono(
   args: &ResolvedArgs,
   profile: Option<&Profile>,
 ) -> Result<Vec<String>, String> {
+  if !args.mono.test_repos.is_empty() {
+    return args
+      .mono
+      .test_repos
+      .iter()
+      .map(|r| resolve_test_repo(r.trim_end_matches('/')))
+      .collect();
+  }
   if let Some(p) = profile {
     return p
       .test_repos
@@ -49,10 +57,7 @@ pub fn resolve_test_repos_for_mono(
       .map(|r| resolve_test_repo(r.trim_end_matches('/')))
       .collect();
   }
-  match args.repo.as_deref() {
-    Some(r) => resolve_test_repo(r.trim_end_matches('/')).map(|r| vec![r]),
-    None => Err("No repository specified".to_string()),
-  }
+  Err("No repository specified".to_string())
 }
 
 /// Resolves the dependency repositories for mono-repo mode from a profile or explicit list, deduplicating deps shared across test repos.

@@ -11,8 +11,12 @@ use crate::{
 pub fn interactive_mode(args: &mut ResolvedArgs, io: &mut IoCtx<'_>) -> Result<(), String> {
   writeln!(io.output, "Star Setup Interactive Mode").ok();
 
-  if args.repo.is_none() {
-    args.repo = Some(ask_required("  Enter repository (user/repo or URL)", io)?);
+  if args.mono.test_repos.is_empty() {
+    let input = ask_required(
+      "  Enter test repositories (space separated user/repo or URL)",
+      io,
+    )?;
+    args.mono.test_repos = input.split_whitespace().map(String::from).collect();
   }
 
   args.connection.ssh = ask_bool_if("  Use SSH?", args.connection.ssh, io)?;
@@ -35,7 +39,12 @@ pub fn interactive_mode(args: &mut ResolvedArgs, io: &mut IoCtx<'_>) -> Result<(
 
   if args.mono.mono_repo && args.mono.profile.is_none() && args.mono.deps.is_none() {
     loop {
-      match ask("    Mono-repo: (1) Use profile (2) Manual dependency list", io)?.as_str() {
+      match ask(
+        "    Mono-repo: (1) Use profile (2) Manual dependency list",
+        io,
+      )?
+      .as_str()
+      {
         "1" => {
           args.mono.profile = Some(ask_required("    Profile name", io)?);
           break;

@@ -17,7 +17,7 @@ fn test_interactive_mode_single_repo() {
     args
   });
 
-  assert_eq!(args.repo, Some("user/repo".to_string()));
+  assert_eq!(args.mono.test_repos, vec!["user/repo".to_string()]);
   assert!(!args.connection.ssh);
   assert!(!args.mono.mono_repo);
 }
@@ -68,12 +68,12 @@ fn test_interactive_mode_skips_repo_prompt_when_set() {
   let input = input_with_suffix(b"n\nn\nn\nn\n1");
   let (args, _) = with_io_input_output(&input, |io| {
     let mut args = default_resolved();
-    args.repo = Some("already/set".to_string());
+    args.mono.test_repos = vec!["already/set".to_string()];
     interactive_mode(&mut args, io).unwrap();
     args
   });
 
-  assert_eq!(args.repo, Some("already/set".to_string()));
+  assert_eq!(args.mono.test_repos, vec!["already/set".to_string()]);
 }
 
 #[test]
@@ -130,7 +130,7 @@ fn test_interactive_mode_invalid_mono_choice_then_valid() {
 fn test_interactive_mode_errors_on_eof() {
   let (result, _) = with_io_input_output(b"", |io| {
     let mut args = default_resolved();
-    args.repo = None;
+    args.mono.test_repos.clear();
     interactive_mode(&mut args, io)
   });
 

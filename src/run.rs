@@ -75,7 +75,7 @@ fn execute(
     return Ok(());
   }
 
-  let has_repo = args.repo.is_some()
+  let has_repo = !args.mono.test_repos.is_empty()
     || args.mono.profile.as_deref().is_some_and(|p| {
       config
         .profiles

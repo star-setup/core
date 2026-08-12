@@ -73,11 +73,15 @@ pub struct MonoRepoFlags {
   #[arg(long)]
   pub mono_repo: bool,
 
-  /// Directory name for mono-repo cloning
+  /// Directory name
   #[arg(long)]
   pub mono_dir: Option<String>,
 
-  /// List of library dependencies to clone in mono-repo mode
+  /// List of test repositories to clone
+  #[arg(long, num_args = 1..)]
+  pub test_repos: Option<Vec<String>>,
+
+  /// List of library dependencies to clone
   #[arg(long, num_args = 1.., conflicts_with = "profile")]
   pub deps: Option<Vec<String>>,
 

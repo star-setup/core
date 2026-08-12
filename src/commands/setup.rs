@@ -56,8 +56,9 @@ pub fn prepare_build_dir(
 /// Returns an error if no repository is specified.
 pub fn extract_repo_input(args: &ResolvedArgs) -> Result<&str, String> {
   args
-    .repo
-    .as_deref()
+    .mono
+    .test_repos
+    .first()
     .map(|r| r.trim_end_matches('/'))
     .ok_or_else(|| "No repository specified".to_string())
 }

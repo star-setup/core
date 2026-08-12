@@ -12,6 +12,7 @@ pub struct ConfigCommand {
 
 /// Config subcommand actions.
 #[derive(Subcommand)]
+#[allow(clippy::large_enum_variant)]
 pub enum ConfigAction {
   /// Create a default config file in the current directory.
   Init,
