@@ -124,8 +124,7 @@ fn resolve_mono_flags(
     .test_repos
     .or_else(|| repo.map(|r| vec![r]))
     .unwrap_or_default();
-  let mono_repo =
-    mono.mono_repo || deps.is_some() || profile.is_some() || test_repos.len() > 1;
+  let mono_repo = mono.mono_repo || deps.is_some() || profile.is_some() || test_repos.len() > 1;
   ResolvedMonoFlags {
     mono_repo,
     mono_dir: mono

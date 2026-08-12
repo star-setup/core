@@ -39,7 +39,12 @@ pub fn interactive_mode(args: &mut ResolvedArgs, io: &mut IoCtx<'_>) -> Result<(
 
   if args.mono.mono_repo && args.mono.profile.is_none() && args.mono.deps.is_none() {
     loop {
-      match ask("    Mono-repo: (1) Use profile (2) Manual dependency list", io)?.as_str() {
+      match ask(
+        "    Mono-repo: (1) Use profile (2) Manual dependency list",
+        io,
+      )?
+      .as_str()
+      {
         "1" => {
           args.mono.profile = Some(ask_required("    Profile name", io)?);
           break;

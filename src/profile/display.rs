@@ -1,11 +1,7 @@
 use crate::{config::Config, ctx::IoCtx, profile::Profile};
 use std::io::Write;
 
-pub fn print_profile_details(
-  output: &mut (impl Write + ?Sized),
-  title: &str,
-  profile: &Profile,
-) {
+pub fn print_profile_details(output: &mut (impl Write + ?Sized), title: &str, profile: &Profile) {
   let Profile { test_repos, deps } = profile;
   writeln!(output, "  {title}").ok();
   for (key, repo) in test_repos {
