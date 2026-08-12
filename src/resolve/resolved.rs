@@ -31,6 +31,7 @@ pub struct ResolvedBuildFlags {
 pub struct ResolvedMonoFlags {
   pub mono_repo: bool,
   pub mono_dir: String,
+  pub test_repos: Vec<String>,
   pub deps: Option<Vec<String>>,
   pub profile: Option<String>,
 }
@@ -38,7 +39,6 @@ pub struct ResolvedMonoFlags {
 /// Fully resolved arguments ready for command execution.
 #[derive(Debug)]
 pub struct ResolvedArgs {
-  pub repo: Option<String>,
   pub yes: bool,
   pub connection: ResolvedConnectionFlags,
   pub diagnostic: RunFlags,

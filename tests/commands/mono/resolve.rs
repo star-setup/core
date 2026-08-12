@@ -55,7 +55,7 @@ fn test_resolve_test_repo_errors() {
 #[test]
 fn test_resolve_test_repos_for_mono_errors_when_no_repo() {
   let mut args = default_resolved();
-  args.repo = None;
+  args.mono.test_repos.clear();
   assert!(resolve_test_repos_for_mono(&args, None).is_err());
 }
 
@@ -68,7 +68,8 @@ fn test_resolve_test_repos_for_mono_from_profile() {
     ]),
     deps: BTreeMap::new(),
   };
-  let args = default_resolved();
+  let mut args = default_resolved();
+  args.mono.test_repos.clear();
   assert_eq!(
     resolve_test_repos_for_mono(&args, Some(&profile)),
     Ok(vec!["user/game1".to_string(), "user/game2".to_string()])

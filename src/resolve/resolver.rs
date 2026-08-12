@@ -96,30 +96,10 @@ fn resolve_build_flags(
   })
 }
 
-fn resolve_mono_flags(mono: MonoRepoFlags, default: Option<&ConfigEntry>) -> ResolvedMonoFlags {
-  let deps = mono.deps;
-  let profile = mono.profile;
-  let mono_repo = mono.mono_repo || deps.is_some() || profile.is_some();
-  ResolvedMonoFlags {
-    mono_repo,
-    mono_dir: mono
-      .mono_dir
-      .or_else(|| default.map(|e| e.mono_dir.clone()))
-      .unwrap_or_else(|| "build-mono".to_string()),
-    deps,
-    profile,
-  }
-}
-
-/// Fills the repo from the named profile's `test_repo` when no positional repo
-/// was given, so all downstream code sees one resolved repo value.
+/// Verifies the named profile exists, if one was requested.
 /// # Errors
 /// Returns an error if `profile` names a profile that does not exist.
-fn resolve_repo(
-  repo: Option<String>,
-  profile: Option<&str>,
-  config: &Config,
-) -> Result<Option<String>, String> {
+fn validate_profile(profile: Option<&str>, config: &Config) -> Result<(), String> {
   if let Some(name) = profile {
     if !config.profiles.contains_key(name) {
       let mut names: Vec<&str> = config.profiles.keys().map(String::as_str).collect();
@@ -130,7 +110,32 @@ fn resolve_repo(
       ));
     }
   }
-  Ok(repo)
+  Ok(())
+}
+
+fn resolve_mono_flags(
+  mono: MonoRepoFlags,
+  repo: Option<String>,
+  default: Option<&ConfigEntry>,
+) -> ResolvedMonoFlags {
+  let deps = mono.deps;
+  let profile = mono.profile;
+  let test_repos = mono
+    .test_repos
+    .or_else(|| repo.map(|r| vec![r]))
+    .unwrap_or_default();
+  let mono_repo =
+    mono.mono_repo || deps.is_some() || profile.is_some() || test_repos.len() > 1;
+  ResolvedMonoFlags {
+    mono_repo,
+    mono_dir: mono
+      .mono_dir
+      .or_else(|| default.map(|e| e.mono_dir.clone()))
+      .unwrap_or_else(|| "build-mono".to_string()),
+    test_repos,
+    deps,
+    profile,
+  }
 }
 
 /// Resolves raw `Args` into `ResolvedArgs` by applying config defaults and CLI overrides.
@@ -144,12 +149,13 @@ pub fn resolve_with_config(args: Args, config: &Config) -> Result<ResolvedArgs, 
     return Err(format!("Configuration '{config_name}' not found"));
   }
 
+  validate_profile(args.mono.profile.as_deref(), config)?;
+
   Ok(ResolvedArgs {
-    repo: resolve_repo(args.repo, args.mono.profile.as_deref(), config)?,
     yes: args.yes,
     connection: resolve_connection_flags(&args.connection, default),
     diagnostic: resolve_run_flags(&args.diagnostic, default),
     build: resolve_build_flags(args.build, default)?,
-    mono: resolve_mono_flags(args.mono, default),
+    mono: resolve_mono_flags(args.mono, args.repo, default),
   })
 }

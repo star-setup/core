@@ -30,6 +30,7 @@ fn test_from_flags_defaults() {
   let mono = MonoRepoFlags {
     mono_repo: false,
     mono_dir: None,
+    test_repos: None,
     deps: None,
     profile: None,
   };
@@ -79,6 +80,7 @@ fn test_from_flags_with_values() {
   let mono = MonoRepoFlags {
     mono_repo: false,
     mono_dir: Some("workspace".to_string()),
+    test_repos: None,
     deps: None,
     profile: None,
   };

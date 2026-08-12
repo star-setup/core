@@ -42,6 +42,7 @@ pub fn default_args() -> Args {
     mono: MonoRepoFlags {
       mono_repo: false,
       mono_dir: None,
+      test_repos: None,
       deps: None,
       profile: None,
     },

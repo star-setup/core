@@ -98,7 +98,7 @@ fn test_mono_repo_mode_multiple_test_repos_opens_all() {
     },
   );
   let mut args = default_resolved_mono(vec![]);
-  args.repo = None;
+  args.mono.test_repos.clear();
   args.mono.profile = Some("multi".to_string());
 
   let (_, output) = with_ctx(MockRunner::new(), |tmp_path, ctx| {
